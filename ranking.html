@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<!-- chameleonjp_lab_ranking / v20260611_21games_difficulty_tabs_v2 / 21件対応・難易度別タブ・コードレビュー済み / アップロード時に ranking.html にリネーム -->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+  />
+  <link rel="icon" href="IMG_7589.JPG" type="image/jpeg" />
+  <link rel="apple-touch-icon" href="IMG_7589.JPG" />
+  <title>詳細ランキング｜カメレオンJPの実験場</title>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --page-bg: #0b241b;
+      --card-bg: #14382b;
+      --card-bg-2: #1b4a39;
+      --card-bg-3: #102d23;
+      --active-tab-bg: #e6ff9f;
+      --active-tab-text: #0b241b;
+      --inactive-tab-bg: #1b4a39;
+      --inactive-tab-border: #6fbf93;
+      --first-score-bg: rgba(230, 255, 159, 0.16);
+      --best-score-bg: rgba(111, 191, 147, 0.20);
+      --neutral-box-bg: rgba(11, 36, 27, 0.48);
+      --text-main: #f6fff9;
+      --text-sub: #d8eee3;
+      --text-muted: #b7d4c5;
+      --button-bg: #e6ff9f;
+      --button-text: #0b241b;
+      --sub-button-bg: #245b45;
+      --sub-button-border: #6fbf93;
+      --disabled-bg: #2b463a;
+      --disabled-text: #94b7a6;
+      --error-text: #ffd1d1;
+      --line: rgba(246, 255, 249, 0.18);
+      --shadow: rgba(0, 0, 0, 0.28);
+      --coming-bg: rgba(230, 255, 159, 0.11);
+      --coming-border: rgba(230, 255, 159, 0.34);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-width: 0;
+      min-height: 100%;
+      overflow-x: hidden;
+      overscroll-behavior-x: none;
+      background: var(--page-bg);
+      color: var(--text-main);
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Hiragino Sans",
+        "Hiragino Kaku Gothic ProN",
+        "Yu Gothic",
+        "Meiryo",
+        sans-serif;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      touch-action: manipulation;
+    }
+
+    body {
+      line-height: 1.6;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    a,
+    button,
+    img,
+    svg,
+    canvas {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    a.button,
+    .button {
+      touch-action: manipulation;
+      font: inherit;
+    }
+
+    a[href],
+    a[href].button,
+    .link-callout {
+      -webkit-touch-callout: default;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 24px 16px 42px;
+    }
+
+    .top-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 16px;
+      color: var(--text-sub);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .hero {
+      padding: 20px 4px 18px;
+      text-align: center;
+    }
+
+    .hero-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px;
+      height: 64px;
+      margin-bottom: 12px;
+      border-radius: 20px;
+      background: var(--card-bg-2);
+      box-shadow: 0 10px 28px var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-icon {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 27px;
+      letter-spacing: 0.02em;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .lead {
+      margin: 10px auto 0;
+      max-width: 560px;
+      color: var(--text-sub);
+      font-size: 15px;
+      overflow-wrap: anywhere;
+    }
+
+    .notice {
+      display: none;
+      margin: 18px 0;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 209, 209, 0.45);
+      border-radius: 14px;
+      background: rgba(90, 30, 30, 0.35);
+      color: var(--error-text);
+      font-size: 14px;
+    }
+
+    .summary-card,
+    .ranking-card,
+    .not-found-card,
+    .coming-card {
+      width: 100%;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--card-bg);
+      box-shadow: 0 14px 32px var(--shadow);
+      overflow: hidden;
+    }
+
+    .summary-card {
+      margin-top: 8px;
+    }
+
+    .summary-title {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .summary-description {
+      margin: 8px 0 0;
+      color: var(--text-sub);
+      font-size: 15px;
+      overflow-wrap: anywhere;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(246, 255, 249, 0.09);
+      border: 1px solid rgba(246, 255, 249, 0.16);
+      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge.ready {
+      color: var(--button-bg);
+      border-color: rgba(230, 255, 159, 0.38);
+      background: rgba(230, 255, 159, 0.1);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .stat-box {
+      min-width: 0;
+      padding: 12px;
+      border-radius: 16px;
+      background: var(--card-bg-2);
+      border: 1px solid var(--line);
+    }
+
+    .stat-label {
+      display: block;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .stat-value {
+      display: block;
+      margin-top: 3px;
+      color: var(--text-main);
+      font-size: 20px;
+      font-weight: 900;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 12px 14px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--button-bg);
+      color: var(--button-text);
+      font-weight: 900;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.22);
+    }
+
+    .button:active {
+      transform: translateY(2px);
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.22);
+    }
+
+    .button.secondary {
+      background: var(--sub-button-bg);
+      color: var(--text-main);
+      border: 1px solid var(--sub-button-border);
+      box-shadow: none;
+    }
+
+    .button.disabled,
+    .button:disabled {
+      background: var(--disabled-bg);
+      color: var(--disabled-text);
+      border: 1px solid rgba(246, 255, 249, 0.12);
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .ranking-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 6px;
+      border-radius: 18px;
+      background: rgba(11, 36, 27, 0.48);
+      border: 1px solid var(--line);
+    }
+
+    .ranking-tab {
+      min-height: 46px;
+      border: 1px solid var(--inactive-tab-border);
+      border-radius: 14px;
+      background: var(--inactive-tab-bg);
+      color: var(--text-main);
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .ranking-tab.active {
+      background: var(--active-tab-bg);
+      color: var(--active-tab-text);
+      border-color: var(--active-tab-bg);
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.22);
+    }
+
+    .ranking-tab:active {
+      transform: translateY(1px);
+    }
+
+    .ranking-area {
+      display: grid;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .ranking-card {
+      background: var(--card-bg-3);
+    }
+
+    .ranking-card[hidden] {
+      display: none;
+    }
+
+    .ranking-title {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.4;
+    }
+
+    .ranking-sub {
+      margin: 4px 0 14px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .ranking-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .detail-row {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(11, 36, 27, 0.48);
+      border: 1px solid var(--line);
+    }
+
+    .detail-main {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 8px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .rank-no {
+      color: var(--button-bg);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .player-name {
+      min-width: 0;
+      color: var(--text-main);
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 8px;
+    }
+
+    .detail-grid.single {
+      grid-template-columns: 1fr;
+    }
+
+    .mini-box {
+      min-width: 0;
+      padding: 9px 10px;
+      border-radius: 13px;
+      background: var(--neutral-box-bg);
+      border: 1px solid rgba(246, 255, 249, 0.12);
+    }
+
+    .mini-box.primary-score.first-score {
+      background: var(--first-score-bg);
+      border-color: rgba(230, 255, 159, 0.32);
+    }
+
+    .mini-box.primary-score.best-score {
+      background: var(--best-score-bg);
+      border-color: rgba(111, 191, 147, 0.42);
+    }
+
+    .mini-label {
+      display: block;
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .mini-box.primary-score .mini-label {
+      color: #eaf8ef;
+    }
+
+    .mini-value {
+      display: block;
+      margin-top: 2px;
+      color: var(--text-main);
+      font-size: 14px;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .mini-box.primary-score .mini-value {
+      font-size: 17px;
+      font-weight: 950;
+    }
+
+    .empty,
+    .loading,
+    .error,
+    .coming-soon {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(11, 36, 27, 0.45);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .empty,
+    .loading {
+      color: var(--text-sub);
+    }
+
+    .error {
+      color: var(--error-text);
+    }
+
+    .coming-soon {
+      color: var(--button-bg);
+      font-weight: 900;
+      text-align: center;
+      letter-spacing: 0.04em;
+      background: var(--coming-bg);
+      border: 1px solid var(--coming-border);
+    }
+
+    .bottom-actions {
+      margin-top: 18px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .bottom-actions .button {
+      width: 100%;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      z-index: 10;
+      width: calc(100% - 32px);
+      max-width: 420px;
+      padding: 12px 14px;
+      border-radius: 999px;
+      background: #f6fff9;
+      color: #0b241b;
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.32);
+      transform: translateX(-50%) translateY(120px);
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.22s ease;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    @media (max-width: 430px) {
+      .page {
+        padding: 20px 12px 36px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .summary-card,
+      .ranking-card,
+      .not-found-card,
+      .coming-card {
+        padding: 16px;
+        border-radius: 20px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        grid-template-columns: 1fr;
+      }
+
+      .ranking-switch {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    a:focus-visible,
+    button:focus-visible,
+    .button:focus-visible,
+    .accordion-toggle:focus-visible,
+    .ranking-tab:focus-visible {
+      outline: 3px solid var(--button-bg);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <a class="top-link" href="/chameleonjp_lab/">← 実験場トップへ戻る</a>
+
+    <header class="hero">
+      <div class="hero-mark" aria-hidden="true">
+        <img class="hero-icon" src="IMG_7589.JPG" alt="" />
+      </div>
+      <h1 id="pageTitle">詳細ランキング</h1>
+      <p id="pageLead" class="lead">ランキングを読み込み中です。</p>
+    </header>
+
+    <section id="keyNotice" class="notice">
+      Supabase の Publishable key が未設定です。コード内の const SUPABASE_PUBLISHABLE_KEY の値だけを差し替えるとランキングを読み込めます。
+    </section>
+
+    <section id="libraryNotice" class="notice">
+      ランキング用ライブラリを読み込めませんでした。ページは表示できますが、ランキングは表示できません。
+    </section>
+
+    <section id="contentArea"></section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script>
+    (function preventMobileBrowserGestures() {
+      let lastTouchEnd = 0;
+
+      document.addEventListener(
+        "touchend",
+        function (event) {
+          const now = Date.now();
+          const interactive =
+            event.target &&
+            event.target.closest &&
+            event.target.closest(
+              "a, button, .button, [data-ranking-tab], [data-difficulty-tab]"
+            );
+
+          if (!interactive && now - lastTouchEnd <= 350) {
+            event.preventDefault();
+          }
+
+          lastTouchEnd = now;
+        },
+        { passive: false }
+      );
+
+      document.addEventListener(
+        "touchmove",
+        function (event) {
+          if (event.touches && event.touches.length > 1) {
+            event.preventDefault();
+          }
+        },
+        { passive: false }
+      );
+
+      ["gesturestart", "gesturechange", "gestureend"].forEach((eventName) => {
+        document.addEventListener(
+          eventName,
+          function (event) {
+            event.preventDefault();
+          },
+          { passive: false }
+        );
+      });
+
+      document.addEventListener("dblclick", function (event) {
+        event.preventDefault();
+      });
+
+      document.addEventListener("contextmenu", function (event) {
+        const link =
+          event.target &&
+          event.target.closest &&
+          event.target.closest("a[href]");
+
+        if (link) return;
+        event.preventDefault();
+      });
+    })();
+
+    const SUPABASE_URL = "https://mlpnjgezrnhdxsxolyzj.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_drzcy0v97knU6FgjqSgBHw_0A9XPdFM";
+    const DETAIL_LIMIT = 100;
+
+    const GAME_PAGES = [
+      {
+            "pageSlug": "torani_yasashiku",
+            "title": "虎に優しく",
+            "url": "https://chameleonjp.codeberg.page/torani_yasashiku/",
+            "description": "虎を優しく受け止める60秒ミニゲーム",
+            "shareText": "虎に優しくで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 1,
+                        "slug": "torani_yasashiku",
+                        "title": "虎に優しく",
+                        "url": "https://chameleonjp.codeberg.page/torani_yasashiku/",
+                        "description": "虎を優しく受け止める60秒ミニゲーム",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "desc",
+                        "scoreUnit": "点",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": "スコア",
+                        "firstScoreLabel": "初回スコア",
+                        "bestScoreLabel": "最高スコア",
+                        "releaseDate": "2026-05-25",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "nayuta_no_himatsubushi",
+            "title": "暇つぶし",
+            "url": "https://chameleonjp.codeberg.page/nayuta_no_himatsubushi/",
+            "description": "スマホ向けブロック崩しゲーム",
+            "shareText": "暇つぶしで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 2,
+                        "slug": "nayuta_no_himatsubushi",
+                        "title": "暇つぶし",
+                        "url": "https://chameleonjp.codeberg.page/nayuta_no_himatsubushi/",
+                        "description": "スマホ向けブロック崩しゲーム",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "desc",
+                        "scoreUnit": "点",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": "スコア",
+                        "firstScoreLabel": "初回スコア",
+                        "bestScoreLabel": "最高スコア",
+                        "releaseDate": "2026-05-25",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "iroate",
+            "title": "イロアテ",
+            "url": "https://chameleonjp.codeberg.page/iroate/",
+            "description": "文字の意味と文字の色を見分けて、20問の最終タイムを競うゲームです。",
+            "shareText": "イロアテで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 3,
+                        "slug": "iroate",
+                        "title": "イロアテ",
+                        "url": "https://chameleonjp.codeberg.page/iroate/",
+                        "description": "文字の意味と文字の色を見分けて、20問の最終タイムを競うゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "asc",
+                        "scoreUnit": "秒",
+                        "scoreScale": 100,
+                        "scoreDecimals": 2,
+                        "scoreLabel": "タイム",
+                        "firstScoreLabel": "初回タイム",
+                        "bestScoreLabel": "ベストタイム",
+                        "releaseDate": "2026-05-25",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "yume_wo_mitandakedosa",
+            "title": "夢を見たんだけどさ",
+            "url": "https://chameleonjp.codeberg.page/yume_wo_mitandakedosa/",
+            "description": "夜空から降ってくる流星を避けながら、赤い流星を壊し、🍶を拾って生きのびる60秒ゲームです。",
+            "shareText": "夢を見たんだけどさで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 4,
+                        "slug": "yume_wo_mitandakedosa",
+                        "title": "夢を見たんだけどさ",
+                        "url": "https://chameleonjp.codeberg.page/yume_wo_mitandakedosa/",
+                        "description": "夜空から降ってくる流星を避けながら、赤い流星を壊し、🍶を拾って生きのびる60秒ゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "desc",
+                        "scoreUnit": "点",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": "スコア",
+                        "firstScoreLabel": "初回スコア",
+                        "bestScoreLabel": "最高スコア",
+                        "releaseDate": "2026-05-26",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "suiteki_catch",
+            "title": "水滴キャッチ",
+            "url": "https://chameleonjp.codeberg.page/suiteki_catch/",
+            "description": "水滴がコップに完全に入ったと思ったら操作するゲーム",
+            "shareText": "水滴キャッチで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 5,
+                        "slug": "suiteki_catch",
+                        "title": "水滴キャッチ",
+                        "url": "https://chameleonjp.codeberg.page/suiteki_catch/",
+                        "description": "水滴がコップに完全に入ったと思ったら操作するゲーム",
+                        "isActive": true,
+                        "topRanking": "first",
+                        "scoreOrder": "desc",
+                        "scoreUnit": "点",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": "スコア",
+                        "firstScoreLabel": "初回スコア",
+                        "bestScoreLabel": "最高スコア",
+                        "releaseDate": "2026-05-24",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "jouzuni_kakerukana",
+            "title": "上手に描けるかな？",
+            "url": "https://chameleonjp.codeberg.page/jouzuni_kakerukana/",
+            "description": "表示された点を見ながら、指で線や図形を一筆で描くゲームです。",
+            "shareText": "上手に描けるかな？で遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 6,
+                        "slug": "jouzuni_kakerukana",
+                        "title": "上手に描けるかな？",
+                        "url": "https://chameleonjp.codeberg.page/jouzuni_kakerukana/",
+                        "description": "表示された点を見ながら、指で線や図形を一筆で描くゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "desc",
+                        "scoreUnit": "pt",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": "スコア",
+                        "firstScoreLabel": "初回スコア",
+                        "bestScoreLabel": "最高スコア",
+                        "releaseDate": "2026-05-29",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "juden_ga",
+            "title": "充電ｶﾞｯ",
+            "url": "https://chameleonjp.codeberg.page/juden_ga/",
+            "description": "バッテリーカードで読み合う、1人用カードゲームです。",
+            "shareText": "充電ｶﾞｯで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 7,
+                        "slug": "juden_ga",
+                        "title": "充電ｶﾞｯ",
+                        "url": "https://chameleonjp.codeberg.page/juden_ga/",
+                        "description": "バッテリーカードで読み合う、1人用カードゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "desc",
+                        "scoreUnit": "点",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": "スコア",
+                        "firstScoreLabel": "初回スコア",
+                        "bestScoreLabel": "最高スコア",
+                        "releaseDate": "2026-05-29",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "anatano_1byou",
+            "title": "あなたの1秒って",
+            "url": "https://chameleonjp.codeberg.page/anatano_1byou/",
+            "description": "最初の3秒だけ時計を見て、あとは体感で秒数を当てるゲームです。",
+            "shareText": "あなたの1秒ってで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 8,
+                        "slug": "anatano_1byou",
+                        "title": "あなたの1秒って",
+                        "url": "https://chameleonjp.codeberg.page/anatano_1byou/",
+                        "description": "最初の3秒だけ時計を見て、あとは体感で秒数を当てるゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "asc",
+                        "scoreUnit": "秒",
+                        "scoreScale": 100,
+                        "scoreDecimals": 2,
+                        "scoreLabel": "合計誤差",
+                        "firstScoreLabel": "初回誤差",
+                        "bestScoreLabel": "ベスト誤差",
+                        "releaseDate": "2026-05-29",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "bekutoru",
+            "title": "ベク取る",
+            "url": "https://chameleonjp.codeberg.page/bekutoru/",
+            "description": "可愛い🐼を逃がしてあげよう！",
+            "shareText": "ベク取るで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 9,
+                        "slug": "bekutoru",
+                        "title": "ベク取る",
+                        "url": "https://chameleonjp.codeberg.page/bekutoru/",
+                        "description": "可愛い🐼を逃がしてあげよう！",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "asc",
+                        "scoreUnit": "秒",
+                        "scoreScale": 1000,
+                        "scoreDecimals": 3,
+                        "scoreLabel": "クリアタイム",
+                        "firstScoreLabel": "初回タイム",
+                        "bestScoreLabel": "ベストタイム",
+                        "releaseDate": "2026-06-09",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "songen_wo_kakeyouka",
+            "title": "尊厳を賭けようか",
+            "url": "https://chameleonjp.codeberg.page/songen_wo_kakeyouka/",
+            "description": "相手の頭を！心臓を！拳で殴って尊厳破壊！",
+            "shareText": "尊厳を賭けようかで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 10,
+                        "slug": "songen_wo_kakeyouka",
+                        "title": "尊厳を賭けようか",
+                        "url": "https://chameleonjp.codeberg.page/songen_wo_kakeyouka/",
+                        "description": "相手の頭を！心臓を！拳で殴って尊厳破壊！",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "desc",
+                        "scoreUnit": "点",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": "スコア",
+                        "firstScoreLabel": "初回スコア",
+                        "bestScoreLabel": "最高スコア",
+                        "releaseDate": "2026-06-06",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "hito_wo_yurusuna",
+            "title": "ヒトを許すな！",
+            "url": "https://chameleonjp.codeberg.page/hito_wo_yurusuna/",
+            "description": "ヒトを許さない動物たちが攻めてくる。武器を置いて、👨‍🌾を守れ。",
+            "shareText": "ヒトを許すな！で遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 11,
+                        "slug": "hito_wo_yurusuna",
+                        "title": "ヒトを許すな！",
+                        "url": "https://chameleonjp.codeberg.page/hito_wo_yurusuna/",
+                        "description": "ヒトを許さない動物たちが攻めてくる。武器を置いて、👨‍🌾を守れ。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "desc",
+                        "scoreUnit": "点",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": null,
+                        "firstScoreLabel": "初回スコア",
+                        "bestScoreLabel": "最高スコア",
+                        "releaseDate": "2026-06-08",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "maketara_omae_no_sei_dakara",
+            "title": "負けたらお前のせいだから",
+            "url": "https://chameleonjp.codeberg.page/maketara_omae_no_sei_dakara/",
+            "description": "夏の甲子園決勝、9回裏1点リード。理不尽に送り出された控え投手として、負けたら全部お前のせいやでと言われながら3アウトを取りにいくルーレット投球ゲームです。",
+            "shareText": "負けたらお前のせいだからで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 12,
+                        "slug": "maketara_omae_no_sei_dakara",
+                        "title": "負けたらお前のせいだから",
+                        "url": "https://chameleonjp.codeberg.page/maketara_omae_no_sei_dakara/",
+                        "description": "夏の甲子園決勝、9回裏1点リード。理不尽に送り出された控え投手として、負けたら全部お前のせいやでと言われながら3アウトを取りにいくルーレット投球ゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "desc",
+                        "scoreUnit": "点",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": "最終スコア",
+                        "firstScoreLabel": "初回スコア",
+                        "bestScoreLabel": "ベストスコア",
+                        "releaseDate": "2026-06-10",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "kodomo_demo_tokechau",
+            "title": "子供デモ解けちゃう",
+            "url": "https://chameleonjp.codeberg.page/kodomo_demo_tokechau/",
+            "description": "計算の答えを、数字カードで入力する早押しミニゲームです。",
+            "shareText": "子供デモ解けちゃうで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 13,
+                        "slug": "kodomo_demo_tokechau",
+                        "title": "子供デモ解けちゃう",
+                        "url": "https://chameleonjp.codeberg.page/kodomo_demo_tokechau/",
+                        "description": "計算の答えを、数字カードで入力する早押しミニゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "desc",
+                        "scoreUnit": "点",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": "スコア",
+                        "firstScoreLabel": "初回スコア",
+                        "bestScoreLabel": "最高スコア",
+                        "releaseDate": "2026-06-10",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "meoshi_wo_seisu",
+            "title": "目押しを制す",
+            "url": "https://chameleonjp.codeberg.page/meoshi_wo_seisu/",
+            "description": "絵柄を目押しで止めて、クリアまでのゲーム数を競うゲームです。",
+            "shareText": "目押しを制すで遊んでみて！",
+            "defaultDifficultyKey": "hard",
+            "difficulties": [
+                  {
+                        "displayOrder": 14,
+                        "slug": "meoshi_wo_seisu_normal",
+                        "title": "目押しを制す ノーマル",
+                        "url": "https://chameleonjp.codeberg.page/meoshi_wo_seisu/",
+                        "description": "絵柄を目押しで止めて、クリアまでのゲーム数を競うゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "asc",
+                        "scoreUnit": "ゲーム",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": null,
+                        "firstScoreLabel": "初回ゲーム数",
+                        "bestScoreLabel": "ベストゲーム数",
+                        "releaseDate": "2026-06-10",
+                        "key": "normal",
+                        "difficultyLabel": "ノーマル",
+                        "shareText": "目押しを制す ノーマルで遊んでみて！"
+                  },
+                  {
+                        "displayOrder": 15,
+                        "slug": "meoshi_wo_seisu_hard",
+                        "title": "目押しを制す ハード",
+                        "url": "https://chameleonjp.codeberg.page/meoshi_wo_seisu/",
+                        "description": "絵柄を目押しで止めて、クリアまでのゲーム数を競うゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "asc",
+                        "scoreUnit": "ゲーム",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": null,
+                        "firstScoreLabel": "初回ゲーム数",
+                        "bestScoreLabel": "ベストゲーム数",
+                        "releaseDate": "2026-06-10",
+                        "key": "hard",
+                        "difficultyLabel": "ハード",
+                        "shareText": "目押しを制す ハードで遊んでみて！"
+                  }
+            ]
+      },
+      {
+            "pageSlug": "toreba_iinoyo",
+            "title": "取ればいいのよ",
+            "url": "https://chameleonjp.codeberg.page/toreba_iinoyo/",
+            "description": "落ちてくる棒を、手のラインで受け取る反射ゲームです。",
+            "shareText": "取ればいいのよで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 16,
+                        "slug": "toreba_iinoyo",
+                        "title": "取ればいいのよ",
+                        "url": "https://chameleonjp.codeberg.page/toreba_iinoyo/",
+                        "description": "落ちてくる棒を、手のラインで受け取る反射ゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "desc",
+                        "scoreUnit": "点",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": "スコア",
+                        "firstScoreLabel": "初回スコア",
+                        "bestScoreLabel": "最高スコア",
+                        "releaseDate": "2026-06-10",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "shiwakezaru",
+            "title": "仕分けざる",
+            "url": "https://chameleonjp.codeberg.page/shiwakezaru/",
+            "description": "流れてくる猿を、同じ猿の場所へ仕分けるスマホ向けゲームです。",
+            "shareText": "仕分けざるで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 17,
+                        "slug": "shiwakezaru",
+                        "title": "仕分けざる",
+                        "url": "https://chameleonjp.codeberg.page/shiwakezaru/",
+                        "description": "流れてくる猿を、同じ猿の場所へ仕分けるスマホ向けゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "desc",
+                        "scoreUnit": "点",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": "スコア",
+                        "firstScoreLabel": "初回スコア",
+                        "bestScoreLabel": "最高スコア",
+                        "releaseDate": "2026-06-10",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "emojihiroi",
+            "title": "絵文字拾い",
+            "url": "https://chameleonjp.codeberg.page/emojihiroi/",
+            "description": "8×8の中から、お題の絵文字を探して全部消すタイムアタックゲームです。",
+            "shareText": "絵文字拾いで遊んでみて！",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 18,
+                        "slug": "emojihiroi",
+                        "title": "絵文字拾い",
+                        "url": "https://chameleonjp.codeberg.page/emojihiroi/",
+                        "description": "8×8の中から、お題の絵文字を探して全部消すタイムアタックゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "asc",
+                        "scoreUnit": "秒",
+                        "scoreScale": 100,
+                        "scoreDecimals": 2,
+                        "scoreLabel": "最終タイム",
+                        "firstScoreLabel": "初回タイム",
+                        "bestScoreLabel": "ベストタイム",
+                        "releaseDate": "2026-06-10",
+                        "key": "main",
+                        "difficultyLabel": ""
+                  }
+            ]
+      },
+      {
+            "pageSlug": "machigai_mikke",
+            "title": "間違いみっけ",
+            "url": "https://chameleonjp.codeberg.page/machigai_mikke/",
+            "description": "見本と手元の見本を見比べて、違う場所を9個見つけるゲームです。",
+            "shareText": "間違いみっけで遊んでみて！",
+            "defaultDifficultyKey": "super_hard",
+            "difficulties": [
+                  {
+                        "displayOrder": 19,
+                        "slug": "machigai_mikke_easy",
+                        "title": "間違いみっけ イージー",
+                        "url": "https://chameleonjp.codeberg.page/machigai_mikke/",
+                        "description": "上の見本と手元の見本を見比べて、違う場所を9個見つけるゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "asc",
+                        "scoreUnit": "秒",
+                        "scoreScale": 100,
+                        "scoreDecimals": 2,
+                        "scoreLabel": "最終タイム",
+                        "firstScoreLabel": "初回タイム",
+                        "bestScoreLabel": "ベストタイム",
+                        "releaseDate": "2026-06-10",
+                        "key": "easy",
+                        "difficultyLabel": "イージー",
+                        "shareText": "間違いみっけ イージーで遊んでみて！"
+                  },
+                  {
+                        "displayOrder": 20,
+                        "slug": "machigai_mikke_hard",
+                        "title": "間違いみっけ ハード",
+                        "url": "https://chameleonjp.codeberg.page/machigai_mikke/",
+                        "description": "上下反転した手元の見本から、違う場所を9個見つけるゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "asc",
+                        "scoreUnit": "秒",
+                        "scoreScale": 100,
+                        "scoreDecimals": 2,
+                        "scoreLabel": "最終タイム",
+                        "firstScoreLabel": "初回タイム",
+                        "bestScoreLabel": "ベストタイム",
+                        "releaseDate": "2026-06-10",
+                        "key": "hard",
+                        "difficultyLabel": "ハード",
+                        "shareText": "間違いみっけ ハードで遊んでみて！"
+                  },
+                  {
+                        "displayOrder": 21,
+                        "slug": "machigai_mikke_super_hard",
+                        "title": "間違いみっけ 超ハード",
+                        "url": "https://chameleonjp.codeberg.page/machigai_mikke/",
+                        "description": "上下反転かつ左右反転した時計絵文字の見本から、違う場所を9個見つけるゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "asc",
+                        "scoreUnit": "秒",
+                        "scoreScale": 100,
+                        "scoreDecimals": 2,
+                        "scoreLabel": "最終タイム",
+                        "firstScoreLabel": "初回タイム",
+                        "bestScoreLabel": "ベストタイム",
+                        "releaseDate": "2026-06-10",
+                        "key": "super_hard",
+                        "difficultyLabel": "超ハード",
+                        "shareText": "間違いみっけ 超ハードで遊んでみて！"
+                  }
+            ]
+      }
+];
+
+    function getSupabasePublishableKey() {
+      return String(SUPABASE_PUBLISHABLE_KEY || "").trim();
+    }
+
+    function hasSupabasePublishableKey() {
+      const key = getSupabasePublishableKey();
+      return Boolean(
+        key &&
+        key.length > 20 &&
+        !key.includes("ここに") &&
+        !/YOUR|PASTE|PLACEHOLDER|PUBLISHABLE KEY/i.test(key)
+      );
+    }
+
+    const isKeyUnset = !hasSupabasePublishableKey();
+    let supabaseClient = null;
+    let currentLoadToken = 0;
+
+    const pageTitleEl = document.getElementById("pageTitle");
+    const pageLeadEl = document.getElementById("pageLead");
+    const keyNoticeEl = document.getElementById("keyNotice");
+    const libraryNoticeEl = document.getElementById("libraryNotice");
+    const contentAreaEl = document.getElementById("contentArea");
+    const toastEl = document.getElementById("toast");
+
+    function cleanText(value) {
+      if (value === null || value === undefined) return undefined;
+      const text = String(value).trim();
+      if (!text || text.toLowerCase() === "null") return undefined;
+      return text;
+    }
+
+    function setupSupabase() {
+      if (supabaseClient || isKeyUnset) return supabaseClient;
+
+      supabaseClient =
+        window.supabase && typeof window.supabase.createClient === "function"
+          ? window.supabase.createClient(SUPABASE_URL, getSupabasePublishableKey())
+          : null;
+
+      if (!supabaseClient && !isKeyUnset) {
+        libraryNoticeEl.style.display = "block";
+      }
+
+      return supabaseClient;
+    }
+
+    async function waitForSupabaseSetup() {
+      if (isKeyUnset || supabaseClient) return supabaseClient;
+
+      if (document.readyState === "loading") {
+        await new Promise((resolve) => {
+          document.addEventListener("DOMContentLoaded", resolve, { once: true });
+        });
+      } else {
+        await new Promise((resolve) => window.setTimeout(resolve, 0));
+      }
+
+      if (!supabaseClient) setupSupabase();
+      return supabaseClient;
+    }
+
+    function normalizeGameMetadata(row) {
+      if (!row) return {};
+      const scoreScale = Number(row.score_scale || 1);
+      const scoreDecimals = Number(row.score_decimals || 0);
+
+      return {
+        scoreOrder: cleanText(row.score_order),
+        scoreUnit: cleanText(row.score_unit),
+        scoreScale: Number.isFinite(scoreScale) && scoreScale > 0 ? scoreScale : 1,
+        scoreDecimals: Number.isInteger(scoreDecimals) ? scoreDecimals : 0,
+        scoreLabel: cleanText(row.score_label),
+        firstScoreLabel: cleanText(row.first_score_label),
+        bestScoreLabel: cleanText(row.best_score_label)
+      };
+    }
+
+    async function loadGameMetadata(game) {
+      if (!game) return null;
+
+      const fallback = {
+        ...game,
+        scoreScale: Number(game.scoreScale || 1),
+        scoreDecimals: Number(game.scoreDecimals || 0)
+      };
+
+      if (isKeyUnset) return fallback;
+
+      await waitForSupabaseSetup();
+
+      if (!supabaseClient) return fallback;
+
+      try {
+        const { data, error } = await supabaseClient
+          .from("games")
+          .select("game_slug, score_order, score_unit, score_scale, score_decimals, score_label, first_score_label, best_score_label")
+          .eq("game_slug", game.slug)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (error || !data) {
+          if (error) console.warn("games metadata load error:", error);
+          return fallback;
+        }
+
+        return {
+          ...fallback,
+          ...normalizeGameMetadata(data)
+        };
+      } catch (error) {
+        console.warn("games metadata load failed:", error);
+        return fallback;
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatNumber(value) {
+      const num = Number(value);
+      if (!Number.isFinite(num)) return "0";
+      return num.toLocaleString("ja-JP");
+    }
+
+    function scoreText(score, gameOrUnit) {
+      if (score === null || score === undefined || score === "") return "—";
+
+      const numericScore = Number(score);
+      if (!Number.isFinite(numericScore)) return "—";
+
+      const game = typeof gameOrUnit === "object" && gameOrUnit !== null ? gameOrUnit : null;
+      const unit = game ? cleanText(game.scoreUnit) || "" : gameOrUnit || "";
+      const scale = game && Number(game.scoreScale) > 0 ? Number(game.scoreScale) : 1;
+      const decimals =
+        game && Number.isInteger(Number(game.scoreDecimals))
+          ? Number(game.scoreDecimals)
+          : scale > 1
+            ? 2
+            : 0;
+      const displayValue = numericScore / scale;
+      const formatted =
+        decimals > 0
+          ? displayValue.toLocaleString("ja-JP", {
+              minimumFractionDigits: decimals,
+              maximumFractionDigits: decimals
+            })
+          : formatNumber(displayValue);
+
+      return `${formatted}${unit}`;
+    }
+
+    function isTimeScoreGame(game) {
+      return game?.scoreUnit === "秒";
+    }
+
+    function firstScoreLabel(game) {
+      return cleanText(game?.firstScoreLabel) || (isTimeScoreGame(game) ? "初回タイム" : "初回スコア");
+    }
+
+    function bestScoreLabel(game) {
+      const label = cleanText(game?.bestScoreLabel);
+      if (label) return label;
+      if (isTimeScoreGame(game)) return game.scoreOrder === "asc" ? "ベストタイム" : "最長記録";
+      return "最高スコア";
+    }
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add("show");
+
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => {
+        toastEl.classList.remove("show");
+      }, 2400);
+    }
+
+    function buildShareMessage(page) {
+      return `${page.shareText || `${page.title}で遊んでみて！`}
+${page.url || "公開URL確認中"}`;
+    }
+
+    async function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      textarea.style.top = "0";
+      textarea.style.opacity = "0";
+      textarea.style.userSelect = "text";
+      textarea.style.webkitUserSelect = "text";
+
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+
+      const ok = document.execCommand("copy");
+      document.body.removeChild(textarea);
+
+      if (!ok) throw new Error("copy failed");
+    }
+
+    async function shareGame(page) {
+      const text = buildShareMessage(page);
+
+      try {
+        if (navigator.share && page.url) {
+          await navigator.share({
+            title: page.title,
+            text
+          });
+          return;
+        }
+
+        await copyText(text);
+        showToast("シェア文をコピーしました");
+      } catch (error) {
+        if (error && error.name === "AbortError") return;
+
+        try {
+          await copyText(text);
+          showToast("シェア文をコピーしました");
+        } catch (copyError) {
+          showToast("コピーできませんでした");
+        }
+      }
+    }
+
+    function normalizeGameSlug(slug) {
+      const value = cleanText(slug);
+      if (!value) return "";
+      const aliases = {
+        anatano_1byo: "anatano_1byou",
+        songen_o_kakeyouka: "songen_wo_kakeyouka",
+        hito_o_yurusuna: "hito_wo_yurusuna",
+        meoshi_wo_seisu_easy: "meoshi_wo_seisu_normal"
+      };
+      return aliases[value] || value;
+    }
+
+    function findPageBySlug(slug) {
+      return GAME_PAGES.find((page) => page.pageSlug === slug || page.difficulties.some((game) => game.slug === slug));
+    }
+
+    function getDefaultDifficulty(page) {
+      if (!page) return null;
+      return page.difficulties.find((game) => game.key === page.defaultDifficultyKey) || page.difficulties[0] || null;
+    }
+
+    function getDifficultyFromPage(page, requestedDifficulty, requestedSlug) {
+      if (!page) return null;
+      const normalizedDifficulty = normalizeGameSlug(requestedDifficulty);
+      const normalizedSlug = normalizeGameSlug(requestedSlug);
+
+      return (
+        page.difficulties.find((game) => game.key === normalizedDifficulty || game.slug === normalizedDifficulty) ||
+        page.difficulties.find((game) => game.slug === normalizedSlug) ||
+        getDefaultDifficulty(page)
+      );
+    }
+
+    function resolveGameFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const requestedSlug = normalizeGameSlug(params.get("game"));
+      const requestedDifficulty = params.get("difficulty");
+      const page = findPageBySlug(requestedSlug);
+
+      if (!page) return null;
+
+      return {
+        page,
+        difficulty: getDifficultyFromPage(page, requestedDifficulty, requestedSlug)
+      };
+    }
+
+    function renderNotFound() {
+      pageTitleEl.textContent = "ゲームが見つかりません";
+      pageLeadEl.textContent = "指定されたゲームが見つかりませんでした。トップページから選び直してください。";
+
+      contentAreaEl.innerHTML = `
+        <section class="not-found-card">
+          <p class="error">指定されたゲームが見つかりませんでした。</p>
+          <div class="bottom-actions">
+            <a class="button" href="/chameleonjp_lab/">トップページへ戻る</a>
+          </div>
+        </section>
+      `;
+    }
+
+    function difficultyTabsHtml(page, selectedGame) {
+      if (!page || !Array.isArray(page.difficulties) || page.difficulties.length <= 1) return "";
+
+      return `
+        <div class="ranking-switch" role="tablist" aria-label="難易度切り替え">
+          ${page.difficulties.map((difficulty) => {
+            const active = difficulty.slug === selectedGame.slug;
+            return `
+              <button
+                class="ranking-tab${active ? " active" : ""}"
+                type="button"
+                role="tab"
+                aria-selected="${active ? "true" : "false"}"
+                data-difficulty-tab="${escapeHtml(difficulty.slug)}"
+              >${escapeHtml(difficulty.difficultyLabel || difficulty.title)}</button>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function renderBase(page, game) {
+      pageTitleEl.textContent = `${page.title} 詳細ランキング`;
+      pageLeadEl.textContent = cleanText(game.description) || cleanText(page.description) || "ランキングを表示します。";
+
+      const firstLabel = firstScoreLabel(game);
+      const bestLabel = bestScoreLabel(game);
+      const showDifficultyBadge = page.difficulties.length > 1 && cleanText(game.difficultyLabel);
+
+      contentAreaEl.innerHTML = `
+        <section class="summary-card">
+          <h2 class="summary-title">${escapeHtml(page.title)}</h2>
+          <p class="summary-description">${escapeHtml(cleanText(game.description) || cleanText(page.description) || "説明は準備中です。")}</p>
+          <div class="badge-row">
+            <span class="badge">公開済み</span>
+            ${showDifficultyBadge ? `<span class="badge ready">${escapeHtml(game.difficultyLabel)}</span>` : ""}
+            <span class="badge ready">ランキング自動確認</span>
+          </div>
+
+          <div class="stats" aria-label="${escapeHtml(page.title)}の集計">
+            <div class="stat-box">
+              <span class="stat-label">合計プレイ回数</span>
+              <span class="stat-value" id="totalPlayCount">読み込み中</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">参加人数</span>
+              <span class="stat-value" id="playerCount">読み込み中</span>
+            </div>
+          </div>
+
+          <div class="actions">
+            <a class="button link-callout" href="${escapeHtml(page.url)}">ゲームで遊ぶ</a>
+            <button class="button secondary" type="button" id="shareButton">シェア</button>
+          </div>
+
+          ${difficultyTabsHtml(page, game)}
+
+          <div class="ranking-switch" role="tablist" aria-label="ランキング切り替え">
+            <button
+              class="ranking-tab active"
+              type="button"
+              id="firstTab"
+              role="tab"
+              aria-selected="true"
+              aria-controls="firstPanel"
+              data-ranking-tab="first"
+            >${escapeHtml(firstLabel)}</button>
+            <button
+              class="ranking-tab"
+              type="button"
+              id="bestTab"
+              role="tab"
+              aria-selected="false"
+              aria-controls="bestPanel"
+              data-ranking-tab="best"
+            >${escapeHtml(bestLabel)}</button>
+          </div>
+        </section>
+
+        <section class="ranking-area">
+          <section class="ranking-card" id="firstPanel" role="tabpanel" aria-labelledby="firstTab">
+            <h2 class="ranking-title">${escapeHtml(firstLabel)}ランキング</h2>
+            <p class="ranking-sub">初めて遊んだときの記録だけを表示します。</p>
+            <div class="ranking-list" id="firstRanking">
+              <div class="loading">${escapeHtml(firstLabel)}ランキングを読み込み中です</div>
+            </div>
+          </section>
+
+          <section class="ranking-card" id="bestPanel" role="tabpanel" aria-labelledby="bestTab" hidden>
+            <h2 class="ranking-title">${escapeHtml(bestLabel)}ランキング</h2>
+            <p class="ranking-sub">これまでに出した一番良い記録だけを表示します。</p>
+            <div class="ranking-list" id="bestRanking">
+              <div class="loading">${escapeHtml(bestLabel)}ランキングを読み込み中です</div>
+            </div>
+          </section>
+        </section>
+
+        <div class="bottom-actions">
+          <a class="button secondary" href="/chameleonjp_lab/">トップページへ戻る</a>
+        </div>
+      `;
+
+      document.getElementById("shareButton").addEventListener("click", () => {
+        shareGame(page);
+      });
+
+      document.querySelectorAll("[data-ranking-tab]").forEach((button) => {
+        button.addEventListener("click", () => {
+          switchRankingTab(button.dataset.rankingTab);
+        });
+      });
+
+      document.querySelectorAll("[data-difficulty-tab]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const nextDifficulty = page.difficulties.find((item) => item.slug === button.dataset.difficultyTab);
+          if (nextDifficulty) showGamePage(page, nextDifficulty);
+        });
+      });
+    }
+
+    function switchRankingTab(tabName) {
+      const firstTab = document.getElementById("firstTab");
+      const bestTab = document.getElementById("bestTab");
+      const firstPanel = document.getElementById("firstPanel");
+      const bestPanel = document.getElementById("bestPanel");
+
+      const showFirst = tabName === "first";
+
+      firstTab.classList.toggle("active", showFirst);
+      bestTab.classList.toggle("active", !showFirst);
+
+      firstTab.setAttribute("aria-selected", showFirst ? "true" : "false");
+      bestTab.setAttribute("aria-selected", showFirst ? "false" : "true");
+
+      firstPanel.hidden = !showFirst;
+      bestPanel.hidden = showFirst;
+    }
+
+    function setDetailStatsComingSoon(token) {
+      if (token !== currentLoadToken) return;
+      const totalPlayCountEl = document.getElementById("totalPlayCount");
+      const playerCountEl = document.getElementById("playerCount");
+
+      if (totalPlayCountEl) {
+        totalPlayCountEl.textContent = "coming soon";
+        totalPlayCountEl.classList.add("coming");
+      }
+      if (playerCountEl) {
+        playerCountEl.textContent = "coming soon";
+        playerCountEl.classList.add("coming");
+      }
+    }
+
+    async function loadStats(game, token) {
+      const totalPlayCountEl = document.getElementById("totalPlayCount");
+      const playerCountEl = document.getElementById("playerCount");
+
+      if (isKeyUnset) {
+        setDetailStatsComingSoon(token);
+        return;
+      }
+
+      await waitForSupabaseSetup();
+
+      if (!supabaseClient) {
+        setDetailStatsComingSoon(token);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabaseClient.rpc("get_game_play_stats", {
+          p_game_slug: game.slug
+        });
+
+        if (error) throw error;
+        if (token !== currentLoadToken) return;
+
+        const stats = Array.isArray(data) && data.length > 0 ? data[0] : null;
+        const totalPlayCount = Number(stats?.total_play_count ?? 0);
+        const playerCount = Number(stats?.player_count ?? 0);
+
+        if (totalPlayCount <= 0 && playerCount <= 0) {
+          setDetailStatsComingSoon(token);
+          return;
+        }
+
+        totalPlayCountEl.textContent = `${formatNumber(totalPlayCount)}回`;
+        playerCountEl.textContent = `${formatNumber(playerCount)}人`;
+      } catch (error) {
+        console.error("get_game_play_stats error:", game.slug, error);
+        setDetailStatsComingSoon(token);
+      }
+    }
+
+    async function fetchFirstRanking(game) {
+      const { data, error } = await supabaseClient.rpc("get_first_try_ranking", {
+        p_game_slug: game.slug,
+        p_limit: DETAIL_LIMIT
+      });
+
+      if (error) throw error;
+      return Array.isArray(data) ? data : [];
+    }
+
+    async function fetchBestRanking(game) {
+      const { data, error } = await supabaseClient.rpc("get_best_score_ranking", {
+        p_game_slug: game.slug,
+        p_limit: DETAIL_LIMIT
+      });
+
+      if (error) throw error;
+      return Array.isArray(data) ? data : [];
+    }
+
+    function buildFirstRankingRows(firstRows, game) {
+      if (!firstRows.length) return `<div class="empty">まだ記録がありません</div>`;
+
+      return firstRows.map((row) => `
+        <div class="detail-row">
+          <div class="detail-main">
+            <div class="rank-no">${escapeHtml(row.rank_no)}位</div>
+            <div class="player-name">${escapeHtml(row.display_name)}</div>
+          </div>
+
+          <div class="detail-grid single">
+            <div class="mini-box primary-score first-score">
+              <span class="mini-label">${escapeHtml(firstScoreLabel(game))}</span>
+              <span class="mini-value">${escapeHtml(scoreText(row.first_score, game))}</span>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function buildBestRankingRows(bestRows, game) {
+      if (!bestRows.length) return `<div class="empty">まだ記録がありません</div>`;
+
+      return bestRows.map((row) => `
+        <div class="detail-row">
+          <div class="detail-main">
+            <div class="rank-no">${escapeHtml(row.rank_no)}位</div>
+            <div class="player-name">${escapeHtml(row.display_name)}</div>
+          </div>
+
+          <div class="detail-grid">
+            <div class="mini-box primary-score best-score">
+              <span class="mini-label">${escapeHtml(bestScoreLabel(game))}</span>
+              <span class="mini-value">${escapeHtml(scoreText(row.best_score, game))}</span>
+            </div>
+            <div class="mini-box">
+              <span class="mini-label">プレイ回数</span>
+              <span class="mini-value">${escapeHtml(formatNumber(row.play_count))}回</span>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function showDetailComingSoon(token) {
+      if (token !== currentLoadToken) return;
+      const firstRankingEl = document.getElementById("firstRanking");
+      const bestRankingEl = document.getElementById("bestRanking");
+
+      if (firstRankingEl) firstRankingEl.innerHTML = `<div class="coming-soon">coming soon</div>`;
+      if (bestRankingEl) bestRankingEl.innerHTML = `<div class="coming-soon">coming soon</div>`;
+    }
+
+    async function loadRankings(game, token) {
+      const firstRankingEl = document.getElementById("firstRanking");
+      const bestRankingEl = document.getElementById("bestRanking");
+
+      if (isKeyUnset) {
+        showDetailComingSoon(token);
+        return;
+      }
+
+      await waitForSupabaseSetup();
+
+      if (!supabaseClient) {
+        showDetailComingSoon(token);
+        return;
+      }
+
+      try {
+        const [firstRows, bestRows] = await Promise.all([
+          fetchFirstRanking(game),
+          fetchBestRanking(game)
+        ]);
+
+        if (token !== currentLoadToken) return;
+
+        if ((!Array.isArray(firstRows) || firstRows.length === 0) && (!Array.isArray(bestRows) || bestRows.length === 0)) {
+          showDetailComingSoon(token);
+          return;
+        }
+
+        firstRankingEl.innerHTML = buildFirstRankingRows(firstRows, game);
+        bestRankingEl.innerHTML = buildBestRankingRows(bestRows, game);
+      } catch (error) {
+        console.error("ranking load error:", game.slug, error);
+        showDetailComingSoon(token);
+      }
+    }
+
+    async function showGamePage(page, baseGame) {
+      const token = ++currentLoadToken;
+      const hydratedGame = await loadGameMetadata(baseGame);
+      if (token !== currentLoadToken) return;
+
+      renderBase(page, hydratedGame);
+
+      const url = new URL(window.location.href);
+      url.searchParams.set("game", page.pageSlug);
+      if (page.difficulties.length > 1) {
+        url.searchParams.set("difficulty", hydratedGame.key);
+      } else {
+        url.searchParams.delete("difficulty");
+      }
+      window.history.replaceState(null, "", url.toString());
+
+      loadStats(hydratedGame, token);
+      loadRankings(hydratedGame, token);
+    }
+
+    async function init() {
+      if (isKeyUnset) keyNoticeEl.style.display = "block";
+
+      await waitForSupabaseSetup();
+
+      const resolved = resolveGameFromUrl();
+
+      if (!resolved || !resolved.page || !resolved.difficulty) {
+        renderNotFound();
+        return;
+      }
+
+      showGamePage(resolved.page, resolved.difficulty);
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>
