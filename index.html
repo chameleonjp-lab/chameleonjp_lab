@@ -1479,16 +1479,6 @@
       return cleanText(game?.rankingSlug) || cleanText(game?.slug);
     }
 
-    function isKumaCheaterRow(game, row) {
-      const gameSlug = getRankingSlug(game);
-      if (gameSlug !== "kuma_no_fpsagashi") return false;
-
-      const name =
-        cleanText(row?.normalized_name) ||
-        cleanText(row?.normalizedName) ||
-        cleanText(row?.display_name);
-      return name === "チーターマン";
-    }
 
     function getStatsSlugs(game) {
       const slugs = Array.isArray(game?.statsSlugs) && game.statsSlugs.length
@@ -2255,19 +2245,15 @@ ${item.url || "公開URL確認中"}`;
 
       const isFirstRanking = game.topRanking === "first";
       const functionName = isFirstRanking ? "get_first_try_ranking" : "get_best_score_ranking";
-      const rankingLimit = getRankingSlug(game) === "kuma_no_fpsagashi" ? 10 : 3;
-
       try {
         const { data, error } = await supabaseClient.rpc(functionName, {
           p_game_slug: getRankingSlug(game),
-          p_limit: rankingLimit
+          p_limit: 3
         });
 
         if (error) throw error;
 
-        const visibleRows = Array.isArray(data)
-          ? data.filter((row) => !isKumaCheaterRow(game, row)).slice(0, 3)
-          : [];
+        const visibleRows = Array.isArray(data) ? data : [];
 
         if (!visibleRows.length) {
           rankingEl.innerHTML = `<div class="empty">まだ記録がありません</div>`;

@@ -442,6 +442,10 @@
       border: 1px solid rgba(246, 255, 249, 0.12);
     }
 
+    .detail-row.cheat-row .detail-grid {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
     .detail-row.cheat-row .mini-box {
       border-color: rgba(255, 107, 107, 0.55);
       background: rgba(130, 34, 34, 0.55);
@@ -1538,16 +1542,6 @@
       return text;
     }
 
-    function isKumaCheaterRow(game, row) {
-      const gameSlug = cleanText(game?.slug) || cleanText(game?.rankingSlug);
-      if (gameSlug !== "kuma_no_fpsagashi") return false;
-
-      const name =
-        cleanText(row?.normalized_name) ||
-        cleanText(row?.normalizedName) ||
-        cleanText(row?.display_name);
-      return name === "チーターマン";
-    }
 
     function setupSupabase() {
       if (supabaseClient || isKeyUnset) return supabaseClient;
@@ -2079,6 +2073,12 @@ ${page.url || "公開URL確認中"}`;
           </section>
         </section>
 
+        <section class="ranking-card disqualified-card" id="disqualifiedSection" hidden>
+          <h2 class="ranking-title">不正ユーザー</h2>
+          <p class="ranking-sub">通常ランキングから除外された記録です。</p>
+          <div class="ranking-list" id="disqualifiedRanking"></div>
+        </section>
+
         <div class="bottom-actions">
           <a class="button secondary" href="/chameleonjp_lab/">トップページへ戻る</a>
         </div>
@@ -2199,9 +2199,7 @@ ${page.url || "公開URL確認中"}`;
     function buildFirstRankingRows(firstRows, game) {
       if (!firstRows.length) return `<div class="empty">まだ記録がありません</div>`;
 
-      const normalRows = firstRows.filter((row) => !isKumaCheaterRow(game, row));
-      const cheatRows = firstRows.filter((row) => isKumaCheaterRow(game, row));
-      const normalHtml = normalRows.map((row) => `
+      return firstRows.map((row) => `
         <div class="detail-row">
           <div class="detail-main">
             <div class="rank-no">${escapeHtml(row.rank_no)}位</div>
@@ -2216,19 +2214,12 @@ ${page.url || "公開URL確認中"}`;
           </div>
         </div>
       `).join("");
-
-      return [
-        normalHtml || (!cheatRows.length ? `<div class="empty">まだ記録がありません</div>` : ""),
-        buildKumaCheaterRows(cheatRows, game, "first")
-      ].filter(Boolean).join("");
     }
 
     function buildBestRankingRows(bestRows, game) {
       if (!bestRows.length) return `<div class="empty">まだ記録がありません</div>`;
 
-      const normalRows = bestRows.filter((row) => !isKumaCheaterRow(game, row));
-      const cheatRows = bestRows.filter((row) => isKumaCheaterRow(game, row));
-      const normalHtml = normalRows.map((row) => `
+      return bestRows.map((row) => `
         <div class="detail-row">
           <div class="detail-main">
             <div class="rank-no">${escapeHtml(row.rank_no)}位</div>
@@ -2247,31 +2238,27 @@ ${page.url || "公開URL確認中"}`;
           </div>
         </div>
       `).join("");
-
-      return [
-        normalHtml || (!cheatRows.length ? `<div class="empty">まだ記録がありません</div>` : ""),
-        buildKumaCheaterRows(cheatRows, game, "best")
-      ].filter(Boolean).join("");
     }
 
-    function buildKumaCheaterRows(rows, game, scoreType) {
+    function buildDisqualifiedRows(rows, game) {
       if (!rows.length) return "";
 
       return rows.map((row) => {
-        const score = scoreType === "first" ? row.first_score : row.best_score;
-        const label = scoreType === "first" ? firstScoreLabel(game) : bestScoreLabel(game);
-
+        const note = cleanText(row.ranking_note) || "不正行為";
         return `
           <div class="detail-row cheat-row">
             <div class="detail-main">
-              <div class="rank-no">不正行為</div>
+              <div class="rank-no">${escapeHtml(note)}</div>
               <div class="player-name">${escapeHtml(row.display_name)}</div>
             </div>
-
             <div class="detail-grid">
-              <div class="mini-box primary-score ${scoreType === "first" ? "first-score" : "best-score"}">
-                <span class="mini-label">${escapeHtml(label)}</span>
-                <span class="mini-value">${escapeHtml(scoreText(score, game))}</span>
+              <div class="mini-box primary-score first-score">
+                <span class="mini-label">${escapeHtml(firstScoreLabel(game))}</span>
+                <span class="mini-value">${escapeHtml(scoreText(row.first_score, game))}</span>
+              </div>
+              <div class="mini-box primary-score best-score">
+                <span class="mini-label">${escapeHtml(bestScoreLabel(game))}</span>
+                <span class="mini-value">${escapeHtml(scoreText(row.best_score, game))}</span>
               </div>
               <div class="mini-box">
                 <span class="mini-label">プレイ回数</span>
@@ -2294,10 +2281,9 @@ ${page.url || "公開URL確認中"}`;
     }
 
     function buildPlayCountRankingRows(playRows, game) {
-      const visibleRows = playRows.filter((row) => !isKumaCheaterRow(game, row));
-      if (!visibleRows.length) return `<div class="empty">まだ記録がありません</div>`;
+      if (!playRows.length) return `<div class="empty">まだ記録がありません</div>`;
 
-      return visibleRows.map((row) => `
+      return playRows.map((row) => `
         <div class="detail-row">
           <div class="detail-main">
             <div class="rank-no">${escapeHtml(row.rank_no)}位</div>
@@ -2377,6 +2363,42 @@ ${page.url || "公開URL確認中"}`;
       }
     }
 
+
+    async function loadDisqualifiedEntries(game, token) {
+      const sectionEl = document.getElementById("disqualifiedSection");
+      const rankingEl = document.getElementById("disqualifiedRanking");
+      if (!sectionEl || !rankingEl) return;
+
+      sectionEl.hidden = true;
+      rankingEl.innerHTML = "";
+
+      if (isKeyUnset) return;
+
+      await waitForSupabaseSetup();
+      if (!supabaseClient) return;
+
+      try {
+        const { data, error } = await supabaseClient.rpc("get_disqualified_score_entries", {
+          p_game_slug: game.slug,
+          p_limit: 50
+        });
+
+        if (error) throw error;
+        if (token !== currentLoadToken) return;
+
+        const rows = Array.isArray(data) ? data : [];
+        if (!rows.length) return;
+
+        rankingEl.innerHTML = buildDisqualifiedRows(rows, game);
+        sectionEl.hidden = false;
+      } catch (error) {
+        console.error("disqualified entries load error:", game.slug, error);
+        if (token !== currentLoadToken) return;
+        rankingEl.innerHTML = `<div class="coming-soon">不正ユーザー欄を取得できませんでした。</div>`;
+        sectionEl.hidden = false;
+      }
+    }
+
     async function showGamePage(page, baseGame) {
       const token = ++currentLoadToken;
       const hydratedGame = await loadGameMetadata(baseGame);
@@ -2395,6 +2417,7 @@ ${page.url || "公開URL確認中"}`;
 
       loadStats(hydratedGame, token);
       loadRankings(hydratedGame, token);
+      loadDisqualifiedEntries(hydratedGame, token);
     }
 
     async function init() {
