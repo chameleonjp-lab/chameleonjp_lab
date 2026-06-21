@@ -109,7 +109,94 @@ best_score_label: 最高記録
 `score_scale = 1`、`score_decimals = 0` は、内部値を保存するための基本設定である。
 表示では必ず `formatUchikaeruScore()` で分解する。
 
-### 3-4. 注意事項
+### 3-4. `uchikaeru` 登録SQL
+
+`うちかえる` を `public.games` へ登録または更新する場合は、次を使う。
+
+```sql
+insert into public.games (
+  game_slug,
+  title,
+  game_url,
+  description,
+  share_text,
+  is_active,
+  display_order,
+  release_date,
+  top_ranking_type,
+  score_order,
+  score_unit,
+  score_scale,
+  score_decimals,
+  score_label,
+  first_score_label,
+  best_score_label
+)
+select
+  'uchikaeru',
+  'うちかえる',
+  'https://chameleonjp.codeberg.page/uchikaeru/',
+  '迫るカエルの大群を撃ち返し、ランダム武器を選びながら60波突破を目指す防衛ゲームです。',
+  'うちかえる
+迫るカエルの大群を撃ち返し、ランダム武器を選びながら60波突破を目指す防衛ゲームです。
+https://chameleonjp.codeberg.page/uchikaeru/',
+  true,
+  coalesce(
+    (select display_order from public.games where game_slug = 'uchikaeru'),
+    (select coalesce(max(display_order), 0) + 1 from public.games)
+  ),
+  current_date,
+  'best',
+  'desc',
+  '点',
+  1,
+  0,
+  'クリア波数＋スコア',
+  '初回記録',
+  '最高記録'
+on conflict (game_slug) do update
+set
+  title = excluded.title,
+  game_url = excluded.game_url,
+  description = excluded.description,
+  share_text = excluded.share_text,
+  is_active = excluded.is_active,
+  display_order = excluded.display_order,
+  release_date = excluded.release_date,
+  top_ranking_type = excluded.top_ranking_type,
+  score_order = excluded.score_order,
+  score_unit = excluded.score_unit,
+  score_scale = excluded.score_scale,
+  score_decimals = excluded.score_decimals,
+  score_label = excluded.score_label,
+  first_score_label = excluded.first_score_label,
+  best_score_label = excluded.best_score_label;
+```
+
+確認用SQL:
+
+```sql
+select
+  game_slug,
+  title,
+  game_url,
+  description,
+  is_active,
+  display_order,
+  release_date,
+  top_ranking_type,
+  score_order,
+  score_unit,
+  score_scale,
+  score_decimals,
+  score_label,
+  first_score_label,
+  best_score_label
+from public.games
+where game_slug = 'uchikaeru';
+```
+
+### 3-5. 注意事項
 
 - `score_scale` だけで `うちかえる` の表示を処理しようとしてはいけない。
 - ランキングの並び順は、内部整数値の降順でよい。
@@ -135,6 +222,7 @@ best_score_label: 最高記録
 3. 実験場トップでの表示
 4. 詳細ランキングでの表示
 5. Supabase `games` の登録値
+6. 必要なら登録SQL
 
 ## 5. 修正後の確認項目
 
