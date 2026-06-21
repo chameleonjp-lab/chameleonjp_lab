@@ -1253,6 +1253,29 @@
             "difficultySummary": "難易度別あり・トップは超ハード",
             "shareText": "間違いみっけで遊んでみて！"
       }
+      ,{
+            "displayOrder": 999,
+            "slug": "uchikaeru",
+            "title": "うちかえる",
+            "url": "https://chameleonjp.codeberg.page/uchikaeru/",
+            "description": "迫るカエルの大群を撃ち返し、ランダム武器を選びながら60波突破を目指す防衛ゲームです。",
+            "isActive": true,
+            "topRanking": "best",
+            "scoreOrder": "desc",
+            "scoreUnit": "点",
+            "scoreScale": 1,
+            "scoreDecimals": 0,
+            "scoreLabel": "クリア波数＋スコア",
+            "firstScoreLabel": "初回記録",
+            "bestScoreLabel": "最高記録",
+            "releaseDate": "2026-06-21",
+            "detailSlug": "uchikaeru",
+            "rankingSlug": "uchikaeru",
+            "statsSlugs": [
+                  "uchikaeru"
+            ],
+            "shareText": "うちかえる\n迫るカエルの大群を撃ち返し、ランダム武器を選びながら60波突破を目指す防衛ゲームです。\nhttps://chameleonjp.codeberg.page/uchikaeru/"
+      }
 ];
 
     function getSupabasePublishableKey() {
@@ -1727,6 +1750,13 @@
       if (!Number.isFinite(numericScore)) return "—";
 
       const game = typeof gameOrUnit === "object" && gameOrUnit !== null ? gameOrUnit : null;
+      const slug = cleanText(game?.slug) || cleanText(game?.rankingSlug) || "";
+      if (slug === "uchikaeru") {
+        const wave = Math.floor(numericScore / 100000000);
+        const battleScore = numericScore % 100000000;
+        return `${formatNumber(wave)}波クリア / ${formatNumber(battleScore)}点`;
+      }
+
       const unit = game ? cleanText(game.scoreUnit) || "" : gameOrUnit || "";
       const scale = game && Number(game.scoreScale) > 0 ? Number(game.scoreScale) : 1;
       const decimals =
@@ -2061,7 +2091,8 @@ ${item.url || "公開URL確認中"}`;
         if (error) throw error;
 
         if (!Array.isArray(data) || data.length === 0) {
-          setRankingComingSoon(game);
+          rankingEl.innerHTML = `<div class="empty">まだ記録がありません</div>`;
+          setRankingReady(game);
           return false;
         }
 

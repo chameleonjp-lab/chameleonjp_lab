@@ -1250,6 +1250,36 @@
                   }
             ]
       }
+      ,{
+            "pageSlug": "uchikaeru",
+            "title": "うちかえる",
+            "url": "https://chameleonjp.codeberg.page/uchikaeru/",
+            "description": "迫るカエルの大群を撃ち返し、ランダム武器を選びながら60波突破を目指す防衛ゲームです。",
+            "shareText": "うちかえる\n迫るカエルの大群を撃ち返し、ランダム武器を選びながら60波突破を目指す防衛ゲームです。\nhttps://chameleonjp.codeberg.page/uchikaeru/",
+            "defaultDifficultyKey": "main",
+            "difficulties": [
+                  {
+                        "displayOrder": 999,
+                        "slug": "uchikaeru",
+                        "title": "うちかえる",
+                        "url": "https://chameleonjp.codeberg.page/uchikaeru/",
+                        "description": "迫るカエルの大群を撃ち返し、ランダム武器を選びながら60波突破を目指す防衛ゲームです。",
+                        "isActive": true,
+                        "topRanking": "best",
+                        "scoreOrder": "desc",
+                        "scoreUnit": "点",
+                        "scoreScale": 1,
+                        "scoreDecimals": 0,
+                        "scoreLabel": "クリア波数＋スコア",
+                        "firstScoreLabel": "初回記録",
+                        "bestScoreLabel": "最高記録",
+                        "releaseDate": "2026-06-21",
+                        "key": "main",
+                        "difficultyLabel": "",
+                        "shareText": "うちかえる\n迫るカエルの大群を撃ち返し、ランダム武器を選びながら60波突破を目指す防衛ゲームです。\nhttps://chameleonjp.codeberg.page/uchikaeru/"
+                  }
+            ]
+      }
 ];
 
     function getSupabasePublishableKey() {
@@ -1448,6 +1478,13 @@
       if (!Number.isFinite(numericScore)) return "—";
 
       const game = typeof gameOrUnit === "object" && gameOrUnit !== null ? gameOrUnit : null;
+      const slug = cleanText(game?.slug) || "";
+      if (slug === "uchikaeru") {
+        const wave = Math.floor(numericScore / 100000000);
+        const battleScore = numericScore % 100000000;
+        return `${formatNumber(wave)}波クリア / ${formatNumber(battleScore)}点`;
+      }
+
       const unit = game ? cleanText(game.scoreUnit) || "" : gameOrUnit || "";
       const scale = game && Number(game.scoreScale) > 0 ? Number(game.scoreScale) : 1;
       const decimals =
@@ -1587,6 +1624,14 @@ ${page.url || "公開URL確認中"}`;
       const params = new URLSearchParams(window.location.search);
       const requestedSlug = normalizeGameSlug(params.get("game"));
       const requestedDifficulty = params.get("difficulty");
+
+      try {
+        const supabaseResolved = await resolveGameFromSupabase(requestedSlug, requestedDifficulty);
+        if (supabaseResolved) return supabaseResolved;
+      } catch (error) {
+        console.warn("Supabase game resolve failed:", requestedSlug, error);
+      }
+
       const page = findPageBySlug(requestedSlug);
 
       if (page) {
@@ -1596,12 +1641,7 @@ ${page.url || "公開URL確認中"}`;
         };
       }
 
-      try {
-        return await resolveGameFromSupabase(requestedSlug, requestedDifficulty);
-      } catch (error) {
-        console.warn("Supabase game resolve failed:", requestedSlug, error);
-        return null;
-      }
+      return null;
     }
 
     function renderNotFound() {
@@ -1753,6 +1793,8 @@ ${page.url || "公開URL確認中"}`;
           if (nextDifficulty) showGamePage(page, nextDifficulty);
         });
       });
+
+      switchRankingTab(game.topRanking === "first" ? "first" : "best");
     }
 
     function switchRankingTab(tabName) {
@@ -1967,12 +2009,8 @@ ${page.url || "公開URL確認中"}`;
 
         if (token !== currentLoadToken) return;
 
-        if ((!Array.isArray(firstRows) || firstRows.length === 0) && (!Array.isArray(bestRows) || bestRows.length === 0)) {
-          showDetailComingSoon(token);
-        } else {
-          firstRankingEl.innerHTML = buildFirstRankingRows(firstRows, game);
-          bestRankingEl.innerHTML = buildBestRankingRows(bestRows, game);
-        }
+        firstRankingEl.innerHTML = buildFirstRankingRows(firstRows, game);
+        bestRankingEl.innerHTML = buildBestRankingRows(bestRows, game);
       } catch (error) {
         console.error("ranking load error:", game.slug, error);
         showDetailComingSoon(token);

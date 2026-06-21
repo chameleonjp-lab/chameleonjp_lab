@@ -1,6 +1,6 @@
 # 詳細ランキング `ranking.html` 仕様
 
-最終更新: 2026-06-12
+最終更新: 2026-06-21
 対象: `ranking.html?game=game_slug`
 
 ## 1. ページの役割
@@ -87,6 +87,7 @@ const DETAIL_LIMIT = 100;
 ## 6. スコア表示
 
 Supabaseには整数スコアを保存する。表示時は、`score_scale` と `score_decimals` を使って変換する。
+ただし、`うちかえる` のように内部整数を分解して表示するゲームは、`docs/chameleonjp-lab/07_game_specific_score_display.md` のゲーム別ルールを優先する。
 
 ```js
 function formatScore(score, game) {
