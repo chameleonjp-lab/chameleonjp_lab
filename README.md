@@ -2,7 +2,7 @@
 
 このリポジトリは、カメレオンJPの実験場とランキング連携を、Claude Codeなどのコード作成ツールが迷わず読めるように整理した仕様置き場です。
 
-最終更新: 2026-06-12
+最終更新: 2026-06-21
 
 ## まず読むファイル
 
@@ -18,6 +18,7 @@ Claude Codeに作業を依頼する場合は、最初にルートの `CLAUDE.md`
 | 新しいゲームにランキング送信を入れる | `docs/chameleonjp-lab/04_game_supabase_required.md` |
 | 新しいゲームを実験場へ追加する | `docs/chameleonjp-lab/05_new_game_registration_checklist.md` |
 | SQLを作る | `docs/chameleonjp-lab/06_sql_templates.md` |
+| ゲーム別の特殊スコア表示を確認する | `docs/chameleonjp-lab/07_game_specific_score_display.md` |
 
 ## このリポジトリで扱う範囲
 
@@ -28,6 +29,7 @@ Claude Codeに作業を依頼する場合は、最初にルートの `CLAUDE.md`
 - Supabaseを使ったランキング取得、集計、スコア送信
 - 新規ゲームの `index.html` に必ず入れるSupabase対応
 - 新しいゲームを登録する時のSQLと確認手順
+- `score_scale` だけでは表せないゲーム別スコア表示
 
 ゲーム本体の個別仕様は、それぞれのゲーム側の仕様書を正とします。このリポジトリは、実験場とランキング連携の共通部分を正とします。
 
@@ -46,3 +48,5 @@ Claude Codeに作業を依頼する場合は、最初にルートの `CLAUDE.md`
 古い実装では `GAMES` という固定配列を使っていた時期がありますが、最新の方針では、表示ゲームの正は `public.games` です。
 
 もし既存コードに固定配列が残っている場合は、旧実装またはフォールバックとして扱ってください。新規改修では、固定配列だけを正にしてはいけません。
+
+一部ゲームは、保存用の整数スコアと表示用スコアが一致しません。たとえば `うちかえる` は `clearWave * 100000000 + battleScore` を保存し、表示では `○波クリア / ○○点` に分解します。このようなゲームは `docs/chameleonjp-lab/07_game_specific_score_display.md` を正として扱ってください。
