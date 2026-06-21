@@ -833,7 +833,7 @@
     const SUPABASE_URL = "https://mlpnjgezrnhdxsxolyzj.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_drzcy0v97knU6FgjqSgBHw_0A9XPdFM";
 
-    const GAMES = [
+    let GAMES = [
       {
             "displayOrder": 1,
             "slug": "torani_yasashiku",
@@ -1292,9 +1292,13 @@
     let currentSortMode = "added";
     let statsSortPromise = null;
 
-    GAMES.forEach((game, index) => {
-      game.addedOrder = Number(game.displayOrder || index + 1);
-    });
+    function assignAddedOrder() {
+      GAMES.forEach((game, index) => {
+        game.addedOrder = Number(game.displayOrder || index + 1);
+      });
+    }
+
+    assignAddedOrder();
 
     function cleanText(value) {
       if (value === null || value === undefined) return undefined;
@@ -1560,6 +1564,107 @@
         firstScoreLabel: cleanText(row.first_score_label),
         bestScoreLabel: cleanText(row.best_score_label)
       };
+    }
+
+    function shareTextFor(row, title, description, url) {
+      return cleanText(row?.share_text) || `${title || ""}\n${description || ""}\n${url || ""}`.trim();
+    }
+
+    function rowToGame(row) {
+      const title = cleanText(row.title) || cleanText(row.game_slug) || "タイトル確認中";
+      const description = cleanText(row.description) || "説明は準備中です。";
+      const url = cleanText(row.game_url) || "";
+      return {
+        displayOrder: Number(row.display_order || 0),
+        slug: cleanText(row.game_slug),
+        title,
+        url,
+        description,
+        isActive: row.is_active !== false,
+        topRanking: cleanText(row.top_ranking_type) || "best",
+        ...normalizeGameMetadata(row),
+        releaseDate: cleanText(row.release_date),
+        shareText: shareTextFor(row, title, description, url)
+      };
+    }
+
+    function buildGamesFromRows(rows) {
+      const bySlug = new Map(rows.map((row) => [cleanText(row.game_slug), row]));
+      const games = [];
+      const used = new Set();
+
+      rows.forEach((row) => {
+        const slug = cleanText(row.game_slug);
+        if (!slug || used.has(slug)) return;
+
+        if (slug === "meoshi_wo_seisu_normal" || slug === "meoshi_wo_seisu_hard") {
+          const normal = bySlug.get("meoshi_wo_seisu_normal");
+          const hard = bySlug.get("meoshi_wo_seisu_hard") || row;
+          const base = rowToGame(hard);
+          games.push({
+            ...base,
+            slug: "meoshi_wo_seisu",
+            title: "目押しを制す",
+            description: cleanText(normal?.description) || base.description,
+            detailSlug: "meoshi_wo_seisu",
+            rankingSlug: "meoshi_wo_seisu_hard",
+            statsSlugs: ["meoshi_wo_seisu_normal", "meoshi_wo_seisu_hard"],
+            difficultySummary: "難易度別あり・トップはハード"
+          });
+          used.add("meoshi_wo_seisu_normal");
+          used.add("meoshi_wo_seisu_hard");
+          return;
+        }
+
+        if (slug === "machigai_mikke_easy" || slug === "machigai_mikke_hard" || slug === "machigai_mikke_super_hard") {
+          const easy = bySlug.get("machigai_mikke_easy");
+          const superHard = bySlug.get("machigai_mikke_super_hard") || row;
+          const base = rowToGame(superHard);
+          games.push({
+            ...base,
+            slug: "machigai_mikke",
+            title: "間違いみっけ",
+            description: cleanText(easy?.description) || base.description,
+            detailSlug: "machigai_mikke",
+            rankingSlug: "machigai_mikke_super_hard",
+            statsSlugs: ["machigai_mikke_easy", "machigai_mikke_hard", "machigai_mikke_super_hard"],
+            difficultySummary: "難易度別あり・トップは超ハード"
+          });
+          used.add("machigai_mikke_easy");
+          used.add("machigai_mikke_hard");
+          used.add("machigai_mikke_super_hard");
+          return;
+        }
+
+        games.push(rowToGame(row));
+        used.add(slug);
+      });
+
+      return games.filter((game) => game.slug).sort(compareByAddedOrder);
+    }
+
+    async function loadGamesFromSupabase() {
+      if (isKeyUnset) return false;
+      await waitForSupabaseSetup();
+      if (!supabaseClient) return false;
+
+      try {
+        const { data, error } = await supabaseClient
+          .from("games")
+          .select("display_order, game_slug, title, game_url, description, is_active, release_date, top_ranking_type, score_order, score_unit, score_scale, score_decimals, score_label, first_score_label, best_score_label, share_text")
+          .eq("is_active", true)
+          .order("display_order", { ascending: true });
+
+        if (error) throw error;
+        if (!Array.isArray(data) || data.length === 0) return false;
+
+        GAMES = buildGamesFromRows(data);
+        assignAddedOrder();
+        return true;
+      } catch (error) {
+        console.warn("games catalog load failed; using fallback GAMES:", error);
+        return false;
+      }
     }
 
     async function loadGameMetadata(game) {
@@ -2015,8 +2120,9 @@ ${item.url || "公開URL確認中"}`;
       return supabaseClient;
     }
 
-    function init() {
+    async function init() {
       if (isKeyUnset) keyNoticeEl.style.display = "block";
+      await loadGamesFromSupabase();
       renderCards();
       setupSortControls();
       applySortStatus();

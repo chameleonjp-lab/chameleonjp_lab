@@ -313,9 +313,10 @@
 
     .ranking-switch {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
       gap: 8px;
       margin-top: 18px;
+      max-width: 100%;
       padding: 6px;
       border-radius: 18px;
       background: rgba(11, 36, 27, 0.48);
@@ -548,7 +549,7 @@
       }
 
       .ranking-switch {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
       }
 
       .detail-grid {
@@ -1329,6 +1330,64 @@
       };
     }
 
+    function shareTextFor(row, title, description, url) {
+      return cleanText(row?.share_text) || `${title || ""}\n${description || ""}\n${url || ""}`.trim();
+    }
+
+    function rowToDifficulty(row) {
+      const title = cleanText(row.title) || cleanText(row.game_slug) || "タイトル確認中";
+      const description = cleanText(row.description) || "説明は準備中です。";
+      const url = cleanText(row.game_url) || "";
+      return {
+        displayOrder: Number(row.display_order || 0),
+        slug: cleanText(row.game_slug),
+        title,
+        url,
+        description,
+        isActive: row.is_active !== false,
+        topRanking: cleanText(row.top_ranking_type) || "best",
+        ...normalizeGameMetadata(row),
+        releaseDate: cleanText(row.release_date),
+        key: cleanText(row.game_slug),
+        difficultyLabel: "",
+        shareText: shareTextFor(row, title, description, url)
+      };
+    }
+
+    function buildPageFromDifficulty(game) {
+      return {
+        pageSlug: game.slug,
+        title: game.title,
+        url: game.url,
+        description: game.description,
+        shareText: game.shareText,
+        defaultDifficultyKey: game.key,
+        difficulties: [game]
+      };
+    }
+
+    async function fetchGameRow(slug) {
+      if (isKeyUnset) return null;
+      await waitForSupabaseSetup();
+      if (!supabaseClient) return null;
+      const { data, error } = await supabaseClient
+        .from("games")
+        .select("display_order, game_slug, title, game_url, description, is_active, release_date, top_ranking_type, score_order, score_unit, score_scale, score_decimals, score_label, first_score_label, best_score_label, share_text")
+        .eq("game_slug", slug)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data || null;
+    }
+
+    async function resolveGameFromSupabase(requestedSlug, requestedDifficulty) {
+      if (requestedSlug === "meoshi_wo_seisu" || requestedSlug === "machigai_mikke") return null;
+      const row = await fetchGameRow(requestedSlug);
+      if (!row) return null;
+      const game = rowToDifficulty(row);
+      return { page: buildPageFromDifficulty(game), difficulty: game };
+    }
+
     async function loadGameMetadata(game) {
       if (!game) return null;
 
@@ -1524,18 +1583,25 @@ ${page.url || "公開URL確認中"}`;
       );
     }
 
-    function resolveGameFromUrl() {
+    async function resolveGameFromUrl() {
       const params = new URLSearchParams(window.location.search);
       const requestedSlug = normalizeGameSlug(params.get("game"));
       const requestedDifficulty = params.get("difficulty");
       const page = findPageBySlug(requestedSlug);
 
-      if (!page) return null;
+      if (page) {
+        return {
+          page,
+          difficulty: getDifficultyFromPage(page, requestedDifficulty, requestedSlug)
+        };
+      }
 
-      return {
-        page,
-        difficulty: getDifficultyFromPage(page, requestedDifficulty, requestedSlug)
-      };
+      try {
+        return await resolveGameFromSupabase(requestedSlug, requestedDifficulty);
+      } catch (error) {
+        console.warn("Supabase game resolve failed:", requestedSlug, error);
+        return null;
+      }
     }
 
     function renderNotFound() {
@@ -1628,6 +1694,15 @@ ${page.url || "公開URL確認中"}`;
               aria-controls="bestPanel"
               data-ranking-tab="best"
             >${escapeHtml(bestLabel)}</button>
+            <button
+              class="ranking-tab"
+              type="button"
+              id="playsTab"
+              role="tab"
+              aria-selected="false"
+              aria-controls="playsPanel"
+              data-ranking-tab="plays"
+            >プレイ回数</button>
           </div>
         </section>
 
@@ -1645,6 +1720,14 @@ ${page.url || "公開URL確認中"}`;
             <p class="ranking-sub">これまでに出した一番良い記録だけを表示します。</p>
             <div class="ranking-list" id="bestRanking">
               <div class="loading">${escapeHtml(bestLabel)}ランキングを読み込み中です</div>
+            </div>
+          </section>
+
+          <section class="ranking-card" id="playsPanel" role="tabpanel" aria-labelledby="playsTab" hidden>
+            <h2 class="ranking-title">プレイ回数ランキング</h2>
+            <p class="ranking-sub">プレイ回数が多い順に表示します。</p>
+            <div class="ranking-list" id="playsRanking">
+              <div class="loading">プレイ回数ランキングを読み込み中です</div>
             </div>
           </section>
         </section>
@@ -1673,21 +1756,19 @@ ${page.url || "公開URL確認中"}`;
     }
 
     function switchRankingTab(tabName) {
-      const firstTab = document.getElementById("firstTab");
-      const bestTab = document.getElementById("bestTab");
-      const firstPanel = document.getElementById("firstPanel");
-      const bestPanel = document.getElementById("bestPanel");
+      const tabs = ["first", "best", "plays"];
+      const activeTab = tabs.includes(tabName) ? tabName : "first";
 
-      const showFirst = tabName === "first";
-
-      firstTab.classList.toggle("active", showFirst);
-      bestTab.classList.toggle("active", !showFirst);
-
-      firstTab.setAttribute("aria-selected", showFirst ? "true" : "false");
-      bestTab.setAttribute("aria-selected", showFirst ? "false" : "true");
-
-      firstPanel.hidden = !showFirst;
-      bestPanel.hidden = showFirst;
+      tabs.forEach((name) => {
+        const tab = document.getElementById(`${name}Tab`);
+        const panel = document.getElementById(`${name}Panel`);
+        const isActive = name === activeTab;
+        if (tab) {
+          tab.classList.toggle("active", isActive);
+          tab.setAttribute("aria-selected", isActive ? "true" : "false");
+        }
+        if (panel) panel.hidden = !isActive;
+      });
     }
 
     function setDetailStatsComingSoon(token) {
@@ -1810,18 +1891,61 @@ ${page.url || "公開URL確認中"}`;
       `).join("");
     }
 
+    async function fetchPlayCountRanking(game) {
+      const { data, error } = await supabaseClient.rpc("get_play_count_ranking", {
+        p_game_slug: game.slug,
+        p_limit: DETAIL_LIMIT
+      });
+
+      if (error) throw error;
+      return Array.isArray(data) ? data : [];
+    }
+
+    function buildPlayCountRankingRows(playRows, game) {
+      if (!playRows.length) return `<div class="empty">まだ記録がありません</div>`;
+
+      return playRows.map((row) => `
+        <div class="detail-row">
+          <div class="detail-main">
+            <div class="rank-no">${escapeHtml(row.rank_no)}位</div>
+            <div class="player-name">${escapeHtml(row.display_name)}</div>
+          </div>
+
+          <div class="detail-grid">
+            <div class="mini-box primary-score best-score">
+              <span class="mini-label">プレイ回数</span>
+              <span class="mini-value">${escapeHtml(formatNumber(row.play_count))}回</span>
+            </div>
+            <div class="mini-box">
+              <span class="mini-label">参考ベスト</span>
+              <span class="mini-value">${escapeHtml(scoreText(row.best_score, game))}</span>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function showPlayCountRankingError(token) {
+      if (token !== currentLoadToken) return;
+      const playsRankingEl = document.getElementById("playsRanking");
+      if (playsRankingEl) playsRankingEl.innerHTML = `<div class="coming-soon">プレイ回数ランキングを取得できませんでした。</div>`;
+    }
+
     function showDetailComingSoon(token) {
       if (token !== currentLoadToken) return;
       const firstRankingEl = document.getElementById("firstRanking");
       const bestRankingEl = document.getElementById("bestRanking");
+      const playsRankingEl = document.getElementById("playsRanking");
 
       if (firstRankingEl) firstRankingEl.innerHTML = `<div class="coming-soon">coming soon</div>`;
       if (bestRankingEl) bestRankingEl.innerHTML = `<div class="coming-soon">coming soon</div>`;
+      if (playsRankingEl) playsRankingEl.innerHTML = `<div class="coming-soon">プレイ回数ランキングを取得できませんでした。</div>`;
     }
 
     async function loadRankings(game, token) {
       const firstRankingEl = document.getElementById("firstRanking");
       const bestRankingEl = document.getElementById("bestRanking");
+      const playsRankingEl = document.getElementById("playsRanking");
 
       if (isKeyUnset) {
         showDetailComingSoon(token);
@@ -1845,14 +1969,22 @@ ${page.url || "公開URL確認中"}`;
 
         if ((!Array.isArray(firstRows) || firstRows.length === 0) && (!Array.isArray(bestRows) || bestRows.length === 0)) {
           showDetailComingSoon(token);
-          return;
+        } else {
+          firstRankingEl.innerHTML = buildFirstRankingRows(firstRows, game);
+          bestRankingEl.innerHTML = buildBestRankingRows(bestRows, game);
         }
-
-        firstRankingEl.innerHTML = buildFirstRankingRows(firstRows, game);
-        bestRankingEl.innerHTML = buildBestRankingRows(bestRows, game);
       } catch (error) {
         console.error("ranking load error:", game.slug, error);
         showDetailComingSoon(token);
+      }
+
+      try {
+        const playRows = await fetchPlayCountRanking(game);
+        if (token !== currentLoadToken) return;
+        if (playsRankingEl) playsRankingEl.innerHTML = buildPlayCountRankingRows(playRows, game);
+      } catch (error) {
+        console.error("play count ranking load error:", game.slug, error);
+        showPlayCountRankingError(token);
       }
     }
 
@@ -1881,7 +2013,7 @@ ${page.url || "公開URL確認中"}`;
 
       await waitForSupabaseSetup();
 
-      const resolved = resolveGameFromUrl();
+      const resolved = await resolveGameFromUrl();
 
       if (!resolved || !resolved.page || !resolved.difficulty) {
         renderNotFound();
