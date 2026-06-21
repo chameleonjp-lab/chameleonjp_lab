@@ -1360,6 +1360,9 @@
       };
     }
 
+    const GAME_SELECT_COLUMNS = "display_order, game_slug, title, game_url, description, is_active, release_date, top_ranking_type, score_order, score_unit, score_scale, score_decimals, score_label, first_score_label, best_score_label";
+    const GAME_SELECT_COLUMNS_WITH_SHARE_TEXT = `${GAME_SELECT_COLUMNS}, share_text`;
+
     function shareTextFor(row, title, description, url) {
       return cleanText(row?.share_text) || `${title || ""}\n${description || ""}\n${url || ""}`.trim();
     }
@@ -1400,18 +1403,87 @@
       if (isKeyUnset) return null;
       await waitForSupabaseSetup();
       if (!supabaseClient) return null;
-      const { data, error } = await supabaseClient
+
+      const runSelect = (columns) => supabaseClient
         .from("games")
-        .select("display_order, game_slug, title, game_url, description, is_active, release_date, top_ranking_type, score_order, score_unit, score_scale, score_decimals, score_label, first_score_label, best_score_label, share_text")
+        .select(columns)
         .eq("game_slug", slug)
         .eq("is_active", true)
         .maybeSingle();
-      if (error) throw error;
-      return data || null;
+
+      const firstResult = await runSelect(GAME_SELECT_COLUMNS_WITH_SHARE_TEXT);
+      if (!firstResult.error) return firstResult.data || null;
+
+      console.warn("game row load with share_text failed; retrying without share_text:", slug, firstResult.error);
+      const retryResult = await runSelect(GAME_SELECT_COLUMNS);
+      if (retryResult.error) throw retryResult.error;
+      return retryResult.data || null;
+    }
+
+    function labelDifficulty(game, key, label) {
+      return {
+        ...game,
+        key,
+        difficultyLabel: label
+      };
+    }
+
+    function buildGroupedPage(pageSlug, title, rows, difficultyDefs, defaultKey) {
+      const rowBySlug = new Map(rows.filter(Boolean).map((row) => [cleanText(row.game_slug), row]));
+      const difficulties = difficultyDefs
+        .map((def) => {
+          const row = rowBySlug.get(def.slug);
+          return row ? labelDifficulty(rowToDifficulty(row), def.key, def.label) : null;
+        })
+        .filter(Boolean);
+
+      if (!difficulties.length) return null;
+      const defaultDifficulty = difficulties.find((game) => game.key === defaultKey) || difficulties[difficulties.length - 1];
+      return {
+        pageSlug,
+        title,
+        url: defaultDifficulty.url,
+        description: defaultDifficulty.description,
+        shareText: defaultDifficulty.shareText,
+        defaultDifficultyKey: defaultDifficulty.key,
+        difficulties
+      };
+    }
+
+    async function resolveGroupedGameFromSupabase(requestedSlug, requestedDifficulty) {
+      if (requestedSlug === "meoshi_wo_seisu") {
+        const rows = await Promise.all([
+          fetchGameRow("meoshi_wo_seisu_normal"),
+          fetchGameRow("meoshi_wo_seisu_hard")
+        ]);
+        const page = buildGroupedPage("meoshi_wo_seisu", "目押しを制す", rows, [
+          { slug: "meoshi_wo_seisu_normal", key: "normal", label: "ノーマル" },
+          { slug: "meoshi_wo_seisu_hard", key: "hard", label: "ハード" }
+        ], "hard");
+        return page ? { page, difficulty: getDifficultyFromPage(page, requestedDifficulty, requestedSlug) } : null;
+      }
+
+      if (requestedSlug === "machigai_mikke") {
+        const rows = await Promise.all([
+          fetchGameRow("machigai_mikke_easy"),
+          fetchGameRow("machigai_mikke_hard"),
+          fetchGameRow("machigai_mikke_super_hard")
+        ]);
+        const page = buildGroupedPage("machigai_mikke", "間違いみっけ", rows, [
+          { slug: "machigai_mikke_easy", key: "easy", label: "イージー" },
+          { slug: "machigai_mikke_hard", key: "hard", label: "ハード" },
+          { slug: "machigai_mikke_super_hard", key: "super_hard", label: "超ハード" }
+        ], "super_hard");
+        return page ? { page, difficulty: getDifficultyFromPage(page, requestedDifficulty, requestedSlug) } : null;
+      }
+
+      return null;
     }
 
     async function resolveGameFromSupabase(requestedSlug, requestedDifficulty) {
-      if (requestedSlug === "meoshi_wo_seisu" || requestedSlug === "machigai_mikke") return null;
+      const grouped = await resolveGroupedGameFromSupabase(requestedSlug, requestedDifficulty);
+      if (grouped) return grouped;
+
       const row = await fetchGameRow(requestedSlug);
       if (!row) return null;
       const game = rowToDifficulty(row);
