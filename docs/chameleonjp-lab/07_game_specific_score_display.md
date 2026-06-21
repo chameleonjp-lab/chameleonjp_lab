@@ -58,24 +58,29 @@ function formatScore(score, game) {
 `うちかえる` は、到達・クリアした波数を最優先で順位に反映するため、ゲーム本体から次の整数を送る。
 
 ```text
-rankingScore = clearWave * 100000000 + battleScore
+rankingScore = clearWave * 1000000 + min(999999, battleScore)
 ```
 
 例:
 
 ```text
+39波クリア、battleScore 601,917
+=> 39,601,917
+
 60波クリア、battleScore 2,037,256
-=> 60002037256
+=> battleScore は 999,999 に丸め
+=> 60,999,999
 ```
 
-この内部値をそのまま `60002037256点` のように表示してはいけない。
+この内部値をそのまま `39,601,917点` や `60,999,999点` のように表示してはいけない。
 
 ### 3-2. 表示形式
 
 実験場トップと詳細ランキングでは、必ず次の形式で表示する。
 
 ```text
-60波クリア / 2,037,256点
+39波クリア / 601,917点
+60波クリア / 999,999点
 ```
 
 実装例:
@@ -83,8 +88,8 @@ rankingScore = clearWave * 100000000 + battleScore
 ```js
 function formatUchikaeruScore(score) {
   const raw = Number(score || 0);
-  const wave = Math.floor(raw / 100000000);
-  const battleScore = raw % 100000000;
+  const wave = Math.floor(raw / 1000000);
+  const battleScore = raw % 1000000;
   return `${wave}波クリア / ${battleScore.toLocaleString("ja-JP")}点`;
 }
 ```
@@ -203,7 +208,21 @@ where game_slug = 'uchikaeru';
 - 表示だけを分解する。
 - Supabaseの保存値を分解して保存し直さない。
 - `battleScore` が0でも、`○波クリア / 0点` と表示する。
+- `battleScore` が999,999を超える場合は、ランキング送信前に999,999へ丸める。
 - 0波の場合も、`0波クリア / 0点` のように壊れず表示する。
+- リタイア時も `submit_score` を呼び、0波リタイアでも `play_count` に計測する。
+
+### 3-6. `submit_score` 実測結果
+
+`うちかえる` 本体の `RANK_BASE = 1000000` 反映後、次の送信結果を確認済み。
+
+```text
+p_score = 390,601,917 は score is too large
+p_score = 39,601,917 は accepted=true
+p_score = 60,999,999 は accepted=true
+```
+
+このため、`rankingScore` は必ず `clearWave * 1000000 + min(999999, battleScore)` の範囲に収める。
 
 ## 4. 今後同じ方式を使うゲーム
 
@@ -231,6 +250,6 @@ where game_slug = 'uchikaeru';
 - 実験場トップの `うちかえる` 上位ランキングが `○波クリア / ○○点` で表示される。
 - 詳細ランキングの初回タブが `○波クリア / ○○点` で表示される。
 - 詳細ランキングのベストタブが `○波クリア / ○○点` で表示される。
-- 内部スコア `60002037256` のような巨大な数値が、そのまま画面に出ない。
+- 内部スコア `390,601,917` のような大きすぎる数値を送らず、`39,601,917` や `60,999,999` のように受理される範囲で送る。
 - `score_order = desc` の順位が壊れていない。
 - ランキングが0件でも画面が壊れない。
