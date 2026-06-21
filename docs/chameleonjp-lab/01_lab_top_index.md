@@ -1,6 +1,6 @@
 # 実験場トップ `index.html` 仕様
 
-最終更新: 2026-06-12
+最終更新: 2026-06-21
 対象: カメレオンJPの実験場トップページ
 
 ## 1. ページの役割
@@ -102,6 +102,8 @@ Publishable keyは公開HTMLに入れてよい。ただし、`service_role` キ�
 | 未設定 | `get_best_score_ranking` と同じ扱い |
 
 ランキングが0件の時は、エラー扱いにしない。`coming soon` や `まだ記録がありません` のように表示する。
+
+スコア表示は通常 `score_scale` と `score_decimals` を使う。ただし、`うちかえる` のように内部整数を分解して表示するゲームは、`docs/chameleonjp-lab/07_game_specific_score_display.md` のゲーム別ルールを優先する。
 
 ## 7. 集計表示
 
