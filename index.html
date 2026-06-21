@@ -1323,6 +1323,13 @@
 
     assignAddedOrder();
 
+    function showNotice(message) {
+      const noticeEl = libraryNoticeEl || keyNoticeEl;
+      if (!noticeEl) return;
+      noticeEl.textContent = message;
+      noticeEl.style.display = "block";
+    }
+
     function cleanText(value) {
       if (value === null || value === undefined) return undefined;
       const text = String(value).trim();
@@ -1666,17 +1673,34 @@
       return games.filter((game) => game.slug).sort(compareByAddedOrder);
     }
 
+    const GAME_SELECT_COLUMNS = "display_order, game_slug, title, game_url, description, is_active, release_date, top_ranking_type, score_order, score_unit, score_scale, score_decimals, score_label, first_score_label, best_score_label";
+    const GAME_SELECT_COLUMNS_WITH_SHARE_TEXT = `${GAME_SELECT_COLUMNS}, share_text`;
+
+    async function fetchActiveGamesCatalog() {
+      const runSelect = (columns) => supabaseClient
+        .from("games")
+        .select(columns)
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+
+      const firstResult = await runSelect(GAME_SELECT_COLUMNS_WITH_SHARE_TEXT);
+      if (!firstResult.error) return firstResult;
+
+      console.warn("games catalog load with share_text failed; retrying without share_text:", firstResult.error);
+      const retryResult = await runSelect(GAME_SELECT_COLUMNS);
+      if (retryResult.error) {
+        console.warn("games catalog load without share_text also failed:", retryResult.error);
+      }
+      return retryResult;
+    }
+
     async function loadGamesFromSupabase() {
       if (isKeyUnset) return false;
       await waitForSupabaseSetup();
       if (!supabaseClient) return false;
 
       try {
-        const { data, error } = await supabaseClient
-          .from("games")
-          .select("display_order, game_slug, title, game_url, description, is_active, release_date, top_ranking_type, score_order, score_unit, score_scale, score_decimals, score_label, first_score_label, best_score_label, share_text")
-          .eq("is_active", true)
-          .order("display_order", { ascending: true });
+        const { data, error } = await fetchActiveGamesCatalog();
 
         if (error) throw error;
         if (!Array.isArray(data) || data.length === 0) return false;
@@ -1686,6 +1710,7 @@
         return true;
       } catch (error) {
         console.warn("games catalog load failed; using fallback GAMES:", error);
+        showNotice("Supabaseのゲーム一覧取得に失敗したため、固定リストで表示しています。詳細はブラウザのコンソールを確認してください。");
         return false;
       }
     }
