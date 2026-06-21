@@ -11,7 +11,7 @@
 
 - Supabase `public.games` の現行一覧
 - 実験場トップで表示するゲームカード
-- 実験場トップで各ゲームに表示するランキング
+- 実験場トップで各ゲームに表示するランキング名と取得対象
 - 詳細ランキングページで表示するランキング
 - 難易度別ゲームの扱い
 - 画面のカラーコード
@@ -21,28 +21,22 @@
 
 2026-06-21時点で、ユーザーから共有された Supabase `public.games` の取得結果を、この文書のゲーム台帳の正とする。
 
-前回の文書では、GitHubリポジトリ内の `index.html` と `ranking.html` に残っている固定配列を中心に整理していた。しかし、今回のSupabase一覧には、現行コード側にまだ足りないゲームが含まれている。
+ただし、実験場トップでどのランキングをカード内に出すかは、最新の `index.html` の設定も必ず確認する。現行実装に `GAMES` 固定配列が残っている場合、`index.html` 側の `topRanking`、`rankingSlug`、`firstScoreLabel`、`bestScoreLabel` が実表示を決めているためである。
 
-足りなかった主なゲームは次である。
+基本ルールは次である。
 
-| display_order | game_slug | title |
-|---:|---|---|
-| 16 | `maron_hikou` | マロン飛行 |
-| 23 | `kuma_no_fpsagashi` | 熊のFP探し |
-| 24 | `johba` | ジョーバ |
-| 25 | `sandoicchi` | 3度一致 |
-| 26 | `kanijan` | カニジャン |
-| 27 | `toremeshi` | トレメシ |
+```text
+特に指定がなければ、実験場トップではベストランキングを表示する。
+指定があるものだけ、初回ランキングなどに切り替える。
+```
 
-今後の実験場と詳細ランキングを直す時は、Supabase `public.games` を最優先にする。もし `index.html` の `GAMES` や `ranking.html` の `GAME_PAGES` が残っている場合は、この文書の一覧に合わせて更新する。
+ここでいうベストランキングは、点数ゲームでは最高スコア、タイム・誤差・ゲーム数のように小さいほど良いゲームでは最短・最小の記録を意味する。単に数値が大きい記録だけを指すわけではない。
 
 ## 3. 難易度別ゲームの基本方針
 
 難易度別ランキングは、詳細ページ内でのみ分けて表示する。
 
 実験場トップでは、難易度別のカードを複数枚には分けない。1つのゲームとして1枚のカードにまとめ、ランキング表示では難易度の高い方のスコアを代表として出す。
-
-現行方針は次の通り。
 
 | ゲーム | 実験場トップで表示するカード | 実験場トップで出す代表ランキング | 詳細ページで分けるランキング |
 |---|---|---|---|
@@ -141,7 +135,7 @@ display_order,game_slug,title,game_url,description,is_active,release_date,top_ra
 19,emojihiroi,絵文字拾い,https://chameleonjp.codeberg.page/emojihiroi/,8×8の中から、お題の絵文字を探して全部消すタイムアタックゲームです。,true,2026-06-10,best,asc,秒,100,2,最終タイム,初回タイム,ベストタイム
 20,machigai_mikke_easy,間違いみっけ イージー,https://chameleonjp.codeberg.page/machigai_mikke/,上の見本と手元の見本を見比べて、違う場所を9個見つけるゲームです。,true,2026-06-10,best,asc,秒,100,2,最終タイム,初回タイム,ベストタイム
 21,machigai_mikke_hard,間違いみっけ ハード,https://chameleonjp.codeberg.page/machigai_mikke/,上下反転した手元の見本から、違う場所を9個見つけるゲームです。,true,2026-06-10,best,asc,秒,100,2,最終タイム,初回タイム,ベストタイム
-22,machigai_mikke_super_hard,間違いみっけ 超ハード,https://chameleonjp.codeberg.page/machigai_mikke/,上下反転かつ左右反転した時計絵文字の見本から、違う場所を9個見つけるゲームです。,true,2026-06-10,best,asc,秒,100,2,最終タイム,初回タイム,ベストタイム
+22,machigai_mikke_super_hard,間違いみっけ 超ハード,https://chameleonjp.codeberg.page/machigai_mikke/,上下反転かつ左右反転した時計絵文字の見本から、違う場所を見つけるゲームです。,true,2026-06-10,best,asc,秒,100,2,最終タイム,初回タイム,ベストタイム
 23,kuma_no_fpsagashi,熊のFP探し,https://chameleonjp.codeberg.page/kuma_no_fpsagashi/,熊がFPを探して底なしのダンジョンへ潜る、ターン制ローグライクです。最深到達階を競います。,true,2026-06-18,best,desc,階,1,0,最深到達階,初回到達階,最高到達階
 24,johba,ジョーバ,https://chameleonjp.codeberg.page/johba/,騎手視点で12頭立ての芝レースに挑む3D競馬ゲームです。,true,2026-06-13,best,desc,点,1,0,スコア,初回スコア,最高スコア
 25,sandoicchi,3度一致,https://chameleonjp.codeberg.page/sandoicchi/,サンドイッチを作ろう,true,2026-06-17,best,desc,点,1,0,サンドスコア,初回スコア,最高スコア
@@ -199,40 +193,54 @@ display_order,game_slug,title,game_url,description,is_active,release_date,top_ra
 
 `display_order` 15、21、22 は、実験場トップでは独立カードにしない。詳細ページ内の難易度タブで使う。
 
-## 8. 実験場トップで表示するランキング
+## 8. 実験場トップで表示するランキング内容
 
-トップページでは、各カードを開いた時に上位3件を表示する。
+実験場トップのカード内ランキングは、次のルールで決める。
 
-`top_ranking_type = first` の時だけ `get_first_try_ranking` を使う。それ以外は `get_best_score_ranking` を使う。
+| 条件 | 表示するランキング | 呼ぶRPC | 表示に使う値 | 見出しに使うラベル |
+|---|---|---|---|---|
+| `top_ranking_type = first` | 初回ランキング | `get_first_try_ranking` | `first_score` | `first_score_label` |
+| `top_ranking_type = best` | ベストランキング | `get_best_score_ranking` | `best_score` | `best_score_label` |
+| `top_ranking_type` 未設定 | ベストランキング | `get_best_score_ranking` | `best_score` | `best_score_label`。なければ `最高スコア` |
 
-| 表示順 | 表示名 | RPCへ渡すslug | トップランキング | RPC | 表示単位 |
-|---:|---|---|---|---|---|
-| 1 | 虎に優しく | `torani_yasashiku` | 最高スコア | `get_best_score_ranking` | 点 |
-| 2 | 暇つぶし | `nayuta_no_himatsubushi` | 最高スコア | `get_best_score_ranking` | 点 |
-| 3 | イロアテ | `iroate` | ベストタイム | `get_best_score_ranking` | 秒・小数2桁 |
-| 4 | 夢を見たんだけどさ | `yume_wo_mitandakedosa` | 最高スコア | `get_best_score_ranking` | 点 |
-| 5 | 水滴キャッチ | `suiteki_catch` | 初回スコア | `get_first_try_ranking` | 点 |
-| 6 | 上手に描けるかな？ | `jouzuni_kakerukana` | 最高スコア | `get_best_score_ranking` | pt |
-| 7 | 充電ｶﾞｯ | `juden_ga` | 最高スコア | `get_best_score_ranking` | 点 |
-| 8 | あなたの1秒って | `anatano_1byou` | ベスト誤差 | `get_best_score_ranking` | 秒・小数2桁 |
-| 9 | ベク取る | `bekutoru` | ベストタイム | `get_best_score_ranking` | 秒・小数3桁 |
-| 10 | 尊厳を賭けようか | `songen_wo_kakeyouka` | 最高スコア | `get_best_score_ranking` | 点 |
-| 11 | ヒトを許すな！ | `hito_wo_yurusuna` | 最高スコア | `get_best_score_ranking` | 点 |
-| 12 | 負けたらお前のせいだから | `maketara_omae_no_sei_dakara` | ベストスコア | `get_best_score_ranking` | 点 |
-| 13 | 子供デモ解けちゃう | `kodomo_demo_tokechau` | 最高スコア | `get_best_score_ranking` | 点 |
-| 14 | 目押しを制す | `meoshi_wo_seisu_hard` | ベストゲーム数 | `get_best_score_ranking` | ゲーム |
-| 16 | マロン飛行 | `maron_hikou` | 最高到達 | `get_best_score_ranking` | 点 |
-| 17 | 取ればいいのよ | `toreba_iinoyo` | 最高スコア | `get_best_score_ranking` | 点 |
-| 18 | 仕分けざる | `shiwakezaru` | 最高スコア | `get_best_score_ranking` | 点 |
-| 19 | 絵文字拾い | `emojihiroi` | ベストタイム | `get_best_score_ranking` | 秒・小数2桁 |
-| 20 | 間違いみっけ | `machigai_mikke_super_hard` | ベストタイム | `get_best_score_ranking` | 秒・小数2桁 |
-| 23 | 熊のFP探し | `kuma_no_fpsagashi` | 最高到達階 | `get_best_score_ranking` | 階 |
-| 24 | ジョーバ | `johba` | 最高スコア | `get_best_score_ranking` | 点 |
-| 25 | 3度一致 | `sandoicchi` | 最高スコア | `get_best_score_ranking` | 点 |
-| 26 | カニジャン | `kanijan` | 最高ジャン点 | `get_best_score_ranking` | 点 |
-| 27 | トレメシ | `toremeshi` | 最高スコア | `get_best_score_ranking` | 点 |
+特に指定がなければ、実験場トップはベストランキングを出す。指定があるゲームだけ、初回ランキングなどを出す。
 
-トップページで0件のランキングは、エラーではなく `coming soon` または `まだ記録がありません` と表示する。
+各ゲームの実験場トップ表示は次である。
+
+| 表示順 | 表示名 | RPCへ渡すslug | 実験場で出すランキング見出し | top指定 | RPC | 表示値 | 単位・小数 |
+|---:|---|---|---|---|---|---|---|
+| 1 | 虎に優しく | `torani_yasashiku` | 最高スコア | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 2 | 暇つぶし | `nayuta_no_himatsubushi` | 最高スコア | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 3 | イロアテ | `iroate` | ベストタイム | `best` | `get_best_score_ranking` | `best_score` | 秒・2桁 |
+| 4 | 夢を見たんだけどさ | `yume_wo_mitandakedosa` | 最高スコア | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 5 | 水滴キャッチ | `suiteki_catch` | 初回スコア | `first` | `get_first_try_ranking` | `first_score` | 点・0桁 |
+| 6 | 上手に描けるかな？ | `jouzuni_kakerukana` | 最高スコア | `best` | `get_best_score_ranking` | `best_score` | pt・0桁 |
+| 7 | 充電ｶﾞｯ | `juden_ga` | 最高スコア | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 8 | あなたの1秒って | `anatano_1byou` | ベスト誤差 | `best` | `get_best_score_ranking` | `best_score` | 秒・2桁 |
+| 9 | ベク取る | `bekutoru` | ベストタイム | `best` | `get_best_score_ranking` | `best_score` | 秒・3桁 |
+| 10 | 尊厳を賭けようか | `songen_wo_kakeyouka` | 最高スコア | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 11 | ヒトを許すな！ | `hito_wo_yurusuna` | 最高スコア | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 12 | 負けたらお前のせいだから | `maketara_omae_no_sei_dakara` | ベストスコア | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 13 | 子供デモ解けちゃう | `kodomo_demo_tokechau` | 最高スコア | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 14 | 目押しを制す | `meoshi_wo_seisu_hard` | ベストゲーム数 | `best` | `get_best_score_ranking` | `best_score` | ゲーム・0桁 |
+| 16 | マロン飛行 | `maron_hikou` | 最高到達 | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 17 | 取ればいいのよ | `toreba_iinoyo` | 最高スコア | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 18 | 仕分けざる | `shiwakezaru` | 最高スコア | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 19 | 絵文字拾い | `emojihiroi` | ベストタイム | `best` | `get_best_score_ranking` | `best_score` | 秒・2桁 |
+| 20 | 間違いみっけ | `machigai_mikke_super_hard` | ベストタイム | `best` | `get_best_score_ranking` | `best_score` | 秒・2桁 |
+| 23 | 熊のFP探し | `kuma_no_fpsagashi` | 最高到達階 | `best` | `get_best_score_ranking` | `best_score` | 階・0桁 |
+| 24 | ジョーバ | `johba` | 最高スコア | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 25 | 3度一致 | `sandoicchi` | 最高スコア | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 26 | カニジャン | `kanijan` | 最高ジャン点 | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+| 27 | トレメシ | `toremeshi` | 最高スコア | `best` | `get_best_score_ranking` | `best_score` | 点・0桁 |
+
+注意点は次である。
+
+- `score_order = desc` のベストは、数値が大きい記録である。
+- `score_order = asc` のベストは、数値が小さい記録である。
+- そのため、`ベストタイム`、`ベスト誤差`、`ベストゲーム数` は小さいほど良い。
+- 表示順位はRPCが返す `rank_no` をそのまま使う。
+- トップページで0件のランキングは、エラーではなく `coming soon` または `まだ記録がありません` と表示する。
 
 ## 9. 詳細ランキングで表示するランキング
 
@@ -405,6 +413,8 @@ await supabase.rpc("get_best_score_ranking", {
 - 結果画面に「ランキング登録」ボタンを置き、任意送信にする。
 - 難易度別ゲームを実験場トップで複数カードに分ける。
 - 実験場トップで低難易度側のランキングを代表として出す。
+- 実験場トップのランキング見出しを `score_label` だけで決める。
+- `top_ranking_type = first` のゲームで `best_score` を表示する。
 - `service_role` キーを公開HTMLへ入れる。
 
 ## 16. スマホ表示と操作抑制
@@ -437,9 +447,12 @@ body {
 - 深緑背景 `#0b241b` になっている。
 - `is_active = true` のゲームだけ出る。
 - `display_order` 順に並ぶ。
-- 目押しを制すは1枚のカードで、ハードのランキングを出す。
-- 間違いみっけは1枚のカードで、超ハードのランキングを出す。
+- 実験場トップのランキングは、指定がなければベストランキングになる。
+- 水滴キャッチは初回スコアを出す。
+- 目押しを制すは1枚のカードで、ハードのベストゲーム数を出す。
+- 間違いみっけは1枚のカードで、超ハードのベストタイムを出す。
 - マロン飛行、熊のFP探し、ジョーバ、3度一致、カニジャン、トレメシが出る。
+- ランキング見出しは `first_score_label` または `best_score_label` に従う。
 - ランキング0件でもページが壊れない。
 - シェア文にURLが入る。
 
