@@ -384,6 +384,12 @@
       border: 1px solid var(--line);
     }
 
+    .detail-row.cheat-row {
+      border-color: rgba(255, 107, 107, 0.72);
+      background: rgba(90, 22, 22, 0.72);
+      box-shadow: 0 0 0 1px rgba(255, 107, 107, 0.25), 0 14px 32px rgba(0, 0, 0, 0.28);
+    }
+
     .detail-main {
       display: grid;
       grid-template-columns: 48px 1fr;
@@ -392,10 +398,23 @@
       min-width: 0;
     }
 
+    .detail-row.cheat-row .detail-main {
+      grid-template-columns: auto 1fr;
+    }
+
     .rank-no {
       color: var(--button-bg);
       font-weight: 900;
       white-space: nowrap;
+    }
+
+    .detail-row.cheat-row .rank-no {
+      color: #ffd1d1;
+      background: rgba(255, 107, 107, 0.18);
+      border: 1px solid rgba(255, 107, 107, 0.5);
+      border-radius: 999px;
+      padding: 4px 8px;
+      text-align: center;
     }
 
     .player-name {
@@ -423,6 +442,11 @@
       border: 1px solid rgba(246, 255, 249, 0.12);
     }
 
+    .detail-row.cheat-row .mini-box {
+      border-color: rgba(255, 107, 107, 0.55);
+      background: rgba(130, 34, 34, 0.55);
+    }
+
     .mini-box.primary-score.first-score {
       background: var(--first-score-bg);
       border-color: rgba(230, 255, 159, 0.32);
@@ -438,6 +462,10 @@
       color: var(--text-muted);
       font-size: 11px;
       line-height: 1.35;
+    }
+
+    .detail-row.cheat-row .mini-label {
+      color: #ffd1d1;
     }
 
     .mini-box.primary-score .mini-label {
@@ -1510,6 +1538,17 @@
       return text;
     }
 
+    function isKumaCheaterRow(game, row) {
+      const gameSlug = cleanText(game?.slug) || cleanText(game?.rankingSlug);
+      if (gameSlug !== "kuma_no_fpsagashi") return false;
+
+      const name =
+        cleanText(row?.normalized_name) ||
+        cleanText(row?.normalizedName) ||
+        cleanText(row?.display_name);
+      return name === "チーターマン";
+    }
+
     function setupSupabase() {
       if (supabaseClient || isKeyUnset) return supabaseClient;
 
@@ -2160,7 +2199,9 @@ ${page.url || "公開URL確認中"}`;
     function buildFirstRankingRows(firstRows, game) {
       if (!firstRows.length) return `<div class="empty">まだ記録がありません</div>`;
 
-      return firstRows.map((row) => `
+      const normalRows = firstRows.filter((row) => !isKumaCheaterRow(game, row));
+      const cheatRows = firstRows.filter((row) => isKumaCheaterRow(game, row));
+      const normalHtml = normalRows.map((row) => `
         <div class="detail-row">
           <div class="detail-main">
             <div class="rank-no">${escapeHtml(row.rank_no)}位</div>
@@ -2175,12 +2216,19 @@ ${page.url || "公開URL確認中"}`;
           </div>
         </div>
       `).join("");
+
+      return [
+        normalHtml || (!cheatRows.length ? `<div class="empty">まだ記録がありません</div>` : ""),
+        buildKumaCheaterRows(cheatRows, game, "first")
+      ].filter(Boolean).join("");
     }
 
     function buildBestRankingRows(bestRows, game) {
       if (!bestRows.length) return `<div class="empty">まだ記録がありません</div>`;
 
-      return bestRows.map((row) => `
+      const normalRows = bestRows.filter((row) => !isKumaCheaterRow(game, row));
+      const cheatRows = bestRows.filter((row) => isKumaCheaterRow(game, row));
+      const normalHtml = normalRows.map((row) => `
         <div class="detail-row">
           <div class="detail-main">
             <div class="rank-no">${escapeHtml(row.rank_no)}位</div>
@@ -2199,6 +2247,40 @@ ${page.url || "公開URL確認中"}`;
           </div>
         </div>
       `).join("");
+
+      return [
+        normalHtml || (!cheatRows.length ? `<div class="empty">まだ記録がありません</div>` : ""),
+        buildKumaCheaterRows(cheatRows, game, "best")
+      ].filter(Boolean).join("");
+    }
+
+    function buildKumaCheaterRows(rows, game, scoreType) {
+      if (!rows.length) return "";
+
+      return rows.map((row) => {
+        const score = scoreType === "first" ? row.first_score : row.best_score;
+        const label = scoreType === "first" ? firstScoreLabel(game) : bestScoreLabel(game);
+
+        return `
+          <div class="detail-row cheat-row">
+            <div class="detail-main">
+              <div class="rank-no">不正行為</div>
+              <div class="player-name">${escapeHtml(row.display_name)}</div>
+            </div>
+
+            <div class="detail-grid">
+              <div class="mini-box primary-score ${scoreType === "first" ? "first-score" : "best-score"}">
+                <span class="mini-label">${escapeHtml(label)}</span>
+                <span class="mini-value">${escapeHtml(scoreText(score, game))}</span>
+              </div>
+              <div class="mini-box">
+                <span class="mini-label">プレイ回数</span>
+                <span class="mini-value">${escapeHtml(formatNumber(row.play_count))}回</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
     }
 
     async function fetchPlayCountRanking(game) {
@@ -2212,9 +2294,10 @@ ${page.url || "公開URL確認中"}`;
     }
 
     function buildPlayCountRankingRows(playRows, game) {
-      if (!playRows.length) return `<div class="empty">まだ記録がありません</div>`;
+      const visibleRows = playRows.filter((row) => !isKumaCheaterRow(game, row));
+      if (!visibleRows.length) return `<div class="empty">まだ記録がありません</div>`;
 
-      return playRows.map((row) => `
+      return visibleRows.map((row) => `
         <div class="detail-row">
           <div class="detail-main">
             <div class="rank-no">${escapeHtml(row.rank_no)}位</div>
