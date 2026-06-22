@@ -1,6 +1,6 @@
 # ゲーム別スコア表示仕様
 
-最終更新: 2026-06-21
+最終更新: 2026-06-22
 対象: 実験場トップ `index.html` と詳細ランキング `ranking.html`
 
 ## 1. この文書の役割
@@ -55,42 +55,62 @@ function formatScore(score, game) {
 
 ### 3-1. 内部スコア
 
-`うちかえる` は、到達・クリアした波数を最優先で順位に反映するため、ゲーム本体から次の整数を送る。
+`うちかえる` は、クリア済み波数を最優先で順位に反映するため、ゲーム本体から次の整数を送る。
 
 ```text
-rankingScore = clearWave * 1000000 + min(999999, battleScore)
+RANK_BASE = 2,000,000
+rankingScore = clearWave * 2,000,000 + min(1,999,999, detailScore)
 ```
+
+用語:
+
+- `clearWave`: クリア済み波数
+- `detailScore`: ゲーム中の `battleScore` をベースに、残り拠点HPボーナスや60波クリアボーナスを加えた補助点
+- 送信用 `detailScore` は最大 `1,999,999` に丸める。
+- `RANK_BASE = 2,000,000`
+
+最大送信値:
+
+```text
+60 * 2,000,000 + 1,999,999 = 121,999,999
+```
+
+`122,000,000` は `61波クリア / 0点` 相当になるため仕様外である。Supabase側では `uchikaeru` の最大値を `121,999,999` とする。
 
 例:
 
 ```text
-39波クリア、battleScore 601,917
-=> 39,601,917
+59波クリア、detailScore 1,070,642
+=> 119,070,642
+=> 59波クリア / 1,070,642点
 
-60波クリア、battleScore 2,037,256
-=> battleScore は 999,999 に丸め
-=> 60,999,999
+60波クリア、detailScore 2,037,256
+=> detailScore は 1,999,999 に丸め
+=> 121,999,999
+=> 60波クリア / 1,999,999点
 ```
 
-この内部値をそのまま `39,601,917点` や `60,999,999点` のように表示してはいけない。
+この内部値をそのまま `119,070,642点` や `121,999,999点` のように表示してはいけない。
 
 ### 3-2. 表示形式
 
 実験場トップと詳細ランキングでは、必ず次の形式で表示する。
 
 ```text
-39波クリア / 601,917点
-60波クリア / 999,999点
+59波クリア / 1,070,642点
+60波クリア / 1,999,999点
 ```
 
 実装例:
 
 ```js
+const UCHIKAERU_RANK_BASE = 2000000;
+
 function formatUchikaeruScore(score) {
   const raw = Number(score || 0);
-  const wave = Math.floor(raw / 1000000);
-  const battleScore = raw % 1000000;
-  return `${wave}波クリア / ${battleScore.toLocaleString("ja-JP")}点`;
+  const wave = Math.floor(raw / UCHIKAERU_RANK_BASE);
+  const detailScore = raw % UCHIKAERU_RANK_BASE;
+  return `${wave}波クリア / ${detailScore.toLocaleString("ja-JP")}点`;
 }
 ```
 
@@ -203,26 +223,29 @@ where game_slug = 'uchikaeru';
 
 ### 3-5. 注意事項
 
-- `score_scale` だけで `うちかえる` の表示を処理しようとしてはいけない。
-- ランキングの並び順は、内部整数値の降順でよい。
+- `score_scale` だけで `うちかえる` の表示を処理しない。
+- ランキングの並び順は内部整数値の降順。
 - 表示だけを分解する。
 - Supabaseの保存値を分解して保存し直さない。
-- `battleScore` が0でも、`○波クリア / 0点` と表示する。
-- `battleScore` が999,999を超える場合は、ランキング送信前に999,999へ丸める。
+- `detailScore` が `0` でも、`○波クリア / 0点` と表示する。
+- `detailScore` が `1,999,999` を超える場合は、ゲーム本体がランキング送信前に `1,999,999` へ丸める。
 - 0波の場合も、`0波クリア / 0点` のように壊れず表示する。
 - リタイア時も `submit_score` を呼び、0波リタイアでも `play_count` に計測する。
+- `122,000,000` は `61波クリア / 0点` 相当になるため仕様外。
+- Supabase側では `uchikaeru` の最大値を `121,999,999` とする。
 
 ### 3-6. `submit_score` 実測結果
 
-`うちかえる` 本体の `RANK_BASE = 1000000` 反映後、次の送信結果を確認済み。
+`うちかえる` 本体の `RANK_BASE = 2,000,000` 反映後、次の送信結果を確認済み。
 
 ```text
-p_score = 390,601,917 は score is too large
-p_score = 39,601,917 は accepted=true
-p_score = 60,999,999 は accepted=true
+p_score = 121,999,999 は accepted=true
+p_score = 122,000,000 は score is too large
 ```
 
-このため、`rankingScore` は必ず `clearWave * 1000000 + min(999999, battleScore)` の範囲に収める。
+このため、`rankingScore` は必ず `clearWave * 2,000,000 + min(1,999,999, detailScore)` の範囲に収める。
+
+旧仕様メモ: `RANK_BASE = 1,000,000` 時代の確認値は最新仕様の代表例として扱わない。
 
 ## 4. 今後同じ方式を使うゲーム
 
@@ -250,6 +273,6 @@ p_score = 60,999,999 は accepted=true
 - 実験場トップの `うちかえる` 上位ランキングが `○波クリア / ○○点` で表示される。
 - 詳細ランキングの初回タブが `○波クリア / ○○点` で表示される。
 - 詳細ランキングのベストタブが `○波クリア / ○○点` で表示される。
-- 内部スコア `390,601,917` のような大きすぎる数値を送らず、`39,601,917` や `60,999,999` のように受理される範囲で送る。
+- 内部スコアは最大送信値 `121,999,999` 以内に収め、仕様外の `122,000,000` を送らない。
 - `score_order = desc` の順位が壊れていない。
 - ランキングが0件でも画面が壊れない。
