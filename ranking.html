@@ -1810,9 +1810,12 @@
       return `${formatNumber(waveCode)}波到達 / ${formatNumber(subScore)}点`;
     }
 
+    const UCHIKAERU_RANK_BASE = 2000000;
+
     function uchikaeruScoreText(numericScore) {
-      const clearWave = Math.floor(numericScore / 1000000);
-      const detailScore = numericScore % 1000000;
+      const raw = Math.max(0, Math.floor(Number(numericScore) || 0));
+      const clearWave = Math.floor(raw / UCHIKAERU_RANK_BASE);
+      const detailScore = raw % UCHIKAERU_RANK_BASE;
       return `${formatNumber(clearWave)}波クリア / ${formatNumber(detailScore)}点`;
     }
 
