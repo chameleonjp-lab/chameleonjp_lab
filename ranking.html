@@ -1801,6 +1801,21 @@
       return num.toLocaleString("ja-JP");
     }
 
+    function maronHikouScoreText(numericScore) {
+      const waveCode = Math.floor(numericScore / 10000000);
+      const subScore = numericScore % 10000000;
+      if (waveCode >= 31) {
+        return `30波突破 / ${formatNumber(subScore)}点`;
+      }
+      return `${formatNumber(waveCode)}波到達 / ${formatNumber(subScore)}点`;
+    }
+
+    function uchikaeruScoreText(numericScore) {
+      const clearWave = Math.floor(numericScore / 1000000);
+      const detailScore = numericScore % 1000000;
+      return `${formatNumber(clearWave)}波クリア / ${formatNumber(detailScore)}点`;
+    }
+
     function scoreText(score, gameOrUnit) {
       if (score === null || score === undefined || score === "") return "—";
 
@@ -1808,11 +1823,12 @@
       if (!Number.isFinite(numericScore)) return "—";
 
       const game = typeof gameOrUnit === "object" && gameOrUnit !== null ? gameOrUnit : null;
-      const slug = cleanText(game?.slug) || "";
+      const slug = cleanText(game?.slug) || cleanText(game?.rankingSlug) || "";
+      if (slug === "maron_hikou") {
+        return maronHikouScoreText(numericScore);
+      }
       if (slug === "uchikaeru") {
-        const wave = Math.floor(numericScore / 100000000);
-        const battleScore = numericScore % 100000000;
-        return `${formatNumber(wave)}波クリア / ${formatNumber(battleScore)}点`;
+        return uchikaeruScoreText(numericScore);
       }
 
       const unit = game ? cleanText(game.scoreUnit) || "" : gameOrUnit || "";
