@@ -214,7 +214,7 @@
     }
 
     .game-card,
-    .sponsor-card {
+    .supporter-card {
       width: 100%;
       padding: 18px;
       border: 1px solid var(--line);
@@ -229,7 +229,7 @@
     }
 
     .game-title,
-    .sponsor-title {
+    .supporter-title {
       margin: 0;
       font-size: 22px;
       line-height: 1.35;
@@ -283,7 +283,7 @@
     }
 
     .game-description,
-    .sponsor-description {
+    .supporter-description {
       margin: 8px 0 0;
       color: var(--text-sub);
       font-size: 15px;
@@ -513,7 +513,7 @@
       width: 100%;
     }
 
-    .sponsor-area {
+    .supporter-area {
       margin-top: 30px;
       padding-top: 18px;
       border-top: 1px solid var(--line);
@@ -571,7 +571,7 @@
       opacity: 1;
     }
 
-    .sponsor-card {
+    .supporter-card {
       position: relative;
       text-align: center;
       background: linear-gradient(160deg, #1d1733 0%, #102d23 58%, #0b0d16 100%);
@@ -579,20 +579,20 @@
       box-shadow: 0 14px 32px var(--shadow);
     }
 
-    .sponsor-card .sponsor-title {
+    .supporter-card .supporter-title {
       color: #f4e3a1;
       letter-spacing: 0.06em;
       text-align: center;
     }
 
-    .sponsor-card .actions {
+    .supporter-card .actions {
       max-width: 320px;
       margin-left: auto;
       margin-right: auto;
       grid-template-columns: 1fr;
     }
 
-    .sponsor-card .button {
+    .supporter-card .button {
       font-family: inherit;
       background: #e6ff9f;
       color: #0b241b;
@@ -643,7 +643,7 @@
       }
 
       .game-card,
-      .sponsor-card {
+      .supporter-card {
         padding: 16px;
         border-radius: 20px;
       }
@@ -735,9 +735,9 @@
     </section>
     <section id="gameList" class="game-list" aria-label="ゲーム一覧"></section>
 
-    <section class="sponsor-area" aria-label="スポンサー">
-      <h2 class="section-title">スポンサー</h2>
-      <section id="sponsorList" class="game-list">
+    <section class="supporter-area" aria-label="協賛者">
+      <h2 class="section-title">協賛者</h2>
+      <section id="supporterList" class="game-list">
         <article class="diagnosis-banner-card" id="diagnosis-banner-card">
           <a class="diagnosis-banner-link link-callout" href="https://chameleonjp.codeberg.page/chameleon_type/" aria-label="カメレオン診断を開く">
             <img
@@ -754,8 +754,8 @@
           </a>
         </article>
 
-        <article class="sponsor-card" id="sponsor-static-aruku">
-          <h2 class="sponsor-title">λアルク教λ</h2>
+        <article class="supporter-card" id="supporter-static-aruku">
+          <h2 class="supporter-title">λアルク教λ</h2>
           <div class="actions">
             <a class="button" href="https://chameleonjp.codeberg.page/aruku_kyou/">一歩を踏み出してみる</a>
           </div>
@@ -1413,6 +1413,28 @@
                   "uchikaeru"
             ],
             "shareText": "うちかえるで遊んでみて！"
+      },
+      {
+            "displayOrder": 29,
+            "slug": "binkarabin",
+            "title": "ビンカラビン",
+            "url": "https://chameleonjp.codeberg.page/binkarabin/",
+            "description": "瓶を見ながら進めるスマホ向けミニゲームです。",
+            "isActive": true,
+            "topRanking": "best",
+            "scoreOrder": "desc",
+            "scoreUnit": "点",
+            "scoreScale": 1,
+            "scoreDecimals": 0,
+            "scoreLabel": "スコア",
+            "firstScoreLabel": "初回スコア",
+            "bestScoreLabel": "最高スコア",
+            "detailSlug": "binkarabin",
+            "rankingSlug": "binkarabin",
+            "statsSlugs": [
+                  "binkarabin"
+            ],
+            "shareText": "ビンカラビンで遊んでみて！"
       }
 ];
 
@@ -1849,7 +1871,6 @@
         return true;
       } catch (error) {
         console.warn("games catalog load failed; using fallback GAMES:", error);
-        showNotice("Supabaseのゲーム一覧取得に失敗したため、固定リストで表示しています。詳細はブラウザのコンソールを確認してください。");
         return false;
       }
     }
