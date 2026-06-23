@@ -42,6 +42,16 @@ Claude Codeに作業を依頼する場合は、最初にルートの `CLAUDE.md`
 - Supabaseでは公開用のPublishable keyだけをブラウザ側に入れます。
 - `service_role` キーは、絶対に公開HTMLへ入れません。
 
+
+## ビンカラビンのランキング表示設定メモ
+
+ビンカラビン本体は、クリアタイムをミリ秒で `submit_score` に送信する短いほど良いタイムアタックゲームです。実験場トップと詳細ランキングページの固定定義だけでなく、Supabase の `public.games` 側も次の表示設定にそろえる必要があります。
+
+- `score_order`: `asc`
+- `score_unit`: `秒`
+- `score_scale`: `1000`
+- `score_decimals`: `3`
+
 ## 最新方針
 
 実験場トップと詳細ランキングページは、Supabaseの `public.games` を中心に扱います。
