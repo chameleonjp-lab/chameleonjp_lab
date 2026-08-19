@@ -1,223 +1,552 @@
-# 各ゲーム `index.html` に入れるSupabase必須対応
+# ゲーム側ランキング実装の必須要件
 
-最終更新: 2026-06-12
-対象: 新規ゲーム / 既存ゲームのランキング対応
+最終更新: 2026-08-19  
+対象: 新規ゲーム、既存ゲームのランキング追加・修正
 
-## 1. この文書の役割
+> ランキング連携の最上位規約は`11_ranking_integration_standard.md`です。  
+> この文書は、ゲーム側へ実装する内容を説明します。
 
-この文書は、カメレオンJPで作る各ゲームの `index.html` に、ランキング送信を入れる時の必須仕様をまとめる。
+## 1. ゲームのファイル構成
 
-このプロジェクトでは、ゲームは原則としてHTML、CSS、JavaScriptを1つにまとめた `index.html` で作る。
+ゲームを`index.html`一つにまとめる必要はありません。
 
-## 2. 絶対に必要な動き
+- 小規模ゲームは一ファイルでもよい。
+- JavaScript、CSS、画像、音声、3Dデータを分割してよい。
+- 既存の分割構成を、ランキング対応だけを理由に一ファイルへ戻さない。
+- どの構成でも、正式URL、`game_slug`、`client_version`、送信状態を一か所で確認できるようにする。
 
-ランキング対応ゲームでは、次の動きを必ず入れる。
+## 2. 最初に作るファイル
 
-| 必須項目 | 内容 |
-|---|---|
-| プレイヤー名 | 初回プレイ前に必須入力 |
-| 名前保存 | ブラウザの `localStorage` に保存 |
-| 自動送信 | ゲーム終了時に自動でSupabaseへ送信 |
-| 二重送信防止 | 送信中・送信済みフラグを持つ |
-| 結果表示 | 送信中、成功、失敗を結果画面に出す |
-| シェア | 結果文とゲームURLを共有またはコピー |
-| 実験場リンク | カメレオンJPの実験場へ戻れるようにする |
+ランキング実装を始める前に、ゲーム側のリポジトリへ`ranking-manifest.json`を作ります。
 
-結果画面に「ランキング登録」ボタンを置いて、プレイヤーが押した時だけ送信する作りにしてはいけない。
+形式:
 
-## 3. 共通定数
+- `docs/chameleonjp-lab/schemas/ranking-manifest-v1.schema.json`
+- `docs/chameleonjp-lab/examples/ranking-manifest-v1.example.json`
 
-ゲーム側には、最低限次の定数を置く。
+マニフェストには、次を入れます。
+
+- 正式URL
+- `game_id`
+- `client_version`
+- `submission_mode`
+- 代表`game_slug`
+- すべてのモードと`game_slug`
+- スコアの順序、単位、倍率、小数桁
+- 送信対象となる終了結果
+- プレイ開始記録RPC
+- スコア送信RPC
+- 名前保存キー
+
+公開用キーや秘密情報は入れません。
+
+## 3. 実装値を一か所へまとめる
+
+ゲーム側では、少なくとも次を一つの設定オブジェクトまたは設定モジュールへまとめます。
 
 ```js
-const GAME_SLUG = "ここに_game_slug";
-const CLIENT_VERSION = "ゲーム名_vYYYYMMDD_01";
-const SUPABASE_URL = "https://mlpnjgezrnhdxsxolyzj.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_drzcy0v97knU6FgjqSgBHw_0A9XPdFM";
-const LAB_URL = "https://chameleonjp.codeberg.page/chameleonjp_lab/";
+export const RANKING_CONFIG = Object.freeze({
+  gameId: "sample_game",
+  canonicalUrl: "https://chameleonjp-lab.github.io/sample_game/",
+  clientVersion: "sample-game-web-1",
+  submissionMode: "shared",
+  representativeSlug: "sample_game_300_seconds",
+  playerNameStorageKey: "chameleonjp_sample_game_player_name"
+});
 ```
 
-`GAME_SLUG` はSupabase `public.games.game_slug` と完全一致させる。
+各モードの`game_slug`も、一つの対応表にします。
 
-## 4. Supabaseクライアントの読み込み
+```js
+export const RANKING_SLUGS = Object.freeze({
+  "300-seconds": "sample_game_300_seconds"
+});
+```
 
-HTML内でSupabase JavaScriptクライアントを読み込む。
+画面、送信処理、ランキング取得処理で別々の文字列を手書きしません。
+
+## 4. 正式URL
+
+正式URLは、マニフェストと同じ値を使います。
+
+```js
+export const CANONICAL_GAME_URL =
+  "https://chameleonjp-lab.github.io/sample_game/";
+```
+
+次で同じ値を使います。
+
+- `<link rel="canonical">`
+- ホーム画面のシェア
+- 結果画面のシェア
+- 実験場へ登録する`game_url`
+- ゲーム内の「URLをコピー」
+- 受入記録
+
+`location.href`をそのままシェアすると、試験用クエリやハッシュが入るため、正式URLを使います。
+
+## 5. 公開版
+
+HTMLへ公開版を入れます。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta
+  name="chameleonjp-release"
+  content="sample_game-20260819-01"
+>
 ```
 
-JavaScript側では次のように作る。
+入口のCSSやJavaScriptには、公開版を表すクエリを付けてもかまいません。
+
+```html
+<link rel="stylesheet" href="./css/style.css?v=sample_game-20260819-01">
+<script
+  type="module"
+  src="./js/main.js?v=sample_game-20260819-01"
+></script>
+```
+
+同じ内部モジュールを、クエリ付きとクエリなしで混在させません。
 
 ```js
-const supabaseClient = window.supabase
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
-  : null;
+// 正しい: 同じファイルは同じ表記だけで読む
+import { RankingClient } from "./ranking-client.js";
 ```
-
-読み込み失敗時でも、ゲーム本体は遊べるようにする。ランキング送信だけ失敗表示にする。
-
-## 5. 名前入力
-
-プレイヤー名は必須にする。
-
-保存キーは、ゲームごとに分ける。
 
 ```js
-const NAME_STORAGE_KEY = `chameleonjp_${GAME_SLUG}_player_name`;
+// 禁止: 同じ画面内で別URLとして読む
+import { RankingClient } from "./ranking-client.js";
+import { RankingClient as OtherClient }
+  from "./ranking-client.js?v=sample_game-20260819-01";
 ```
 
-名前は長すぎるとランキング表示が壊れるため、10文字程度を上限にする。空白だけの名前は不可にする。
+## 6. プレイヤー名
 
-```js
-function normalizeDisplayName(value) {
-  return String(value || "").trim().slice(0, 10);
-}
-```
+名前は、ランキング対象プレイの開始前に必須です。
 
-## 6. スコアの作り方
+最低条件:
 
-Supabaseへ送る `score` は内部整数にする。
-
-| 種別 | 表示 | 内部整数 |
-|---|---:|---:|
-| 点数 | `12345点` | `12345` |
-| 秒、小数2桁 | `34.15秒` | `3415` |
-| 秒、小数3桁 | `1.234秒` | `1234` |
-| パーセント | `87%` | `87` |
-
-ゲーム側と `public.games.score_scale` は必ず合わせる。
-
-例として、秒を3桁で表示するゲームなら、ゲーム側ではミリ秒をそのまま送る。
-
-```js
-const finalTimeMs = 1234;
-const score = finalTimeMs;
-```
-
-Supabase `games` 側は次にする。
-
-```text
-score_unit = '秒'
-score_scale = 1000
-score_decimals = 3
-score_order = 'asc'
-```
-
-## 7. スコア送信関数
-
-ゲーム終了時に、次の形で送信する。
-
-```js
-let scoreSubmitStarted = false;
-let scoreSubmitFinished = false;
-
-async function submitGameScore(finalScore) {
-  if (scoreSubmitStarted || scoreSubmitFinished) return;
-
-  scoreSubmitStarted = true;
-  setRankingStatus("ランキング送信中...");
-
-  const displayName = normalizeDisplayName(localStorage.getItem(NAME_STORAGE_KEY));
-  if (!displayName) {
-    setRankingStatus("名前が未入力のため、ランキング送信できませんでした。");
-    scoreSubmitStarted = false;
-    return;
-  }
-
-  if (!supabaseClient) {
-    setRankingStatus("Supabaseを読み込めなかったため、ランキング送信できませんでした。");
-    scoreSubmitStarted = false;
-    return;
-  }
-
-  try {
-    const { error } = await supabaseClient.rpc("submit_score", {
-      p_display_name: displayName,
-      p_game_slug: GAME_SLUG,
-      p_score: Math.trunc(Number(finalScore || 0)),
-      p_client_version: CLIENT_VERSION
-    });
-
-    if (error) throw error;
-
-    scoreSubmitFinished = true;
-    setRankingStatus("ランキングへ送信しました。");
-  } catch (error) {
-    console.error("submit_score failed", error);
-    setRankingStatus("ランキング送信に失敗しました。通信状態を確認してください。");
-  } finally {
-    scoreSubmitStarted = false;
-  }
-}
-```
-
-`setRankingStatus` は、結果画面の表示を更新する関数として各ゲーム側で作る。
-
-## 8. ゲーム終了時の呼び方
-
-ゲームが終わった瞬間に、結果画面を表示し、その中で自動送信を始める。
-
-```js
-function finishGame(result) {
-  if (gameState.finished) return;
-  gameState.finished = true;
-
-  const finalScore = calculateFinalScore(result);
-  showResultScreen(result, finalScore);
-  submitGameScore(finalScore);
-}
-```
-
-重要なのは、結果画面でユーザーにボタンを押させてから送るのではなく、終了時に自動で送ること。
-
-## 9. 結果画面の必須表示
-
-結果画面には最低限次を置く。
-
-| 要素 | 内容 |
-|---|---|
-| 結果 | 勝敗、スコア、タイム、クリア状況など |
-| ランキング送信状態 | 送信中、成功、失敗 |
-| もう一度 | 同じゲームを再開 |
-| 結果をシェア | Web Share APIまたはコピー |
-| ゲーム終了 | ホームへ戻る |
-| 他のゲームで遊ぶ | 実験場トップへ移動 |
-
-`ランキング登録` のような任意送信ボタンは置かない。
-
-## 10. シェア文
-
-シェア文には、ゲーム名、結果、ゲームURLを入れる。
+- 前後の空白を除く。
+- 1文字以上20文字以下。
+- 空白だけを拒否する。
+- 入力値を無言で短く切らない。
+- 画面に表示した名前と送信する名前を同じにする。
+- 保存できなくても今回のプレイには使えるようにする。
+- 保存失敗は、名前不正とは分けて表示する。
 
 例:
 
 ```js
-function buildShareText(resultLabel, scoreText) {
-  return `${document.title}\n結果: ${resultLabel}\nスコア: ${scoreText}\n${location.href}`;
+export function validatePlayerName(value) {
+  const name = String(value ?? "").trim();
+
+  if (name.length === 0) {
+    return { ok: false, name: "", message: "名前を入力してください。" };
+  }
+
+  if ([...name].length > 20) {
+    return {
+      ok: false,
+      name: "",
+      message: "名前は20文字以内で入力してください。"
+    };
+  }
+
+  return { ok: true, name, message: "" };
 }
 ```
 
-使える場合は `navigator.share` を使い、使えない場合は `navigator.clipboard.writeText` を使う。
+JavaScriptの`length`だけでは、一部の絵文字を複数文字として数えます。上の例では`[...name].length`を使います。サーバー側の数え方と異なる場合は、同じ規則へそろえます。
 
-## 11. リタイア時の扱い
+## 7. 一つのプレイに一つの`play_id`
 
-リタイアがあるゲームでは、仕様に合わせてリタイア結果も送る。
+開始ボタンが受け付けられたら、重複しない`play_id`を作ります。
 
-スコアを0にするか、到達波数や失敗タイムとして送るかはゲーム仕様で決める。ただし、送る場合も `submit_score` を使い、自動送信する。
+```js
+function createId() {
+  if (typeof crypto?.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
 
-## 12. スマホ操作対策
-
-各ゲームはスマホ操作が前提なので、最低限次を入れる。
-
-```html
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  throw new Error("このブラウザでは安全な送信IDを作れません。");
+}
 ```
 
-CSSでは、次のような対策を入れる。
+開始処理の流れ:
+
+1. 名前を確定する。
+2. `play_id`を作る。
+3. マニフェストで指定した開始記録RPCへ送る。
+4. 受付が確認できたら、カウントダウンまたはゲームを始める。
+5. 通信が一時的に失敗した場合は、同じ`play_id`で再送する。
+6. 同じ開始操作の連打では、新しい`play_id`を作らない。
+
+ページを開いた時やチュートリアルを開いた時には数えません。
+
+開始記録が必須のゲームで受付を確認できない場合は、ランキング対象外として始めるのか、開始を止めるのかをゲーム固有仕様へ書きます。黙ってプレイ回数だけ欠落させません。
+
+## 8. 一つの結果に一つの`submission_id`
+
+ランキング対象の結果が確定した瞬間に、一つの`submission_id`を作ります。
+
+同じ結果の自動送信、通信後の再送、ページ再読み込み後の再送では、次を変えません。
+
+- `submission_id`
+- `play_id`
+- プレイヤー名
+- `game_slug`
+- スコア
+- `client_version`
+- 契約版がある場合は契約版
+
+再送時に新しい`submission_id`を作ると、Supabase側では別の結果として見えるため禁止します。
+
+## 9. 送信待ちデータの保存
+
+結果を確定したら、送信前に次のデータをブラウザへ保存します。
+
+```js
+{
+  submissionId,
+  playId,
+  displayName,
+  gameSlug,
+  score,
+  clientVersion,
+  createdAt,
+  attemptCount
+}
+```
+
+保存先はIndexedDBを推奨します。小規模ゲームで`localStorage`を使う場合も、次を守ります。
+
+- 保存できなくても自動送信は試す。
+- 保存失敗を、送信禁止の条件にしない。
+- 成功応答を検査した後だけ待ちデータを削除する。
+- 失敗中のデータを上書きせず、同じ内容で残す。
+- 保存値を読み込む時に型、範囲、`game_slug`、`client_version`を検査する。
+- 破損した値をそのまま送らない。
+- 別モードや旧`game_slug`の待ちデータを混ぜない。
+
+## 10. 送信状態
+
+送信状態は、次の固定値だけを使います。
+
+```js
+export const RANKING_STATES = Object.freeze({
+  IDLE: "idle",
+  SUBMITTING: "submitting",
+  SUBMITTED: "submitted",
+  RETRYABLE_FAILED: "retryable_failed",
+  PERMANENT_FAILED: "permanent_failed"
+});
+```
+
+表示文言から状態を推測しません。
+
+例:
+
+```js
+function renderRankingState(state, detail = null) {
+  switch (state) {
+    case RANKING_STATES.SUBMITTING:
+      status.textContent = "ランキングへ送信しています…";
+      retryButton.hidden = false;
+      retryButton.disabled = true;
+      retryButton.textContent = "送信中…";
+      break;
+
+    case RANKING_STATES.SUBMITTED:
+      status.textContent = "ランキングへ登録しました。";
+      retryButton.hidden = true;
+      retryButton.disabled = true;
+      break;
+
+    case RANKING_STATES.RETRYABLE_FAILED:
+      status.textContent =
+        "記録を送信できませんでした。通信状態を確認して再送してください。";
+      retryButton.hidden = false;
+      retryButton.disabled = false;
+      retryButton.textContent = "記録を再送する";
+      break;
+
+    case RANKING_STATES.PERMANENT_FAILED:
+      status.textContent =
+        "記録を受け付けられませんでした。設定を確認してください。";
+      retryButton.hidden = true;
+      retryButton.disabled = true;
+      break;
+
+    default:
+      status.textContent = "";
+      retryButton.hidden = true;
+      retryButton.disabled = true;
+  }
+
+  diagnosticOutput.textContent = detail?.diagnostic ?? "";
+}
+```
+
+## 11. ゲーム終了時の自動送信
+
+ゲームの終了処理は、結果確定を一度だけ行います。
+
+```js
+async function finishGame(result) {
+  if (gameState.finished) return;
+  gameState.finished = true;
+
+  const finalScore = calculateFinalScore(result);
+  const pending = createPendingSubmission({
+    result,
+    score: finalScore
+  });
+
+  showResultScreen(result, finalScore);
+  await savePendingSubmission(pending);
+  void submitPendingSubmission(pending);
+}
+```
+
+`submitPendingSubmission`は、マニフェストで指定された同一送信対策付きRPCを使います。
+
+結果画面の表示を、通信完了まで待たせません。
+
+## 12. 送信処理の最低条件
+
+送信処理は、次を必ず検査します。
+
+送信前:
+
+- 名前が有効。
+- `game_slug`が対応表に存在する。
+- スコアが安全な整数。
+- スコアがマニフェストの最小値と最大値の範囲内。
+- `submission_id`と`play_id`が有効。
+- `client_version`が有効。
+- 同じ結果の送信処理が既に動いていない。
+
+応答後:
+
+- 受付済みである。
+- 返された`submission_id`が一致する。
+- 返された`game_slug`が一致する。
+- 返された名前が一致する。
+- 返された送信スコアが一致する。
+- ベストスコアとプレイ回数が整数。
+- 重複再送かどうかが分かる。
+
+HTTP 200だけを見て成功にしません。
+
+## 13. 通信の呼び方
+
+### 13.1 Supabase JavaScriptクライアント
+
+検証済みのSupabase JavaScriptクライアントを使える場合は、共通ラッパーから呼びます。
+
+ゲームの描画コードや終了処理へ、RPC呼び出しを直接散らしません。
+
+### 13.2 REST
+
+RESTを使う場合は、共通の通信クラスへまとめます。
+
+ネイティブ`fetch`を受け取る時は、次のように呼び出し先を固定します。
+
+```js
+export class RankingTransport {
+  constructor({
+    fetchImpl = globalThis.fetch.bind(globalThis),
+    timeoutMs = 8000
+  } = {}) {
+    this.fetchImpl = fetchImpl;
+    this.timeoutMs = timeoutMs;
+  }
+}
+```
+
+または、呼び出す時に次を使います。
+
+```js
+await this.fetchImpl.call(globalThis, url, options);
+```
+
+`this.fetchImpl(url, options)`の形で、ネイティブ`fetch`へ別の`this`を渡さないようにします。
+
+## 14. 時間切れ
+
+通信には時間切れを設けます。
+
+```js
+const controller = new AbortController();
+const timeoutId = window.setTimeout(
+  () => controller.abort(),
+  8000
+);
+
+try {
+  const response = await fetchImpl(url, {
+    method: "POST",
+    signal: controller.signal
+  });
+} finally {
+  window.clearTimeout(timeoutId);
+}
+```
+
+時間切れは`retryable_failed`として扱います。
+
+## 15. 失敗の分類
+
+次は原則として再送可能です。
+
+- 通信切断
+- 時間切れ
+- HTTP 408
+- HTTP 425
+- HTTP 429
+- HTTP 500番台
+
+次は原則として再送だけでは直りません。
+
+- 名前不正
+- `game_slug`未登録
+- `is_active = false`
+- スコア範囲外
+- `client_version`不一致
+- 契約版不一致
+- `submission_id`と内容の競合
+- 権限設定不一致
+
+HTTP番号だけでなく、RPC名、サーバーコード、応答内容を使って分けます。
+
+## 16. 診断情報
+
+利用者向けの文と、調査用情報を分けます。
+
+調査用情報:
+
+```js
+{
+  code,
+  retryable,
+  rpcName,
+  httpStatus,
+  serverCode,
+  serverMessage,
+  gameSlug,
+  clientVersion,
+  releaseId,
+  submissionId,
+  playId,
+  occurredAt
+}
+```
+
+次は出しません。
+
+- Publishable key
+- 認証トークン
+- `service_role`キー
+- 不要な個人情報
+- 保存データの全文
+
+`console.error`だけに頼らず、結果画面の折りたたみ表示や診断イベントから確認できるようにします。
+
+## 17. 再送ボタン
+
+HTML例:
+
+```html
+<button
+  id="ranking-retry"
+  type="button"
+  hidden
+  disabled
+>
+  記録を再送する
+</button>
+```
+
+CSS例:
 
 ```css
-html, body {
+#ranking-retry {
+  min-height: 44px;
+  padding: 12px 16px;
+  touch-action: manipulation;
+}
+
+#ranking-retry:disabled {
+  opacity: 0.5;
+}
+```
+
+JavaScript例:
+
+```js
+retryButton.addEventListener("click", async () => {
+  if (rankingState !== RANKING_STATES.RETRYABLE_FAILED) return;
+
+  const pending = await loadCurrentPendingSubmission();
+  if (!pending) {
+    setRankingState(
+      RANKING_STATES.PERMANENT_FAILED,
+      { diagnostic: "pending submission not found" }
+    );
+    return;
+  }
+
+  await submitPendingSubmission(pending);
+});
+```
+
+ボタンを表示するだけでなく、次を試験します。
+
+- `hidden`が外れる。
+- `disabled`が外れる。
+- タップ直後に表示が変わる。
+- 連打しても一つの処理だけ動く。
+- 成功後に消える。
+- iPhone Safariで押せる。
+
+## 18. シェア
+
+ホームのシェア:
+
+- ゲーム名
+- 紹介文
+- 正式URL
+
+結果のシェア:
+
+- ゲーム名
+- スコアまたは結果
+- 正式URL
+
+`location.href`ではなく、設定された正式URLを使います。
+
+Web Share APIが使えない場合は、クリップボードへ同じ文をコピーします。シェアの失敗をランキングの失敗として扱いません。
+
+## 19. 実験場リンク
+
+ホームと結果画面から、カメレオンJPの実験場へ戻れるようにします。
+
+実験場URLは共通設定から使い、ゲームごとに古いCodeberg URLを残しません。正式な実験場URLを変更する場合は、共通文書と対象ゲームを同じ計画で更新します。
+
+## 20. スマホ操作
+
+最低限、次を確認します。
+
+```html
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+>
+```
+
+```css
+html,
+body {
   margin: 0;
   width: 100%;
   min-height: 100%;
@@ -226,38 +555,81 @@ html, body {
   overscroll-behavior: none;
 }
 
-button, a {
+button,
+a {
   touch-action: manipulation;
-}
-
-.game-root {
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
 }
 ```
 
-ゲーム操作に支障がある場合は、`touchmove` や複数指操作の抑制も入れる。
+ランキング結果、診断表示、再送ボタンを追加したために横スクロールが発生しないようにします。
 
-## 13. よくある失敗
+## 21. 自動試験
 
-- `GAME_SLUG` とSupabase `games.game_slug` がずれている。
-- 結果画面に任意のランキング登録ボタンを置く。
-- 送信中フラグがなく、二重送信される。
-- 名前未入力でも開始できてしまう。
-- 秒系ゲームで内部整数と表示小数がずれる。
-- `service_role` キーを入れる。
-- Supabase送信失敗でゲーム結果画面まで消える。
-
-## 14. 修正後の確認項目
-
-各ゲームにランキング対応を入れた後は、最低限次を確認する。
+最低限、次を自動確認します。
 
 - 名前未入力では開始できない。
-- 名前が保存される。
-- ゲーム終了時に自動で送信される。
-- 結果画面に送信状態が出る。
-- 同じ結果が二重送信されない。
-- Supabaseエラーでも結果画面が残る。
-- 実験場トップと詳細ランキングで記録が表示される。
-- iPhone SE級の横幅で操作できる。
+- 20文字の名前を受け付ける。
+- 21文字の名前を拒否する。
+- モードから正しい`game_slug`を選ぶ。
+- スコアを整数として検査する。
+- 終了処理を2回呼んでも結果を一つだけ作る。
+- 自動送信と再送で同じ`submission_id`を使う。
+- 送信中の連打で処理を増やさない。
+- 再送可能な失敗でボタンが有効になる。
+- 恒久的失敗でボタンが出ない。
+- 成功後に待ちデータを削除する。
+- 応答の`game_slug`またはスコアが違う時に成功扱いしない。
+- 同じ内部モジュールを複数URLで読み込まない。
+- 配備物に公開版と正式URLが含まれる。
+
+## 22. 本番受入
+
+同じ候補SHAと正式URLで、iPhone Safariから確認します。
+
+- 名前入力
+- 開始記録
+- プレイ
+- 通常終了
+- 自動送信
+- Supabase保存
+- 実験場トップ
+- 詳細ランキング
+- 通信切断
+- 再送ボタン
+- 通信復帰後の成功
+- 重複なし
+- シェアの正式URL
+- 通常再読み込み後の公開版
+
+ソースコードと自動試験が正しくても、本番URLの確認を省きません。
+
+## 23. 禁止事項
+
+- `submit_score`へ再送ボタンだけを付けて完成とする。
+- 再送時に新しい`submission_id`を作る。
+- 送信中フラグだけで重複登録を防ぐ。
+- 表示文言を読み取ってボタン状態を決める。
+- `game_slug`をURLから推測する。
+- 旧モードの待ちデータを現行モードへ送る。
+- `location.href`を正式URLとして保存・共有する。
+- 同じモジュールを異なるURLで読む。
+- ネイティブ`fetch`を誤った呼び出し先で実行する。
+- ランキング失敗時に結果画面を消す。
+- Publishable keyを診断表示へ出す。
+- `service_role`キーをブラウザへ入れる。
+- 本番確認前に完了と記録する。
+
+## 24. 完了条件
+
+ゲーム側のランキング実装は、次がすべて通った時に完了です。
+
+1. `ranking-manifest.json`が検査に合格する。
+2. 実装値がマニフェストと一致する。
+3. 一つの開始が一回だけ数えられる。
+4. 一つの結果が一回だけ登録される。
+5. 自動送信が動く。
+6. 通信失敗後に同じ内容を再送できる。
+7. 再送しても件数が増えない。
+8. 結果画面が残る。
+9. 実験場トップと詳細ランキングへ表示される。
+10. iPhone Safariの正式URLで確認済みである。
