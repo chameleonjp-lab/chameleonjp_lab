@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "カメレオンJP ランキング連携マニフェスト v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "game_id",
+    "title",
+    "description",
+    "share_text",
+    "canonical_url",
+    "release_date",
+    "client_version",
+    "submission_mode",
+    "lab",
+    "player_name",
+    "play_count",
+    "submission",
+    "ranking_entries"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "chameleonjp-ranking-manifest-v1"
+    },
+    "game_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_]{0,63}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "share_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 280
+    },
+    "canonical_url": {
+      "type": "string",
+      "pattern": "^https://[^?# ]+/$"
+    },
+    "release_date": {
+      "type": "string"
+    },
+    "client_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "submission_mode": {
+      "enum": ["shared", "verified"]
+    },
+    "lab": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["representative_slug"],
+      "properties": {
+        "representative_slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_]{0,79}$"
+        }
+      }
+    },
+    "player_name": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_before_start",
+        "min_length",
+        "max_length",
+        "storage_key"
+      ],
+      "properties": {
+        "required_before_start": {"const": true},
+        "min_length": {"const": 1},
+        "max_length": {"const": 20},
+        "storage_key": {"type": "string", "minLength": 1}
+      }
+    },
+    "play_count": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count_at", "rpc", "idempotency"],
+      "properties": {
+        "count_at": {"const": "start"},
+        "rpc": {"type": "string", "minLength": 1},
+        "idempotency": {"const": true}
+      }
+    },
+    "submission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rpc", "automatic", "idempotency", "timeout_ms"],
+      "properties": {
+        "rpc": {"type": "string", "minLength": 1},
+        "automatic": {"const": true},
+        "idempotency": {"const": true},
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 30000
+        }
+      }
+    },
+    "ranking_entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode_id",
+          "game_slug",
+          "title",
+          "display_order",
+          "top_ranking_type",
+          "score_order",
+          "score_unit",
+          "score_scale",
+          "score_decimals",
+          "score_label",
+          "first_score_label",
+          "best_score_label",
+          "score_min",
+          "score_max",
+          "ranked_results"
+        ],
+        "properties": {
+          "mode_id": {"type": "string", "minLength": 1},
+          "game_slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_]{0,79}$"
+          },
+          "title": {"type": "string", "minLength": 1},
+          "display_order": {"type": "integer", "minimum": 1},
+          "top_ranking_type": {"enum": ["first", "best"]},
+          "score_order": {"enum": ["asc", "desc"]},
+          "score_unit": {"type": "string", "minLength": 1},
+          "score_scale": {"type": "integer", "minimum": 1},
+          "score_decimals": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "score_label": {"type": "string", "minLength": 1},
+          "first_score_label": {"type": "string", "minLength": 1},
+          "best_score_label": {"type": "string", "minLength": 1},
+          "score_min": {"type": "integer"},
+          "score_max": {"type": "integer"},
+          "ranked_results": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    }
+  }
+}
