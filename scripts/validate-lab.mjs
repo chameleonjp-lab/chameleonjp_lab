@@ -114,7 +114,7 @@ function validateInlineScripts(relativePath) {
   }
 
   const scripts = [];
-  const pattern = /<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi;
+  const pattern = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
   for (const match of source.matchAll(pattern)) {
     if (!/\\bsrc\\s*=/.test(match[1])) {
       scripts.push(match[2]);
