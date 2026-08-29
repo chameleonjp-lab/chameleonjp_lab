@@ -1,6 +1,6 @@
 # ランキング受付契約 v1
 
-最終更新: 2026-08-28
+最終更新: 2026-08-29
 
 この文書は、ランキングを送るゲームが使う新しい受付方式を定義します。公開用キーだけで呼ばれるため、名前やスコアを完全に信用する仕組みではありません。ただし、送信の再送と、公開されていないゲームへの記録をデータベース側で拒否します。
 
@@ -10,24 +10,29 @@
 
 - `20260828015126_ranking_submission_contract_v1`
 - `20260828015311_ranking_submission_contract_v1_index_fix`
+- `20260829065022_ranking_start_idempotency_v1`
+- `20260829065022_ranking_start_idempotency_v1`
 
 既存の `games`、`score_runs`、`game_play_events` の記録は削除・更新していません。新方式用に `private.game_play_sessions` を追加し、既存データとの混在を避けています。
 
 ## 新しい流れ
 
-1. ゲーム開始時に `start_game_play_v1` を呼びます。
-2. Supabaseが `play_id` を発行します。ゲーム側はこの番号を結果画面まで保持します。
+1. ゲーム側で開始再送用の `start_id` を1回のプレイにつき1つ作り、結果画面まで保存します。
+2. `start_game_play_v1` に同じ `start_id` を渡します。Supabaseが `play_id` を発行し、同じ開始要求の再送には同じ番号を返します。
 3. ゲーム終了時に `finish_game_play_v1` を呼び、同じプレイの結果を更新します。
 4. ランキング送信時に `submit_score_idempotent_v1` を呼びます。
 5. `play_id` と `submission_id` の組み合わせを保存します。
-6. 同じ `submission_id` を再送しても、`score_runs` とプレイ回数は増えません。
+6. 同じ `start_id` や `submission_id` を再送しても、開始数・`score_runs`・プレイ回数は増えません。
 
 ## 呼び出し例
 
 開始:
 
 ```js
+const startId = crypto.randomUUID();
+// startIdは同じ開始要求の再送で使い回し、結果画面まで保存します。
 const { data: start, error: startError } = await supabase.rpc("start_game_play_v1", {
+  p_start_id: startId,
   p_display_name: playerName,
   p_game_slug: GAME_SLUG,
   p_client_version: CLIENT_VERSION
@@ -75,7 +80,7 @@ const { data: result, error } = await supabase.rpc("submit_score_idempotent_v1",
 - 表示名は前後の空白を除いた1〜20文字
 - ゲーム識別子、版、名前は開始時・終了時・送信時で一致
 - スコアは `public.games.score_min` 以上、`score_max` 以下
-- プレイ番号と送信番号は必須
+- 開始番号、プレイ番号、送信番号は必須
 - 同じ送信番号は一度だけ保存
 - 同じプレイ番号へ別の送信番号を付けることを拒否
 - 同じ名前・ゲームへの短時間の開始と送信を制限
@@ -109,6 +114,7 @@ const { data: result, error } = await supabase.rpc("submit_score_idempotent_v1",
 
 本番の実データを汚さないため、次の試験は1つのトランザクション内で実行してロールバックしました。
 
+- 同じ `start_id` の開始再送が同じ `play_id` を返す
 - 開始で `play_id` が1件作られる
 - 終了で同じセッションが更新される
 - 同じ `submission_id` を2回送ってもスコア履歴が1件だけ

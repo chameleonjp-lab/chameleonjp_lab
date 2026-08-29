@@ -1,62 +1,90 @@
 # chameleonjp_lab
 
-このリポジトリは、カメレオンJPの実験場とランキング連携を、Claude Codeなどのコード作成ツールが迷わず読めるように整理した仕様置き場です。
+このリポジトリは、カメレオンJPの実験場、詳細ランキング、Supabase連携、新規ゲーム登録の共通仕様を置く場所です。
 
-最終更新: 2026-06-21
+最終更新: 2026-08-29
 
-## まず読むファイル
+## 最初に読むファイル
 
-Claude Codeに作業を依頼する場合は、最初にルートの `CLAUDE.md` を読ませてください。
+ランキングまたは実験場へ関係する作業では、次の順で確認します。
 
-そのあと、作業内容に合わせて次のファイルを読ませます。
+1. ルートの`CLAUDE.md`
+2. `docs/chameleonjp-lab/11_ranking_integration_standard.md`
+3. 作業内容に合う詳細文書
+4. 対象ゲーム側の仕様書と`ranking-manifest.json`
 
 | 目的 | 読むファイル |
 |---|---|
+| ランキング連携の共通ルール | `docs/chameleonjp-lab/11_ranking_integration_standard.md` |
 | 実験場トップを直す | `docs/chameleonjp-lab/01_lab_top_index.md` |
 | 詳細ランキングページを直す | `docs/chameleonjp-lab/02_ranking_detail_page.md` |
 | Supabase連携を確認する | `docs/chameleonjp-lab/03_supabase_ranking_flow.md` |
-| 新しいゲームにランキング送信を入れる | `docs/chameleonjp-lab/04_game_supabase_required.md` |
+| ゲーム側へランキング送信を入れる | `docs/chameleonjp-lab/04_game_supabase_required.md` |
 | 新しいゲームを実験場へ追加する | `docs/chameleonjp-lab/05_new_game_registration_checklist.md` |
 | SQLを作る | `docs/chameleonjp-lab/06_sql_templates.md` |
-| ゲーム別の特殊スコア表示を確認する | `docs/chameleonjp-lab/07_game_specific_score_display.md` |
+| 現在のゲーム一覧を確認する | `docs/chameleonjp-lab/07_current_games_catalog.md` |
+| ゲーム別の特殊表示を確認する | `docs/chameleonjp-lab/07_game_specific_score_display.md` |
+| 過去の注意事項を確認する | `docs/chameleonjp-lab/08_game_ranking_cautions.md` |
 
 ## このリポジトリで扱う範囲
 
-ここでは、次の仕様を扱います。
+ここでは、次の共通部分を扱います。
 
-- カメレオンJPの実験場トップページ
+- カメレオンJPの実験場トップ
 - 詳細ランキングページ
-- Supabaseを使ったランキング取得、集計、スコア送信
-- 新規ゲームの `index.html` に必ず入れるSupabase対応
-- 新しいゲームを登録する時のSQLと確認手順
-- `score_scale` だけでは表せないゲーム別スコア表示
+- Supabaseを使った開始記録、スコア送信、集計、ランキング取得
+- ゲーム側のランキング連携契約
+- `ranking-manifest.json`の形式
+- 新しいゲームを登録する時のSQLと受入手順
+- `score_scale`だけでは表せないゲーム別表示
+- 障害時に調べる順番と必要な証拠
 
-ゲーム本体の個別仕様は、それぞれのゲーム側の仕様書を正とします。このリポジトリは、実験場とランキング連携の共通部分を正とします。
+ゲームのルール、難易度、スコア計算そのものは、各ゲーム側の仕様書を正とします。ランキングの識別子、送信、再送、登録、表示、受入は、このリポジトリの共通規約を正とします。
 
-## 重要な前提
+## 正として扱う場所
 
-- ゲーム本体は、原則として `index.html` 1ファイルで作ります。
-- HTML、CSS、JavaScriptは1ファイルにまとめます。
-- 公開先は基本的にCodeberg Pagesです。
-- GitHubは、Claude Codeに読ませやすい仕様置き場として使います。
-- Supabaseでは公開用のPublishable keyだけをブラウザ側に入れます。
-- `service_role` キーは、絶対に公開HTMLへ入れません。
+| 内容 | 正として扱う場所 |
+|---|---|
+| 作ろうとしているランキング契約 | ゲーム側の`ranking-manifest.json` |
+| 本番で現在使われている登録値 | Supabase `public.games` |
+| ゲーム固有のスコア計算 | 各ゲーム側の仕様書 |
+| 実験場とランキングの共通ルール | `11_ranking_integration_standard.md` |
+| 配備後に一致した証拠 | ゲームごとの受入記録 |
 
+マニフェストとSupabaseのどちらか一方だけを変更してはいけません。公開前に両者を照合します。
 
-## ビンカラビンのランキング表示設定メモ
+## 現在の実装前提
 
-ビンカラビン本体は、クリアタイムをミリ秒で `submit_score` に送信する短いほど良いタイムアタックゲームです。実験場トップと詳細ランキングページの固定定義だけでなく、Supabase の `public.games` 側も次の表示設定にそろえる必要があります。
+- ゲームは`index.html`一つに限定しません。必要に応じてHTML、CSS、JavaScript、画像、3Dデータを分割できます。
+- 正式な公開先は、ゲームごとの`ranking-manifest.json`へ一つだけ記録します。
+- 新規ゲームは原則として`https://chameleonjp-lab.github.io/<repository>/`形式のGitHub Pagesを使います。既存のCodeberg Pagesは、移行を決めるまで有効な正式URLとして扱えます。
+- Supabaseでは、ブラウザへ入れてよい公開用のPublishable keyだけを使います。
+- `service_role`キーを公開HTML、JavaScript、マニフェストへ入れてはいけません。
+- 表示ゲームの本番値はSupabase `public.games`です。固定配列は旧実装または一時的な補助として扱います。
+- 新規ゲームの開始記録とスコア送信は、同じ内容を再送しても1件だけになる処理を必須とします。
+- 現行の`submit_score`は再送識別子を受け取らないため、新規ゲーム向けの完成形として扱いません。
+- 現行の`submit_score_once`はサイノメ専用です。全ゲーム共通処理として流用しません。
+
+## マニフェスト
+
+新規ゲームと、ランキング処理を変更する既存ゲームは、ゲーム側のリポジトリへ`ranking-manifest.json`を追加します。
+
+形式:
+
+- `docs/chameleonjp-lab/schemas/ranking-manifest-v1.schema.json`
+- `docs/chameleonjp-lab/examples/ranking-manifest-v1.example.json`
+
+マニフェストには、正式URL、`game_slug`、`client_version`、スコア表示、送信対象結果、開始記録処理、スコア送信処理を記録します。秘密情報は入れません。
+
+## 個別スコア表示
+
+保存用の整数と表示内容が一致しないゲームは、`docs/chameleonjp-lab/07_game_specific_score_display.md`も確認します。
+
+たとえば`うちかえる`は、`clearWave * 100000000 + battleScore`を保存し、表示では`○波クリア / ○○点`へ分けます。
+
+ビンカラビンは、クリアタイムをミリ秒で送る短いほど良いゲームです。Supabase側は次を使います。
 
 - `score_order`: `asc`
 - `score_unit`: `秒`
 - `score_scale`: `1000`
 - `score_decimals`: `3`
-
-## 最新方針
-
-実験場トップと詳細ランキングページは、Supabaseの `public.games` を中心に扱います。
-古い実装では `GAMES` という固定配列を使っていた時期がありますが、最新の方針では、表示ゲームの正は `public.games` です。
-
-もし既存コードに固定配列が残っている場合は、旧実装またはフォールバックとして扱ってください。新規改修では、固定配列だけを正にしてはいけません。
-
-一部ゲームは、保存用の整数スコアと表示用スコアが一致しません。たとえば `うちかえる` は `clearWave * 100000000 + battleScore` を保存し、表示では `○波クリア / ○○点` に分解します。このようなゲームは `docs/chameleonjp-lab/07_game_specific_score_display.md` を正として扱ってください。
