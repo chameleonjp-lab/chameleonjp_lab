@@ -1,0 +1,53 @@
+{
+  "schema_version": "chameleonjp-ranking-manifest-v1",
+  "game_id": "sample_game",
+  "title": "サンプルゲーム",
+  "description": "制限時間内の得点を競うサンプルゲームです。",
+  "share_text": "サンプルゲームでスコアを競おう。",
+  "canonical_url": "https://chameleonjp-lab.github.io/sample_game/",
+  "release_date": "2026-08-19",
+  "client_version": "sample-game-web-1",
+  "submission_mode": "shared",
+  "lab": {
+    "representative_slug": "sample_game_300_seconds"
+  },
+  "player_name": {
+    "required_before_start": true,
+    "min_length": 1,
+    "max_length": 20,
+    "storage_key": "chameleonjp_sample_game_player_name"
+  },
+  "play_count": {
+    "count_at": "start",
+    "rpc": "replace_with_approved_start_rpc",
+    "idempotency": true
+  },
+  "submission": {
+    "rpc": "replace_with_approved_score_rpc",
+    "automatic": true,
+    "idempotency": true,
+    "timeout_ms": 8000
+  },
+  "ranking_entries": [
+    {
+      "mode_id": "300-seconds",
+      "game_slug": "sample_game_300_seconds",
+      "title": "サンプルゲーム",
+      "display_order": 99,
+      "top_ranking_type": "best",
+      "score_order": "desc",
+      "score_unit": "点",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_label": "スコア",
+      "first_score_label": "初回スコア",
+      "best_score_label": "最高スコア",
+      "score_min": 0,
+      "score_max": 100000000,
+      "ranked_results": [
+        "time_up",
+        "retire"
+      ]
+    }
+  ]
+}
