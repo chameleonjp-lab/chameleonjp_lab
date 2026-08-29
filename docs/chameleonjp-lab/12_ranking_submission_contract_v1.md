@@ -10,8 +10,7 @@
 
 - `20260828015126_ranking_submission_contract_v1`
 - `20260828015311_ranking_submission_contract_v1_index_fix`
-- `20260829065022_ranking_start_idempotency_v1`
-- `20260829065022_ranking_start_idempotency_v1`
+- `20260829065129_ranking_start_idempotency_v1`
 
 既存の `games`、`score_runs`、`game_play_events` の記録は削除・更新していません。新方式用に `private.game_play_sessions` を追加し、既存データとの混在を避けています。
 
