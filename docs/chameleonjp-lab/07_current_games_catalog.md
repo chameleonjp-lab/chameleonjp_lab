@@ -249,7 +249,7 @@ display_order,game_slug,title,game_url,description,is_active,release_date,top_ra
 基本URLは次である。
 
 ```text
-https://chameleonjp.codeberg.page/chameleonjp_lab/ranking.html?game=<game_slug>
+https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=<game_slug>
 ```
 
 難易度別ゲームは、詳細ページ内でだけ難易度を分ける。
