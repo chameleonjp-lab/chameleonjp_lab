@@ -12,7 +12,7 @@
 ユーザー向け公開URLは次を前提にする。
 
 ```text
-https://chameleonjp.codeberg.page/chameleonjp_lab/
+https://chameleonjp-lab.github.io/chameleonjp_lab/
 ```
 
 ## 2. 表示ゲームの取得元
