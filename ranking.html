@@ -588,6 +588,47 @@
         grid-template-columns: 1fr;
       }
     }
+    .site-footer {
+      margin-top: 28px;
+      padding: 18px 4px 0;
+      border-top: 1px solid var(--line);
+      color: var(--text-muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 4px 14px;
+    }
+
+    .footer-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 8px 4px;
+      color: var(--text-sub);
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .copyright {
+      margin: 6px 0 0;
+    }
+
+    .footer-title {
+      margin: 0;
+      color: var(--text-sub);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
     a:focus-visible,
     button:focus-visible,
     .button:focus-visible,
@@ -631,6 +672,15 @@
 
     <section id="contentArea"></section>
   </main>
+
+  <footer class="site-footer">
+    <p class="footer-title">カメレオンJPの実験場</p>
+    <nav class="footer-links" aria-label="サイト情報">
+      <a class="footer-link" href="/chameleonjp_lab/">実験場トップ</a>
+      <a class="footer-link" href="terms.html">利用規約</a>
+    </nav>
+    <p class="copyright">© 2026 カメレオンJP</p>
+  </footer>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
