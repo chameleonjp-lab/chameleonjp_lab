@@ -83,6 +83,37 @@ function uniqueValues(values, label) {
   }
 }
 
+function requireText(source, text, label) {
+  if (!source.includes(text)) {
+    fail(`${label}が見つかりません: ${text}`);
+  }
+}
+
+function validateTermsAndFooter() {
+  const terms = read("terms.html");
+
+  requireText(terms, "<title>利用規約｜カメレオンJPの実験場</title>", "terms.htmlのtitle");
+  requireText(terms, "制定・最終更新日：2026年8月31日", "terms.htmlの更新日");
+  requireText(terms, "<h2>1. 本規約の適用</h2>", "terms.htmlの適用条項");
+  requireText(terms, "<h2>3. 表示名とランキング情報</h2>", "terms.htmlのランキング情報条項");
+  requireText(terms, "<h2>10. 免責と損害</h2>", "terms.htmlの免責条項");
+  requireText(terms, "本名、メールアドレス、電話番号、住所", "terms.htmlの表示名注意");
+  requireText(terms, "© 2026 カメレオンJP", "terms.htmlのコピーライト");
+
+  for (const relativePath of ["index.html", "ranking.html"]) {
+    const source = read(relativePath);
+    requireText(source, 'href="terms.html"', `${relativePath}の利用規約リンク`);
+    requireText(source, "© 2026 カメレオンJP", `${relativePath}のコピーライト`);
+  }
+
+  if (/一切(?:の)?責任を負いません/.test(terms)) {
+    fail("terms.htmlに全面免責と受け取られる文言があります");
+  }
+  if (/個人情報を一切(?:収集|取得|保存)しません/.test(terms)) {
+    fail("terms.htmlに個人情報の取扱いを断定する危険な文言があります");
+  }
+}
+
 function compare(actual, expected, label) {
   if (String(actual ?? "") !== String(expected ?? "")) {
     fail(`${label}が不一致です: fallback=${actual ?? ""}, catalog=${expected ?? ""}`);
@@ -251,6 +282,7 @@ for (const page of rankingPages) {
 
 validateInlineScripts("index.html");
 validateInlineScripts("ranking.html");
+validateTermsAndFooter();
 
 if (failures.length) {
   console.error("検査失敗:");
