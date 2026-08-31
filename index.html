@@ -2045,7 +2045,66 @@
     const GAME_SELECT_COLUMNS = "display_order, game_slug, title, game_url, description, is_active, release_date, top_ranking_type, score_order, score_unit, score_scale, score_decimals, score_label, first_score_label, best_score_label";
     const GAME_SELECT_COLUMNS_WITH_SHARE_TEXT = `${GAME_SELECT_COLUMNS}, share_text`;
 
+    const SUPABASE_REST_TIMEOUT_MS = 8000;
+
+    async function fetchActiveGamesCatalogViaRest() {
+      const fetchImpl =
+        typeof globalThis.fetch === "function" ? globalThis.fetch.bind(globalThis) : null;
+
+      if (!fetchImpl) {
+        return {
+          data: null,
+          error: new Error("REST fallback is unavailable")
+        };
+      }
+
+      const params = new URLSearchParams();
+      params.set("select", GAME_SELECT_COLUMNS_WITH_SHARE_TEXT);
+      params.set("is_active", "eq.true");
+      params.set("order", "display_order.asc");
+
+      const controller =
+        typeof AbortController === "function" ? new AbortController() : null;
+      const timeoutId = controller
+        ? window.setTimeout(() => controller.abort(), SUPABASE_REST_TIMEOUT_MS)
+        : null;
+
+      try {
+        const response = await fetchImpl(
+          `${SUPABASE_URL}/rest/v1/games?${params.toString()}`,
+          {
+            headers: {
+              apikey: getSupabasePublishableKey(),
+              Authorization: `Bearer ${getSupabasePublishableKey()}`,
+              Accept: "application/json"
+            },
+            signal: controller?.signal
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`REST catalog request failed: HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!Array.isArray(data)) {
+          throw new Error("REST catalog response is not an array");
+        }
+
+        return { data, error: null };
+      } catch (error) {
+        console.warn("games catalog REST fallback failed:", error);
+        return { data: null, error };
+      } finally {
+        if (timeoutId !== null) window.clearTimeout(timeoutId);
+      }
+    }
+
     async function fetchActiveGamesCatalog() {
+      if (!supabaseClient) {
+        return fetchActiveGamesCatalogViaRest();
+      }
+
       const runSelect = (columns) => supabaseClient
         .from("games")
         .select(columns)
@@ -2057,16 +2116,15 @@
 
       console.warn("games catalog load with share_text failed; retrying without share_text:", firstResult.error);
       const retryResult = await runSelect(GAME_SELECT_COLUMNS);
-      if (retryResult.error) {
-        console.warn("games catalog load without share_text also failed:", retryResult.error);
-      }
-      return retryResult;
+      if (!retryResult.error) return retryResult;
+
+      console.warn("games catalog load without share_text also failed; retrying with REST:", retryResult.error);
+      return fetchActiveGamesCatalogViaRest();
     }
 
     async function loadGamesFromSupabase() {
       if (isKeyUnset) return false;
       await waitForSupabaseSetup();
-      if (!supabaseClient) return false;
 
       try {
         const { data, error } = await fetchActiveGamesCatalog();
