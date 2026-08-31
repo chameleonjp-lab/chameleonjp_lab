@@ -1616,6 +1616,28 @@
 
 ];
 
+    // Supabaseへ接続できない場合も、非公開にしたゲームを固定一覧から表示しない。
+    const FALLBACK_INACTIVE_GAME_SLUGS = new Set([
+      "test",
+      "popoyamanobori",
+      "paripari",
+      "hakodase",
+      "doppan",
+      "kakomare",
+      "songen_wo_kakeyouka3",
+      "hoketto",
+      "nagashimasu",
+      "robobon",
+      "wanawana",
+      "oitate",
+      "masumen",
+      "mamonokiri",
+      "pachipachi",
+      "hakoyoke",
+      "kakenuke",
+      "erabaretan"
+    ]);
+
     function getSupabasePublishableKey() {
       return String(SUPABASE_PUBLISHABLE_KEY || "").trim();
     }
@@ -1632,6 +1654,7 @@
 
     const isKeyUnset = !hasSupabasePublishableKey();
     let supabaseClient = null;
+    let hasLiveGamesCatalog = false;
 
     const gameListEl = document.getElementById("gameList");
     const keyNoticeEl = document.getElementById("keyNotice");
@@ -1660,6 +1683,13 @@
     }
 
     assignAddedOrder();
+
+    function getVisibleGames() {
+      const sourceGames = hasLiveGamesCatalog
+        ? GAMES
+        : GAMES.filter((game) => !FALLBACK_INACTIVE_GAME_SLUGS.has(game.slug));
+      return sourceGames.filter((game) => game.isActive !== false);
+    }
 
     function showNotice(message) {
       const noticeEl = libraryNoticeEl || keyNoticeEl;
@@ -2042,12 +2072,14 @@
         const { data, error } = await fetchActiveGamesCatalog();
 
         if (error) throw error;
-        if (!Array.isArray(data) || data.length === 0) return false;
+        if (!Array.isArray(data)) return false;
 
         GAMES = buildGamesFromRows(data);
         assignAddedOrder();
+        hasLiveGamesCatalog = true;
         return true;
       } catch (error) {
+        hasLiveGamesCatalog = false;
         console.warn("games catalog load failed; using fallback GAMES:", error);
         return false;
       }
@@ -2299,7 +2331,7 @@
     }
 
     function renderCards() {
-      gameListEl.innerHTML = GAMES.map((game) => {
+      gameListEl.innerHTML = getVisibleGames().map((game) => {
         const rankingBadge = `<span class="badge soon" id="ranking-badge-${escapeHtml(game.slug)}">ランキング確認中</span>`;
         const difficultyBadge = cleanText(game.difficultySummary)
           ? `<span class="badge">${escapeHtml(game.difficultySummary)}</span>`
