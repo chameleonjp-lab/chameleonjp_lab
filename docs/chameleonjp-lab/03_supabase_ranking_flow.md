@@ -1,6 +1,6 @@
 # Supabaseランキング連携 仕様
 
-最終更新: 2026-08-29  
+最終更新: 2026-09-21  
 対象: 実験場トップ、詳細ランキング、各ゲームの開始記録とスコア送信
 
 > ランキング連携の最上位規約は`11_ranking_integration_standard.md`です。  
@@ -104,6 +104,15 @@ submit_score(
 このため、イベントを途中から導入すると、同じ「プレイ回数」でも保存元と意味が変わる可能性があります。
 
 新規ゲームでは、開始時の同一送信対策付きイベントを正とし、途中で集計元を切り替えません。既存ゲームで切り替える場合は、過去件数の扱いと切替日時を移行文書へ残します。
+
+### 4.6 `saisupi` の詳細統計
+
+`saisupi`はランキング登録を`public.game_scores`へ保存しており、`private.game_play_sessions`には開始記録を保存していません。そのため、`get_game_play_stats('saisupi')`はランキングと同じ通常状態の行を基準にします。
+
+- `total_play_count`: `game_scores.play_count`の合計
+- `player_count`: `ranking_status`が`normal`（NULLは通常扱い）の行数
+
+これにより、詳細ページの集計値とランキング登録者の表示を一致させます。
 
 ## 5. `public.games`
 
