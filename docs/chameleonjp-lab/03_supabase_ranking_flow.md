@@ -99,21 +99,20 @@ submit_score(
 
 ### 4.5 `get_game_play_stats`
 
-現在の`get_game_play_stats`は、対象`game_slug`に`game_play_events`が1件でもあればイベント件数を使い、1件もなければ`game_scores.play_count`を合計します。
+実験場トップと詳細ランキングページの集計は、ゲームの連携方式に合わせて、次の順で取得します。
 
-このため、イベントを途中から導入すると、同じ「プレイ回数」でも保存元と意味が変わる可能性があります。
+1. `private.game_play_sessions`に対象`game_slug`の開始記録が1件以上ある場合
+   - `total_play_count`: 開始記録の件数
+   - `player_count`: 開始記録に含まれる`normalized_name`の重複を除いた人数
+   - 開始時に数える方式のため、途中離脱もプレイ回数に含める
+2. 開始記録がまだない場合
+   - `public.game_scores`の`play_count`を合計する
+   - `ranking_status`が`normal`の行だけを人数と合計の対象にする
+   - 既存ゲームのランキング表示と同じ保存値を使う
 
-新規ゲームでは、開始時の同一送信対策付きイベントを正とし、途中で集計元を切り替えません。既存ゲームで切り替える場合は、過去件数の扱いと切替日時を移行文書へ残します。
+この切り替えにより、開始時記録へ移行済みのゲームは途中離脱を含めて数え、移行前の既存ゲームは保存済みのランキング集計を表示できます。
 
-### 4.6 `saisupi` の詳細統計
-
-`saisupi`はランキング登録を`public.game_scores`へ保存しており、`private.game_play_sessions`には開始記録を保存していません。そのため、`get_game_play_stats('saisupi')`はランキングと同じ通常状態の行を基準にします。
-
-- `total_play_count`: `game_scores.play_count`の合計
-- `player_count`: `ranking_status`が`normal`（NULLは通常扱い）の行数
-
-これにより、詳細ページの集計値とランキング登録者の表示を一致させます。
-
+ゲームを途中から開始記録方式へ移行する場合、過去の`game_scores.play_count`と新しい開始記録を自動で合算しません。過去分を引き継ぐ必要があるゲームは、重複計上を避ける移行方法と切替日時を別途決めます。
 ## 5. `public.games`
 
 `public.games`は、実験場と共通ランキングの本番登録値です。
