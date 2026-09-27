@@ -174,6 +174,17 @@ function validateInlineScripts(relativePath) {
   }
 }
 
+function validateRankingEmptyStateContracts() {
+  const index = read("index.html");
+  const ranking = read("ranking.html");
+
+  requireText(index, "完了スコア記録はまだありません", "トップの空ランキング説明");
+  requireText(index, "setRankingReady(game, false)", "トップの空ランキング状態");
+  requireText(index, "loadTopRanking(hydratedGame, stats)", "トップの統計とランキングの連携");
+  requireText(ranking, "完了スコア記録はまだありません", "詳細の空ランキング説明");
+  requireText(ranking, "loadRankings(hydratedGame, token, stats)", "詳細の統計とランキングの連携");
+}
+
 const catalog = JSON.parse(read("catalog/games.json"));
 if (catalog.schema_version !== "chameleonjp-games-catalog-v1") {
   fail("catalogのschema_versionが不正です");
@@ -282,6 +293,7 @@ for (const page of rankingPages) {
 
 validateInlineScripts("index.html");
 validateInlineScripts("ranking.html");
+validateRankingEmptyStateContracts();
 validateTermsAndFooter();
 
 if (failures.length) {

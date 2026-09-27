@@ -1832,9 +1832,7 @@
       await waitForSupabaseSetup();
 
       if (isKeyUnset || !supabaseClient) {
-        const emptyStats = { totalPlayCount: 0, playerCount: 0 };
-        singleStatsCache.set(normalizedSlug, emptyStats);
-        return emptyStats;
+        return null;
       }
 
       try {
@@ -1850,9 +1848,9 @@
         return stats;
       } catch (error) {
         console.error("get_game_play_stats error:", normalizedSlug, error);
-        const emptyStats = { totalPlayCount: 0, playerCount: 0 };
-        singleStatsCache.set(normalizedSlug, emptyStats);
-        return emptyStats;
+        // Do not cache transport/RPC failures as a real zero. The next
+        // accordion open must be able to retry the statistics request.
+        return null;
       }
     }
 
@@ -1862,6 +1860,7 @@
 
       const slugs = getStatsSlugs(game);
       const statsList = await Promise.all(slugs.map((slug) => fetchSingleGameStats(slug)));
+      if (statsList.some((item) => item === null)) return null;
       const stats = statsList.reduce(
         (total, item) => {
           total.totalPlayCount += Number(item?.totalPlayCount || 0);
@@ -2520,7 +2519,14 @@
       if (!playsEl || !playersEl) return false;
 
       const stats = await fetchGameStats(game);
-      return applyStatsToCard(game, stats);
+      return stats && applyStatsToCard(game, stats) ? stats : null;
+    }
+
+    function emptyScoreRankingMessage(stats) {
+      const totalPlayCount = Number(stats?.totalPlayCount || 0);
+      return totalPlayCount > 0
+        ? `開始記録は${formatNumber(totalPlayCount)}回ありますが、完了スコア記録はまだありません`
+        : "まだ記録がありません";
     }
 
     function setRankingComingSoon(game) {
@@ -2543,16 +2549,16 @@
       }
     }
 
-    function setRankingReady(game) {
+    function setRankingReady(game, hasEntries = true) {
       const rankingSection = document.getElementById(`ranking-section-${game.slug}`);
       const rankingNote = document.getElementById(`ranking-note-${game.slug}`);
       const badge = document.getElementById(`ranking-badge-${game.slug}`);
       const detailButton = document.getElementById(`detail-${game.slug}`);
 
       if (rankingSection) rankingSection.classList.remove("coming");
-      if (rankingNote) rankingNote.textContent = "1〜3位";
+      if (rankingNote) rankingNote.textContent = hasEntries ? "1〜3位" : "記録待ち";
       if (badge) {
-        badge.textContent = "ランキング表示中";
+        badge.textContent = hasEntries ? "ランキング表示中" : "ランキング準備済み";
         badge.classList.remove("soon");
         badge.classList.add("ready");
       }
@@ -2561,7 +2567,7 @@
       }
     }
 
-    async function loadTopRanking(game) {
+    async function loadTopRanking(game, stats = null) {
       const rankingEl = document.getElementById(`ranking-${game.slug}`);
       if (!rankingEl) return false;
 
@@ -2590,9 +2596,9 @@
         const visibleRows = Array.isArray(data) ? data : [];
 
         if (!visibleRows.length) {
-          rankingEl.innerHTML = `<div class="empty">まだ記録がありません</div>`;
-          setRankingReady(game);
-          return false;
+          rankingEl.innerHTML = `<div class="empty">${emptyScoreRankingMessage(stats)}</div>`;
+          setRankingReady(game, false);
+          return true;
         }
 
         rankingEl.innerHTML = visibleRows.map((row) => {
@@ -2607,7 +2613,7 @@
           `;
         }).join("");
 
-        setRankingReady(game);
+        setRankingReady(game, true);
         return true;
       } catch (error) {
         console.error(`${functionName} error:`, getRankingSlug(game), error);
@@ -2626,10 +2632,10 @@
         const hydratedGame = await loadGameMetadata(game);
         updateGameCardLabels(hydratedGame);
 
-        const statsReady = await loadStats(hydratedGame);
-        const rankingReady = await loadTopRanking(hydratedGame);
+        const stats = await loadStats(hydratedGame);
+        const rankingReady = await loadTopRanking(hydratedGame, stats);
 
-        if (statsReady && rankingReady) loadedGameSlugs.add(game.slug);
+        if (stats && rankingReady) loadedGameSlugs.add(game.slug);
       } finally {
         loadingGameSlugs.delete(game.slug);
       }
