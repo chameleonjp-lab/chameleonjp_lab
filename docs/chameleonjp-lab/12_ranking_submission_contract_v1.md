@@ -1,6 +1,6 @@
 # ランキング受付契約 v1
 
-最終更新: 2026-08-29
+最終更新: 2026-09-28
 
 この文書は、ランキングを送るゲームが使う新しい受付方式を定義します。公開用キーだけで呼ばれるため、名前やスコアを完全に信用する仕組みではありません。ただし、送信の再送と、公開されていないゲームへの記録をデータベース側で拒否します。
 
@@ -11,6 +11,7 @@
 - `20260828015126_ranking_submission_contract_v1`
 - `20260828015311_ranking_submission_contract_v1_index_fix`
 - `20260829065129_ranking_start_idempotency_v1`
+- `20260928083531_register_start_only_as_retire_v1`
 
 既存の `games`、`score_runs`、`game_play_events` の記録は削除・更新していません。新方式用に `private.game_play_sessions` を追加し、既存データとの混在を避けています。
 
@@ -22,6 +23,8 @@
 4. ランキング送信時に `submit_score_idempotent_v1` を呼びます。
 5. `play_id` と `submission_id` の組み合わせを保存します。
 6. 同じ `start_id` や `submission_id` を再送しても、開始数・`score_runs`・プレイ回数は増えません。
+
+開始要求だけで終了要求が届かなかったセッションは、`result_type = 'retire'`かつ`finished_at is null`で保存します。`finished_at`が空の間は終了前として扱うため、あとから届く`clear`、`game_over`、`retire`で同じセッションを確定できます。
 
 ## 呼び出し例
 
