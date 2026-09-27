@@ -737,6 +737,27 @@
       "submission_mode": "shared",
       "score_min": -100000000,
       "score_max": 100000000
+    },
+    {
+      "display_order": 40,
+      "game_slug": "paripari",
+      "title": "パリパリ",
+      "game_url": "https://chameleonjp-lab.github.io/paripari/",
+      "description": "来た方向と反対を、タイミングよく選ぶゲーム",
+      "share_text": "パリパリ：来た方向と反対を、タイミングよく選べ！\nhttps://chameleonjp-lab.github.io/paripari/",
+      "release_date": "2026-08-31",
+      "top_ranking_type": "best",
+      "score_order": "desc",
+      "score_unit": "点",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_label": "スコア",
+      "first_score_label": "初回スコア",
+      "best_score_label": "最高スコア",
+      "is_active": true,
+      "submission_mode": "shared",
+      "score_min": 0,
+      "score_max": 100000000
     }
   ]
 }
