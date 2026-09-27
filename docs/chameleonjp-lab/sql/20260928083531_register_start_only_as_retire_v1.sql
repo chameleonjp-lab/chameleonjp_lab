@@ -180,7 +180,7 @@ begin
     'started_at', v_now
   );
 end;
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION public.finish_game_play_v1(p_play_id uuid, p_display_name text, p_game_slug text, p_result_type text, p_reached_wave integer, p_score integer, p_client_version text, p_ranking_score integer DEFAULT NULL::integer)
  RETURNS jsonb
@@ -335,7 +335,7 @@ begin
     'finished_at', v_now
   );
 end;
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION public.submit_score_idempotent_v1(p_play_id uuid, p_submission_id uuid, p_display_name text, p_game_slug text, p_score integer, p_client_version text)
  RETURNS TABLE(accepted boolean, result_submission_id uuid, result_play_id uuid, result_normalized_name text, result_display_name text, result_first_score integer, result_best_score integer, result_play_count integer, is_first_play boolean, is_new_best boolean, was_duplicate boolean)
@@ -662,4 +662,4 @@ begin
     v_is_new_best,
     false;
 end;
-$function$
+$function$;
