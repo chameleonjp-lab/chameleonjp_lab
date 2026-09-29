@@ -402,6 +402,10 @@
       grid-template-columns: auto 1fr;
     }
 
+    .detail-row.unranked-row .detail-main {
+      grid-template-columns: auto 1fr;
+    }
+
     .rank-no {
       color: var(--button-bg);
       font-weight: 900;
@@ -1797,9 +1801,57 @@
                         "difficultyLabel": ""
                   }
             ]
+      },
+      {
+        "pageSlug": "faitofuraito",
+        "title": "ファイトフライト",
+        "url": "https://chameleonjp-lab.github.io/faitofuraito/",
+        "description": "戦闘機で空を飛び、敵機を撃墜するフライトゲーム（ノーマル）。",
+        "shareText": "ファイトフライト https://chameleonjp-lab.github.io/faitofuraito/",
+        "defaultDifficultyKey": "normal",
+        "difficulties": [
+          {
+            "displayOrder": 58,
+            "slug": "faitofuraito_normal",
+            "title": "ファイトフライト（ノーマル）",
+            "url": "https://chameleonjp-lab.github.io/faitofuraito/",
+            "description": "戦闘機で空を飛び、敵機を撃墜するフライトゲーム（ノーマル）。",
+            "shareText": "ファイトフライト https://chameleonjp-lab.github.io/faitofuraito/",
+            "releaseDate": "2026-09-29",
+            "topRanking": "best",
+            "scoreOrder": "desc",
+            "scoreUnit": "点",
+            "scoreScale": 1,
+            "scoreDecimals": 0,
+            "scoreLabel": "スコア",
+            "firstScoreLabel": "初回スコア",
+            "bestScoreLabel": "最高スコア",
+            "isActive": false,
+            "key": "normal",
+            "difficultyLabel": "ノーマル"
+          },
+          {
+            "displayOrder": 59,
+            "slug": "faitofuraito_easy",
+            "title": "ファイトフライト（イージー）",
+            "url": "https://chameleonjp-lab.github.io/faitofuraito/",
+            "description": "戦闘機で空を飛び、敵機を撃墜するフライトゲーム（イージー）。",
+            "shareText": "ファイトフライト https://chameleonjp-lab.github.io/faitofuraito/",
+            "releaseDate": "2026-09-29",
+            "topRanking": "best",
+            "scoreOrder": "desc",
+            "scoreUnit": "点",
+            "scoreScale": 1,
+            "scoreDecimals": 0,
+            "scoreLabel": "スコア",
+            "firstScoreLabel": "初回スコア",
+            "bestScoreLabel": "最高スコア",
+            "isActive": false,
+            "key": "easy",
+            "difficultyLabel": "イージー"
+          }
+        ]
       }
-
-
 ];
 
     function getSupabasePublishableKey() {
@@ -1972,6 +2024,18 @@
     }
 
     async function resolveGroupedGameFromSupabase(requestedSlug, requestedDifficulty) {
+      if (requestedSlug === "faitofuraito" || requestedSlug === "faitofuraito_normal" || requestedSlug === "faitofuraito_easy") {
+        const rows = await Promise.all([
+          fetchGameRow("faitofuraito_normal"),
+          fetchGameRow("faitofuraito_easy")
+        ]);
+        const page = buildGroupedPage("faitofuraito", "ファイトフライト", rows, [
+          { slug: "faitofuraito_normal", key: "normal", label: "ノーマル" },
+          { slug: "faitofuraito_easy", key: "easy", label: "イージー" }
+        ], "normal");
+        return page ? { page, difficulty: getDifficultyFromPage(page, requestedDifficulty, requestedSlug) } : null;
+      }
+
       if (requestedSlug === "meoshi_wo_seisu") {
         const rows = await Promise.all([
           fetchGameRow("meoshi_wo_seisu_normal"),
@@ -2216,7 +2280,11 @@
     }
 
     function findPageBySlug(slug) {
-      return GAME_PAGES.find((page) => page.pageSlug === slug || page.difficulties.some((game) => game.slug === slug));
+      const page = GAME_PAGES.find((item) =>
+        item.pageSlug === slug || item.difficulties.some((game) => game.slug === slug)
+      );
+      return page?.pageSlug === "faitofuraito" &&
+        page.difficulties.every((game) => game.isActive === false) ? null : page;
     }
 
     function getDefaultDifficulty(page) {
@@ -2323,6 +2391,8 @@
               <span class="stat-value" id="playerCount">読み込み中</span>
             </div>
           </div>
+
+          ${game.slug.startsWith("faitofuraito_") ? '<p class="ranking-sub" id="unregisteredPlayCount">名前未登録のプレイ回数を読み込み中です</p>' : ""}
 
           <div class="actions">
             <a class="button link-callout" href="${escapeHtml(page.url)}">ゲームで遊ぶ</a>
@@ -2448,6 +2518,8 @@
         playerCountEl.textContent = "coming soon";
         playerCountEl.classList.add("coming");
       }
+      const unregisteredEl = document.getElementById("unregisteredPlayCount");
+      if (unregisteredEl) unregisteredEl.textContent = "名前未登録のプレイ回数を取得できませんでした。";
     }
 
     async function loadStats(game, token) {
@@ -2467,7 +2539,9 @@
       }
 
       try {
-        const { data, error } = await supabaseClient.rpc("get_game_play_stats", {
+        const isFlight = game.slug.startsWith("faitofuraito_");
+        const { data, error } = await supabaseClient.rpc(
+          isFlight ? "get_faitofuraito_play_stats_v1" : "get_game_play_stats", {
           p_game_slug: game.slug
         });
 
@@ -2477,15 +2551,18 @@
         const stats = Array.isArray(data) && data.length > 0 ? data[0] : null;
         const totalPlayCount = Number(stats?.total_play_count ?? 0);
         const playerCount = Number(stats?.player_count ?? 0);
+        const unregisteredPlayCount = isFlight ? Number(stats?.unregistered_play_count ?? 0) : 0;
+        const unregisteredEl = document.getElementById("unregisteredPlayCount");
+        if (unregisteredEl) unregisteredEl.textContent = `名前未登録のプレイ回数：${formatNumber(unregisteredPlayCount)}回（ランキング対象外）`;
 
-        if (totalPlayCount <= 0 && playerCount <= 0) {
+        if (!isFlight && totalPlayCount <= 0 && playerCount <= 0) {
           setDetailStatsComingSoon(token);
-          return { totalPlayCount, playerCount };
+          return { totalPlayCount, playerCount, unregisteredPlayCount };
         }
 
         totalPlayCountEl.textContent = `${formatNumber(totalPlayCount)}回`;
         playerCountEl.textContent = `${formatNumber(playerCount)}人`;
-        return { totalPlayCount, playerCount };
+        return { totalPlayCount, playerCount, unregisteredPlayCount };
       } catch (error) {
         console.error("get_game_play_stats error:", game.slug, error);
         setDetailStatsComingSoon(token);
@@ -2604,8 +2681,21 @@
       return Array.isArray(data) ? data : [];
     }
 
-    function buildPlayCountRankingRows(playRows, game) {
-      if (!playRows.length) return `<div class="empty">まだ記録がありません</div>`;
+    function buildPlayCountRankingRows(playRows, game, stats) {
+      const guestCount = game.slug.startsWith("faitofuraito_")
+        ? Number(stats?.unregisteredPlayCount || 0) : 0;
+      const guestRow = guestCount > 0 ? `
+        <div class="detail-row unranked-row" aria-label="名前未登録のプレイ回数・順位対象外">
+          <div class="detail-main">
+            <div class="rank-no">順位対象外</div>
+            <div class="player-name">名前未登録</div>
+          </div>
+          <div class="detail-grid"><div class="mini-box primary-score best-score">
+            <span class="mini-label">プレイ回数</span>
+            <span class="mini-value">${escapeHtml(formatNumber(guestCount))}回</span>
+          </div></div>
+        </div>` : "";
+      if (!playRows.length) return guestRow || `<div class="empty">まだ記録がありません</div>`;
 
       return playRows.map((row) => `
         <div class="detail-row">
@@ -2625,7 +2715,7 @@
             </div>
           </div>
         </div>
-      `).join("");
+      `).join("") + guestRow;
     }
 
     function showPlayCountRankingError(token) {
@@ -2680,7 +2770,7 @@
       try {
         const playRows = await fetchPlayCountRanking(game);
         if (token !== currentLoadToken) return;
-        if (playsRankingEl) playsRankingEl.innerHTML = buildPlayCountRankingRows(playRows, game);
+        if (playsRankingEl) playsRankingEl.innerHTML = buildPlayCountRankingRows(playRows, game, stats);
       } catch (error) {
         console.error("play count ranking load error:", game.slug, error);
         showPlayCountRankingError(token);

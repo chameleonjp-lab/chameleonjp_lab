@@ -1634,9 +1634,29 @@
             "statsSlugs": [
                   "paripari"
             ]
+      },
+      {
+        "displayOrder": 58,
+        "slug": "faitofuraito",
+        "title": "ファイトフライト",
+        "url": "https://chameleonjp-lab.github.io/faitofuraito/",
+        "description": "戦闘機で空を飛び、敵機を撃墜するフライトゲーム（ノーマル）。",
+        "shareText": "ファイトフライト https://chameleonjp-lab.github.io/faitofuraito/",
+        "releaseDate": "2026-09-29",
+        "topRanking": "best",
+        "scoreOrder": "desc",
+        "scoreUnit": "点",
+        "scoreScale": 1,
+        "scoreDecimals": 0,
+        "scoreLabel": "スコア",
+        "firstScoreLabel": "初回スコア",
+        "bestScoreLabel": "最高スコア",
+        "detailSlug": "faitofuraito",
+        "rankingSlug": "faitofuraito_normal",
+        "statsSlugs": ["faitofuraito_normal", "faitofuraito_easy"],
+        "difficultySummary": "モード別あり・トップはノーマル",
+        "isActive": false
       }
-
-
 ];
 
     // Supabaseへ接続できない場合も、非公開にしたゲームを固定一覧から表示しない。
@@ -1836,7 +1856,10 @@
       }
 
       try {
-        const { data, error } = await supabaseClient.rpc("get_game_play_stats", {
+        const rpcName = normalizedSlug.startsWith("faitofuraito_")
+          ? "get_faitofuraito_play_stats_v1"
+          : "get_game_play_stats";
+        const { data, error } = await supabaseClient.rpc(rpcName, {
           p_game_slug: normalizedSlug
         });
 
@@ -1847,7 +1870,7 @@
         singleStatsCache.set(normalizedSlug, stats);
         return stats;
       } catch (error) {
-        console.error("get_game_play_stats error:", normalizedSlug, error);
+        console.error("game stats error:", normalizedSlug, error);
         // Do not cache transport/RPC failures as a real zero. The next
         // accordion open must be able to retry the statistics request.
         return null;
@@ -2016,6 +2039,23 @@
       rows.forEach((row) => {
         const slug = cleanText(row.game_slug);
         if (!slug || used.has(slug)) return;
+
+        if (slug === "faitofuraito_normal" || slug === "faitofuraito_easy") {
+          const normal = bySlug.get("faitofuraito_normal") || row;
+          const base = rowToGame(normal);
+          games.push({
+            ...base,
+            slug: "faitofuraito",
+            title: "ファイトフライト",
+            detailSlug: "faitofuraito",
+            rankingSlug: "faitofuraito_normal",
+            statsSlugs: ["faitofuraito_normal", "faitofuraito_easy"],
+            difficultySummary: "モード別あり・トップはノーマル"
+          });
+          used.add("faitofuraito_normal");
+          used.add("faitofuraito_easy");
+          return;
+        }
 
         if (slug === "meoshi_wo_seisu_normal" || slug === "meoshi_wo_seisu_hard") {
           const normal = bySlug.get("meoshi_wo_seisu_normal");
@@ -2375,7 +2415,9 @@
     function statsHtml(game) {
       const grouped = isGroupedGame(game);
       const playLabel = grouped ? "合計プレイ回数（合算）" : "合計プレイ回数";
-      const playerLabel = grouped ? "参加人数（合算）" : "参加人数";
+      const playerLabel = game.slug === "faitofuraito"
+        ? "登録名（モード別合計）"
+        : grouped ? "参加人数（合算）" : "参加人数";
       return `
         <div class="stats" aria-label="${escapeHtml(game.title)}の集計">
           <div class="stat-box" id="plays-box-${escapeHtml(game.slug)}">
