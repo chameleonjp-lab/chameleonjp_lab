@@ -1,0 +1,27 @@
+{
+  "date": "2026-09-29",
+  "environment": "Chromium headless, 393x852 viewport, local index.html and ranking.html, Supabase and CDN requests mocked before page load",
+  "screenshot": "faitofuraito-lab-ranking-393x852.png",
+  "mock": {
+    "active_slugs": ["faitofuraito_normal", "faitofuraito_easy"],
+    "normal_stats": {"total_play_count": 3, "player_count": 1, "registered_play_count": 1, "unregistered_play_count": 2},
+    "easy_stats": {"total_play_count": 2, "player_count": 1, "registered_play_count": 1, "unregistered_play_count": 1},
+    "named_play_ranking": [{"rank_no": 1, "display_name": "Taro", "play_count": 1, "best_score": 2300}],
+    "disqualified_entries": []
+  },
+  "observed": {
+    "detail_mode_tab_count": 2,
+    "normal_guest_label": "名前未登録のプレイ回数：2回（ランキング対象外）",
+    "guest_row": "順位対象外 / 名前未登録 / 2回",
+    "named_row": "1位 / Taro / 1回",
+    "disqualified_section_visible": false,
+    "top_card_count": 1,
+    "top_total_plays": "5回",
+    "top_registered_name_mode_sum": "2人",
+    "top_registered_name_label": "登録名（モード別合計）",
+    "catalog_failure_fallback_top_hidden": true,
+    "catalog_failure_fallback_detail_hidden": true,
+    "page_javascript_errors": []
+  },
+  "scope": "Mock UI rendering and state wiring; not a production URL or iPhone Safari acceptance test"
+}

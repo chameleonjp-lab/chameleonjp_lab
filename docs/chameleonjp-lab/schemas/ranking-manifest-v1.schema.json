@@ -84,7 +84,7 @@
       ],
       "properties": {
         "required_before_start": {
-          "const": true
+          "type": "boolean"
         },
         "min_length": {
           "const": 1
@@ -95,6 +95,9 @@
         "storage_key": {
           "type": "string",
           "minLength": 1
+        },
+        "required_for_ranking": {
+          "const": true
         }
       }
     },
@@ -116,6 +119,9 @@
         },
         "idempotency": {
           "const": true
+        },
+        "unregistered_rpc": {
+          "const": "start_faitofuraito_guest_play_v1"
         }
       }
     },
@@ -241,5 +247,72 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "game_id": {
+            "const": "faitofuraito"
+          }
+        },
+        "required": [
+          "game_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "player_name": {
+            "required": [
+              "required_for_ranking"
+            ],
+            "properties": {
+              "required_before_start": {
+                "const": false
+              },
+              "required_for_ranking": {
+                "const": true
+              }
+            }
+          },
+          "play_count": {
+            "required": [
+              "unregistered_rpc"
+            ],
+            "properties": {
+              "rpc": {
+                "const": "start_game_play_v1"
+              },
+              "unregistered_rpc": {
+                "const": "start_faitofuraito_guest_play_v1"
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "player_name": {
+            "properties": {
+              "required_before_start": {
+                "const": true
+              }
+            },
+            "not": {
+              "required": [
+                "required_for_ranking"
+              ]
+            }
+          },
+          "play_count": {
+            "not": {
+              "required": [
+                "unregistered_rpc"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
 }

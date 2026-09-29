@@ -758,6 +758,48 @@
       "submission_mode": "shared",
       "score_min": 0,
       "score_max": 100000000
+    },
+    {
+      "display_order": 58,
+      "game_slug": "faitofuraito_normal",
+      "title": "ファイトフライト（ノーマル）",
+      "game_url": "https://chameleonjp-lab.github.io/faitofuraito/",
+      "description": "戦闘機で空を飛び、敵機を撃墜するフライトゲーム（ノーマル）。",
+      "share_text": "ファイトフライト https://chameleonjp-lab.github.io/faitofuraito/",
+      "release_date": "2026-09-29",
+      "top_ranking_type": "best",
+      "score_order": "desc",
+      "score_unit": "点",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_label": "スコア",
+      "first_score_label": "初回スコア",
+      "best_score_label": "最高スコア",
+      "is_active": true,
+      "submission_mode": "shared",
+      "score_min": 0,
+      "score_max": 2147483647
+    },
+    {
+      "display_order": 59,
+      "game_slug": "faitofuraito_easy",
+      "title": "ファイトフライト（イージー）",
+      "game_url": "https://chameleonjp-lab.github.io/faitofuraito/",
+      "description": "戦闘機で空を飛び、敵機を撃墜するフライトゲーム（イージー）。",
+      "share_text": "ファイトフライト https://chameleonjp-lab.github.io/faitofuraito/",
+      "release_date": "2026-09-29",
+      "top_ranking_type": "best",
+      "score_order": "desc",
+      "score_unit": "点",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_label": "スコア",
+      "first_score_label": "初回スコア",
+      "best_score_label": "最高スコア",
+      "is_active": true,
+      "submission_mode": "shared",
+      "score_min": 0,
+      "score_max": 2147483647
     }
   ]
 }
