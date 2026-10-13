@@ -1,0 +1,405 @@
+{
+  "checked_at": "2026-10-13T20:25:00.898Z",
+  "read_only": true,
+  "games": 44,
+  "nonempty_play_rankings": 44,
+  "checks": "public access, shapes, score directions, tie ranks, play-count/total consistency",
+  "summaries": [
+    {
+      "game_slug": "anatano_1byou",
+      "first_rows": 33,
+      "best_rows": 33,
+      "play_rows": 33,
+      "total_play_count": 216,
+      "player_count": 33,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "bekutoru",
+      "first_rows": 11,
+      "best_rows": 11,
+      "play_rows": 11,
+      "total_play_count": 80,
+      "player_count": 11,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "binkarabin",
+      "first_rows": 10,
+      "best_rows": 10,
+      "play_rows": 10,
+      "total_play_count": 73,
+      "player_count": 10,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "emojihiroi",
+      "first_rows": 11,
+      "best_rows": 11,
+      "play_rows": 11,
+      "total_play_count": 52,
+      "player_count": 11,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "faitofuraito_easy",
+      "first_rows": 1,
+      "best_rows": 1,
+      "play_rows": 1,
+      "total_play_count": 25,
+      "player_count": 1,
+      "unregistered_play_count": 24
+    },
+    {
+      "game_slug": "faitofuraito_normal",
+      "first_rows": 1,
+      "best_rows": 1,
+      "play_rows": 1,
+      "total_play_count": 23,
+      "player_count": 1,
+      "unregistered_play_count": 21
+    },
+    {
+      "game_slug": "goriragouu",
+      "first_rows": 9,
+      "best_rows": 9,
+      "play_rows": 9,
+      "total_play_count": 51,
+      "player_count": 9,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "hanabin",
+      "first_rows": 3,
+      "best_rows": 3,
+      "play_rows": 3,
+      "total_play_count": 9,
+      "player_count": 3,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "hito_wo_yurusuna",
+      "first_rows": 6,
+      "best_rows": 6,
+      "play_rows": 6,
+      "total_play_count": 17,
+      "player_count": 6,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "iroate",
+      "first_rows": 24,
+      "best_rows": 24,
+      "play_rows": 24,
+      "total_play_count": 174,
+      "player_count": 24,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "ironarabe",
+      "first_rows": 29,
+      "best_rows": 29,
+      "play_rows": 29,
+      "total_play_count": 567,
+      "player_count": 29,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "johba",
+      "first_rows": 6,
+      "best_rows": 6,
+      "play_rows": 6,
+      "total_play_count": 39,
+      "player_count": 6,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "jouzuni_kakerukana",
+      "first_rows": 23,
+      "best_rows": 23,
+      "play_rows": 23,
+      "total_play_count": 216,
+      "player_count": 23,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "juden_ga",
+      "first_rows": 21,
+      "best_rows": 21,
+      "play_rows": 21,
+      "total_play_count": 103,
+      "player_count": 21,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "kakomare",
+      "first_rows": 1,
+      "best_rows": 1,
+      "play_rows": 2,
+      "total_play_count": 2,
+      "player_count": 2,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "kanijan",
+      "first_rows": 7,
+      "best_rows": 7,
+      "play_rows": 7,
+      "total_play_count": 17,
+      "player_count": 7,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "kodomo_demo_tokechau",
+      "first_rows": 9,
+      "best_rows": 9,
+      "play_rows": 9,
+      "total_play_count": 56,
+      "player_count": 9,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "koroshine",
+      "first_rows": 30,
+      "best_rows": 30,
+      "play_rows": 30,
+      "total_play_count": 2722,
+      "player_count": 30,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "kuma_no_fpsagashi",
+      "first_rows": 18,
+      "best_rows": 18,
+      "play_rows": 18,
+      "total_play_count": 156,
+      "player_count": 18,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "machigai_mikke_easy",
+      "first_rows": 5,
+      "best_rows": 5,
+      "play_rows": 5,
+      "total_play_count": 15,
+      "player_count": 5,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "machigai_mikke_hard",
+      "first_rows": 3,
+      "best_rows": 3,
+      "play_rows": 3,
+      "total_play_count": 4,
+      "player_count": 3,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "machigai_mikke_super_hard",
+      "first_rows": 6,
+      "best_rows": 6,
+      "play_rows": 6,
+      "total_play_count": 14,
+      "player_count": 6,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "maketara_omae_no_sei_dakara",
+      "first_rows": 15,
+      "best_rows": 15,
+      "play_rows": 15,
+      "total_play_count": 115,
+      "player_count": 15,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "maron_hikou",
+      "first_rows": 15,
+      "best_rows": 15,
+      "play_rows": 15,
+      "total_play_count": 60,
+      "player_count": 15,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "masumen",
+      "first_rows": 1,
+      "best_rows": 1,
+      "play_rows": 1,
+      "total_play_count": 1,
+      "player_count": 1,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "meoshi_wo_seisu_hard",
+      "first_rows": 4,
+      "best_rows": 4,
+      "play_rows": 4,
+      "total_play_count": 9,
+      "player_count": 4,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "meoshi_wo_seisu_normal",
+      "first_rows": 5,
+      "best_rows": 5,
+      "play_rows": 5,
+      "total_play_count": 9,
+      "player_count": 5,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "nayuta_no_himatsubushi",
+      "first_rows": 18,
+      "best_rows": 18,
+      "play_rows": 18,
+      "total_play_count": 77,
+      "player_count": 18,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "paripari",
+      "first_rows": 1,
+      "best_rows": 1,
+      "play_rows": 1,
+      "total_play_count": 2,
+      "player_count": 1,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "sabasaba_endless",
+      "first_rows": 4,
+      "best_rows": 4,
+      "play_rows": 4,
+      "total_play_count": 16,
+      "player_count": 4,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "sabasaba_normal",
+      "first_rows": 5,
+      "best_rows": 5,
+      "play_rows": 5,
+      "total_play_count": 20,
+      "player_count": 5,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "sainome_300_seconds",
+      "first_rows": 100,
+      "best_rows": 100,
+      "play_rows": 100,
+      "total_play_count": 823,
+      "player_count": 101,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "saisupi",
+      "first_rows": 9,
+      "best_rows": 9,
+      "play_rows": 9,
+      "total_play_count": 33,
+      "player_count": 9,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "sandoicchi",
+      "first_rows": 10,
+      "best_rows": 10,
+      "play_rows": 10,
+      "total_play_count": 15,
+      "player_count": 10,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "shiwakezaru",
+      "first_rows": 8,
+      "best_rows": 8,
+      "play_rows": 8,
+      "total_play_count": 15,
+      "player_count": 8,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "songen_wo_kakeyouka",
+      "first_rows": 55,
+      "best_rows": 55,
+      "play_rows": 55,
+      "total_play_count": 1518,
+      "player_count": 55,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "songen_wo_kakeyouka2",
+      "first_rows": 29,
+      "best_rows": 29,
+      "play_rows": 29,
+      "total_play_count": 392,
+      "player_count": 29,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "suiteki_catch",
+      "first_rows": 22,
+      "best_rows": 22,
+      "play_rows": 22,
+      "total_play_count": 55,
+      "player_count": 22,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "tomatoku_competition_v1",
+      "first_rows": 4,
+      "best_rows": 4,
+      "play_rows": 4,
+      "total_play_count": 9,
+      "player_count": 4,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "torani_yasashiku",
+      "first_rows": 40,
+      "best_rows": 40,
+      "play_rows": 40,
+      "total_play_count": 152,
+      "player_count": 40,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "toreba_iinoyo",
+      "first_rows": 11,
+      "best_rows": 11,
+      "play_rows": 11,
+      "total_play_count": 246,
+      "player_count": 11,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "toremeshi",
+      "first_rows": 4,
+      "best_rows": 4,
+      "play_rows": 4,
+      "total_play_count": 13,
+      "player_count": 4,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "uchikaeru",
+      "first_rows": 27,
+      "best_rows": 27,
+      "play_rows": 27,
+      "total_play_count": 699,
+      "player_count": 27,
+      "unregistered_play_count": 0
+    },
+    {
+      "game_slug": "yume_wo_mitandakedosa",
+      "first_rows": 11,
+      "best_rows": 11,
+      "play_rows": 11,
+      "total_play_count": 24,
+      "player_count": 11,
+      "unregistered_play_count": 0
+    }
+  ]
+}
