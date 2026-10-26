@@ -390,6 +390,26 @@
       box-shadow: 0 0 0 1px rgba(255, 107, 107, 0.25), 0 14px 32px rgba(0, 0, 0, 0.28);
     }
 
+    /* Takkeu provisional-BOT and confirmed-BOT records are outside the rank order. */
+    .detail-row.abnormal-row {
+      border-color: rgba(239, 188, 87, 0.75);
+      background: rgba(93, 64, 24, 0.58);
+    }
+    .detail-row.abnormal-row--confirmed {
+      border-color: rgba(255, 107, 107, 0.72);
+      background: rgba(90, 22, 22, 0.72);
+    }
+    .detail-row.abnormal-row .detail-main { grid-template-columns: auto minmax(0, 1fr); }
+    .detail-row.abnormal-row .rank-no {
+      padding: 4px 8px;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      color: #ffe5ae;
+      text-align: center;
+    }
+    .detail-row.abnormal-row--confirmed .rank-no { color: #ffd1d1; }
+    .abnormal-reason { margin: 0; color: var(--text-sub); font-size: 12px; line-height: 1.5; }
+
     .detail-main {
       display: grid;
       grid-template-columns: 48px 1fr;
@@ -2459,8 +2479,8 @@
         </section>
 
         <section class="ranking-card disqualified-card" id="disqualifiedSection" hidden>
-          <h2 class="ranking-title">不正ユーザー</h2>
-          <p class="ranking-sub">通常ランキングから除外された記録です。</p>
+          <h2 class="ranking-title" id="abnormalSectionTitle">不正ユーザー</h2>
+          <p class="ranking-sub" id="abnormalSectionDescription">通常ランキングから除外された記録です。</p>
           <div class="ranking-list" id="disqualifiedRanking"></div>
         </section>
 
@@ -2641,6 +2661,42 @@
       `).join("");
     }
 
+    function buildTakkeuAbnormalRows(rows, game) {
+      if (!rows.length) return "";
+
+      return rows.map((row) => {
+        const provisional = row.ranking_status === "provisional_bot";
+        const confirmed = row.ranking_status === "bot";
+        const label = provisional ? "暫定BOT" : confirmed ? "BOT" : "通常順位対象外";
+        const reason = cleanText(row.ranking_note) || (provisional
+          ? "記録を確認中です。BOTの利用が確定したわけではありません。"
+          : "通常ランキングの対象外となった記録です。");
+        return `
+          <div class="detail-row abnormal-row ${confirmed ? "abnormal-row--confirmed" : ""}">
+            <div class="detail-main">
+              <div class="rank-no">${escapeHtml(label)}</div>
+              <div class="player-name">${escapeHtml(row.display_name)}</div>
+            </div>
+            <p class="abnormal-reason">${escapeHtml(reason)}</p>
+            <div class="detail-grid">
+              <div class="mini-box primary-score first-score">
+                <span class="mini-label">${escapeHtml(firstScoreLabel(game))}</span>
+                <span class="mini-value">${escapeHtml(scoreText(row.first_score, game))}</span>
+              </div>
+              <div class="mini-box primary-score best-score">
+                <span class="mini-label">${escapeHtml(bestScoreLabel(game))}</span>
+                <span class="mini-value">${escapeHtml(scoreText(row.best_score, game))}</span>
+              </div>
+              <div class="mini-box">
+                <span class="mini-label">プレイ回数</span>
+                <span class="mini-value">${escapeHtml(formatNumber(row.play_count))}回</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
     function buildDisqualifiedRows(rows, game) {
       if (!rows.length) return "";
 
@@ -2785,6 +2841,13 @@
 
       sectionEl.hidden = true;
       rankingEl.innerHTML = "";
+      const isTakkeu = game.slug === "takkeu";
+      const sectionTitle = document.getElementById("abnormalSectionTitle");
+      const sectionDescription = document.getElementById("abnormalSectionDescription");
+      if (sectionTitle) sectionTitle.textContent = isTakkeu ? "異常記録（通常順位の対象外）" : "不正ユーザー";
+      if (sectionDescription) sectionDescription.textContent = isTakkeu
+        ? "「暫定BOT」は異常な記録のため調査中で、BOTと確定した意味ではありません。「BOT」は自動操作の証拠が確認された記録です。"
+        : "通常ランキングから除外された記録です。";
 
       if (isKeyUnset) return;
 
@@ -2792,10 +2855,10 @@
       if (!supabaseClient) return;
 
       try {
-        const { data, error } = await supabaseClient.rpc("get_disqualified_score_entries", {
-          p_game_slug: game.slug,
-          p_limit: 50
-        });
+        const { data, error } = await supabaseClient.rpc(
+          isTakkeu ? "get_takkeu_abnormal_entries_v1" : "get_disqualified_score_entries",
+          isTakkeu ? { p_limit: 50 } : { p_game_slug: game.slug, p_limit: 50 }
+        );
 
         if (error) throw error;
         if (token !== currentLoadToken) return;
@@ -2803,12 +2866,12 @@
         const rows = Array.isArray(data) ? data : [];
         if (!rows.length) return;
 
-        rankingEl.innerHTML = buildDisqualifiedRows(rows, game);
+        rankingEl.innerHTML = isTakkeu ? buildTakkeuAbnormalRows(rows, game) : buildDisqualifiedRows(rows, game);
         sectionEl.hidden = false;
       } catch (error) {
         console.error("disqualified entries load error:", game.slug, error);
         if (token !== currentLoadToken) return;
-        rankingEl.innerHTML = `<div class="coming-soon">不正ユーザー欄を取得できませんでした。</div>`;
+        rankingEl.innerHTML = `<div class="coming-soon">対象外記録の一覧を取得できませんでした。</div>`;
         sectionEl.hidden = false;
       }
     }
