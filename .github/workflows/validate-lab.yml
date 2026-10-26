@@ -16,3 +16,5 @@ jobs:
         uses: actions/checkout@v4
       - name: Validate catalog and inline JavaScript
         run: node scripts/validate-lab.mjs
+      - name: Verify Takkeu abnormal ranking presentation
+        run: node scripts/test-takkeu-abnormal-ranking.mjs
