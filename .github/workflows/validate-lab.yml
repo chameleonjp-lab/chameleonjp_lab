@@ -26,6 +26,8 @@ jobs:
         run: node scripts/test-takkeu-abnormal-ranking.mjs
       - name: Verify Ironarabe URL-only change
         run: node scripts/test-ironarabe-links.mjs
+      - name: Verify anonymous play counts in isolated PostgreSQL
+        run: node scripts/test-ironarabe-guest-db.mjs
       - name: Install test browsers
         run: npx playwright install --with-deps chromium webkit
       - name: Verify Ironarabe catalog and ranking links with mocked requests
