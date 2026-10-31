@@ -2,8 +2,9 @@
   "name": "chameleonjp-lab",
   "private": true,
   "scripts": {
-    "test": "node scripts/validate-lab.mjs && node scripts/test-takkeu-abnormal-ranking.mjs && node scripts/test-ironarabe-links.mjs && node scripts/test-ironarabe-guest-db.mjs && node scripts/test-iroate-links.mjs",
-    "test:browser": "node scripts/test-ironarabe-links-browser.cjs && node scripts/test-iroate-links-browser.cjs"
+    "test": "node scripts/validate-lab.mjs && node scripts/test-takkeu-abnormal-ranking.mjs && node scripts/test-ironarabe-links.mjs && node scripts/test-ironarabe-guest-db.mjs && node scripts/test-iroate-links.mjs && node scripts/test-build-pages.mjs && node scripts/test-common-score-receipt.mjs",
+    "test:browser": "node scripts/test-ironarabe-links-browser.cjs && node scripts/test-iroate-links-browser.cjs",
+    "build": "node scripts/build-pages.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.3.14",

@@ -1,0 +1,1381 @@
+{
+  "checked_at": "2026-10-31T09:02:47.813224+00:00",
+  "lab_url": "https://chameleonjp-lab.github.io/chameleonjp_lab/",
+  "database_project": "mlpnjgezrnhdxsxolyzj",
+  "registered_rows": 62,
+  "active_rows": 45,
+  "inactive_rows": 17,
+  "live_card_count": 41,
+  "eligible_unique_games": 40,
+  "live_catalog_verified": true,
+  "rest_responses": [
+    {
+      "url": "https://mlpnjgezrnhdxsxolyzj.supabase.co/rest/v1/games?select=display_order%2Cgame_slug%2Ctitle%2Cgame_url%2Cdescription%2Cis_active%2Crelease_date%2Ctop_ranking_type%2Cscore_order%2Cscore_unit%2Cscore_scale%2Cscore_decimals%2Cscore_label%2Cfirst_score_label%2Cbest_score_label%2Cshare_text&is_active=eq.true&order=display_order.asc",
+      "status": 200
+    }
+  ],
+  "lab_page_errors": [],
+  "games": [
+    {
+      "repository_candidate": "anatano_1byou",
+      "github_repository": "chameleonjp-lab/anatano_1byou",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "anatano_1byou"
+      ],
+      "titles": [
+        "あなたの1秒って"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/anatano_1byou/",
+      "current_lab_card_ids": [
+        "game-anatano_1byou"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=anatano_1byou"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/anatano_1byou/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/anatano_1byou/",
+        "title": "あなたの1秒って",
+        "bytes": 47317,
+        "checked_at": "2026-10-31T09:00:14.268894+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "bekutoru",
+      "github_repository": "chameleonjp-lab/bekutoru",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "bekutoru"
+      ],
+      "titles": [
+        "ベク取る"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/bekutoru/",
+      "current_lab_card_ids": [
+        "game-bekutoru"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=bekutoru"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/bekutoru/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/bekutoru/",
+        "title": "ベク取る",
+        "bytes": 62480,
+        "checked_at": "2026-10-31T09:00:14.488782+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "binkarabin",
+      "github_repository": "chameleonjp-lab/binkarabin",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "binkarabin"
+      ],
+      "titles": [
+        "ビンカラビン"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/binkarabin/",
+      "current_lab_card_ids": [
+        "game-binkarabin"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=binkarabin"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/binkarabin/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/binkarabin/",
+        "title": "ビンカラビン",
+        "bytes": 32335,
+        "checked_at": "2026-10-31T09:00:14.375624+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "emojihiroi",
+      "github_repository": "chameleonjp-lab/emojihiroi",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "emojihiroi"
+      ],
+      "titles": [
+        "絵文字拾い"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/emojihiroi/",
+      "current_lab_card_ids": [
+        "game-emojihiroi"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=emojihiroi"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/emojihiroi/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/emojihiroi/",
+        "title": "絵文字拾い",
+        "bytes": 40333,
+        "checked_at": "2026-10-31T09:00:14.379533+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "faitofuraito",
+      "github_repository": "chameleonjp-lab/faitofuraito",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "faitofuraito_easy",
+        "faitofuraito_normal"
+      ],
+      "titles": [
+        "ファイトフライト（イージー）",
+        "ファイトフライト（ノーマル）"
+      ],
+      "public_url": "https://chameleonjp-lab.github.io/faitofuraito/",
+      "current_lab_card_ids": [
+        "game-faitofuraito"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=faitofuraito"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp-lab.github.io/faitofuraito/",
+        "status": 200,
+        "final_url": "https://chameleonjp-lab.github.io/faitofuraito/",
+        "title": "ファイトフライト",
+        "bytes": 18190,
+        "checked_at": "2026-10-31T09:00:13.425683+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "goriragouu",
+      "github_repository": "chameleonjp-lab/goriragouu",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "goriragouu"
+      ],
+      "titles": [
+        "ゴリラ豪雨"
+      ],
+      "public_url": "https://chameleonjp-lab.github.io/goriragouu/",
+      "current_lab_card_ids": [
+        "game-goriragouu"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=goriragouu"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp-lab.github.io/goriragouu/",
+        "status": 200,
+        "final_url": "https://chameleonjp-lab.github.io/goriragouu/",
+        "title": "ゴリラ豪雨",
+        "bytes": 13367,
+        "checked_at": "2026-10-31T09:00:13.203291+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "hanabin",
+      "github_repository": "chameleonjp-lab/hanabin",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "hanabin"
+      ],
+      "titles": [
+        "ハナビン"
+      ],
+      "public_url": "https://chameleonjp-lab.github.io/hanabin/",
+      "current_lab_card_ids": [
+        "game-hanabin"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=hanabin"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp-lab.github.io/hanabin/",
+        "status": 200,
+        "final_url": "https://chameleonjp-lab.github.io/hanabin/",
+        "title": "HANABIN",
+        "bytes": 18423,
+        "checked_at": "2026-10-31T09:00:13.246235+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "hito_wo_yurusuna",
+      "github_repository": "chameleonjp-lab/hito_wo_yurusuna",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "hito_wo_yurusuna"
+      ],
+      "titles": [
+        "ヒトを許すな！"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/hito_wo_yurusuna/",
+      "current_lab_card_ids": [
+        "game-hito_wo_yurusuna"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=hito_wo_yurusuna"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/hito_wo_yurusuna/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/hito_wo_yurusuna/",
+        "title": "ヒトを許すな！",
+        "bytes": 98042,
+        "checked_at": "2026-10-31T09:00:14.381777+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "iroate",
+      "github_repository": "chameleonjp-lab/iroate",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "iroate"
+      ],
+      "titles": [
+        "イロアテ"
+      ],
+      "public_url": "https://chameleonjp-lab.github.io/iroate/",
+      "current_lab_card_ids": [
+        "game-iroate"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=iroate"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp-lab.github.io/iroate/",
+        "status": 200,
+        "final_url": "https://chameleonjp-lab.github.io/iroate/",
+        "title": "イロアテ",
+        "bytes": 8563,
+        "checked_at": "2026-10-31T09:00:13.318050+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "ironarabe",
+      "github_repository": "chameleonjp-lab/ironarabe",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "ironarabe"
+      ],
+      "titles": [
+        "イロナラベ"
+      ],
+      "public_url": "https://chameleonjp-lab.github.io/ironarabe/",
+      "current_lab_card_ids": [
+        "game-ironarabe"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=ironarabe"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp-lab.github.io/ironarabe/",
+        "status": 200,
+        "final_url": "https://chameleonjp-lab.github.io/ironarabe/",
+        "title": "イロナラベ",
+        "bytes": 57987,
+        "checked_at": "2026-10-31T09:00:13.406215+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "johba",
+      "github_repository": "chameleonjp-lab/johba",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "johba"
+      ],
+      "titles": [
+        "ジョーバ"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/johba/",
+      "current_lab_card_ids": [
+        "game-johba"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=johba"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/johba/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/johba/",
+        "title": "ジョーバ",
+        "bytes": 153159,
+        "checked_at": "2026-10-31T09:00:14.270825+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "jouzuni_kakerukana",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "jouzuni_kakerukana"
+      ],
+      "titles": [
+        "上手に描けるかな？"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/jouzuni_kakerukana/",
+      "current_lab_card_ids": [
+        "game-jouzuni_kakerukana"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=jouzuni_kakerukana"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/jouzuni_kakerukana/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/jouzuni_kakerukana/",
+        "title": "上手に描けるかな？",
+        "bytes": 46916,
+        "checked_at": "2026-10-31T09:00:14.378471+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "juden_ga",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "juden_ga"
+      ],
+      "titles": [
+        "充電ｶﾞｯ"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/juden_ga/",
+      "current_lab_card_ids": [
+        "game-juden_ga"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=juden_ga"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/juden_ga/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/juden_ga/",
+        "title": "充電ｶﾞｯ",
+        "bytes": 56328,
+        "checked_at": "2026-10-31T09:00:14.487564+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "kakomare",
+      "github_repository": "chameleonjp-lab/kakomare",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "kakomare"
+      ],
+      "titles": [
+        "カコマレ"
+      ],
+      "public_url": "https://chameleonjp-lab.github.io/kakomare/",
+      "current_lab_card_ids": [
+        "game-kakomare"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=kakomare"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp-lab.github.io/kakomare/",
+        "status": 200,
+        "final_url": "https://chameleonjp-lab.github.io/kakomare/",
+        "title": "カコマレ",
+        "bytes": 2350,
+        "checked_at": "2026-10-31T09:00:14.426310+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "kanijan",
+      "github_repository": "chameleonjp-lab/kanijan",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "kanijan"
+      ],
+      "titles": [
+        "カニジャン"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/kanijan/",
+      "current_lab_card_ids": [
+        "game-kanijan"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=kanijan"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/kanijan/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/kanijan/",
+        "title": "カニジャン",
+        "bytes": 26769,
+        "checked_at": "2026-10-31T09:00:15.208470+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "kodomo_demo_tokechau",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "kodomo_demo_tokechau"
+      ],
+      "titles": [
+        "子供デモ解けちゃう"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/kodomo_demo_tokechau/",
+      "current_lab_card_ids": [
+        "game-kodomo_demo_tokechau"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=kodomo_demo_tokechau"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/kodomo_demo_tokechau/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/kodomo_demo_tokechau/",
+        "title": "子供デモ解けちゃう",
+        "bytes": 50526,
+        "checked_at": "2026-10-31T09:00:15.428574+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "koroshine",
+      "github_repository": "chameleonjp-lab/koroshine",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "koroshine"
+      ],
+      "titles": [
+        "コロシャイン"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/koroshine/",
+      "current_lab_card_ids": [
+        "game-koroshine"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=koroshine"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/koroshine/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/koroshine/",
+        "title": "コロシャイン",
+        "bytes": 42590,
+        "checked_at": "2026-10-31T09:00:15.233127+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "kuma_no_fpsagashi",
+      "github_repository": "chameleonjp-lab/kuma_no_fpsagashi",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "kuma_no_fpsagashi"
+      ],
+      "titles": [
+        "熊のFP探し"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/kuma_no_fpsagashi/",
+      "current_lab_card_ids": [
+        "game-kuma_no_fpsagashi"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=kuma_no_fpsagashi"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/kuma_no_fpsagashi/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/kuma_no_fpsagashi/",
+        "title": "熊のFP探し",
+        "bytes": 185115,
+        "checked_at": "2026-10-31T09:00:15.427793+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "machigai_mikke",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "machigai_mikke_easy",
+        "machigai_mikke_hard",
+        "machigai_mikke_super_hard"
+      ],
+      "titles": [
+        "間違いみっけ イージー",
+        "間違いみっけ ハード",
+        "間違いみっけ 超ハード"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/machigai_mikke/",
+      "current_lab_card_ids": [
+        "game-machigai_mikke"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=machigai_mikke"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/machigai_mikke/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/machigai_mikke/",
+        "title": "間違いみっけ",
+        "bytes": 39558,
+        "checked_at": "2026-10-31T09:00:14.990890+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "maketara_omae_no_sei_dakara",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "maketara_omae_no_sei_dakara"
+      ],
+      "titles": [
+        "負けたらお前のせいだから"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/maketara_omae_no_sei_dakara/",
+      "current_lab_card_ids": [
+        "game-maketara_omae_no_sei_dakara"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=maketara_omae_no_sei_dakara"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/maketara_omae_no_sei_dakara/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/maketara_omae_no_sei_dakara/",
+        "title": "負けたらお前のせいだから",
+        "bytes": 101303,
+        "checked_at": "2026-10-31T09:00:15.211832+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "maron_hikou",
+      "github_repository": "chameleonjp-lab/maron_hikou",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "maron_hikou"
+      ],
+      "titles": [
+        "マロン飛行"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/maron_hikou/",
+      "current_lab_card_ids": [
+        "game-maron_hikou"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=maron_hikou"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/maron_hikou/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/maron_hikou/",
+        "title": "マロン飛行",
+        "bytes": 119425,
+        "checked_at": "2026-10-31T09:00:15.538384+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "masumen",
+      "github_repository": "chameleonjp-lab/masumen",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "masumen"
+      ],
+      "titles": [
+        "マスメン"
+      ],
+      "public_url": "https://chameleonjp-lab.github.io/masumen/",
+      "current_lab_card_ids": [
+        "game-masumen"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=masumen"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp-lab.github.io/masumen/",
+        "status": 200,
+        "final_url": "https://chameleonjp-lab.github.io/masumen/",
+        "title": "マスメン",
+        "bytes": 733,
+        "checked_at": "2026-10-31T09:00:14.637441+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "meoshi_wo_seisu",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "meoshi_wo_seisu_hard",
+        "meoshi_wo_seisu_normal"
+      ],
+      "titles": [
+        "目押しを制す ハード",
+        "目押しを制す ノーマル"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/meoshi_wo_seisu/",
+      "current_lab_card_ids": [
+        "game-meoshi_wo_seisu"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=meoshi_wo_seisu"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/meoshi_wo_seisu/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/meoshi_wo_seisu/",
+        "title": "目押しを制す",
+        "bytes": 53652,
+        "checked_at": "2026-10-31T09:00:15.349130+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "nayuta_no_himatsubushi",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "nayuta_no_himatsubushi"
+      ],
+      "titles": [
+        "暇つぶし"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/nayuta_no_himatsubushi/",
+      "current_lab_card_ids": [
+        "game-nayuta_no_himatsubushi"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=nayuta_no_himatsubushi"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/nayuta_no_himatsubushi/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/nayuta_no_himatsubushi/",
+        "title": "🦈暇をつぶそう🫧",
+        "bytes": 46849,
+        "checked_at": "2026-10-31T09:00:15.539813+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "paripari",
+      "github_repository": "chameleonjp-lab/paripari",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "paripari"
+      ],
+      "titles": [
+        "パリパリ"
+      ],
+      "public_url": "https://chameleonjp-lab.github.io/paripari/",
+      "current_lab_card_ids": [
+        "game-paripari"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=paripari"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp-lab.github.io/paripari/",
+        "status": 200,
+        "final_url": "https://chameleonjp-lab.github.io/paripari/",
+        "title": "パリパリ - PariPari",
+        "bytes": 13437,
+        "checked_at": "2026-10-31T09:00:15.471757+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "sabasaba",
+      "github_repository": "chameleonjp-lab/sabasaba",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "sabasaba_endless",
+        "sabasaba_normal"
+      ],
+      "titles": [
+        "サバサバ（エンドレス）",
+        "サバサバ（ノーマル）"
+      ],
+      "public_url": "https://chameleonjp-lab.github.io/sabasaba/",
+      "current_lab_card_ids": [
+        "game-sabasaba_normal",
+        "game-sabasaba_endless"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=sabasaba_normal",
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=sabasaba_endless"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp-lab.github.io/sabasaba/",
+        "status": 200,
+        "final_url": "https://chameleonjp-lab.github.io/sabasaba/",
+        "title": "サバサバ",
+        "bytes": 369794,
+        "checked_at": "2026-10-31T09:00:15.370497+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "sainome",
+      "github_repository": "chameleonjp-lab/sainome",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "sainome_300_seconds"
+      ],
+      "titles": [
+        "サイノメ"
+      ],
+      "public_url": "https://chameleonjp-lab.github.io/sainome/",
+      "current_lab_card_ids": [
+        "game-sainome_300_seconds"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=sainome_300_seconds"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp-lab.github.io/sainome/",
+        "status": 200,
+        "final_url": "https://chameleonjp-lab.github.io/sainome/",
+        "title": "サイノメ",
+        "bytes": 19486,
+        "checked_at": "2026-10-31T09:00:15.452831+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "saisupi",
+      "github_repository": "chameleonjp-lab/saisupi",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "saisupi"
+      ],
+      "titles": [
+        "サイスピ"
+      ],
+      "public_url": "https://chameleonjp-lab.github.io/saisupi/",
+      "current_lab_card_ids": [
+        "game-saisupi"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=saisupi"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp-lab.github.io/saisupi/",
+        "status": 200,
+        "final_url": "https://chameleonjp-lab.github.io/saisupi/",
+        "title": "サイスピ",
+        "bytes": 9980,
+        "checked_at": "2026-10-31T09:00:15.533425+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "sandoicchi",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "sandoicchi"
+      ],
+      "titles": [
+        "3度一致"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/sandoicchi/",
+      "current_lab_card_ids": [
+        "game-sandoicchi"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=sandoicchi"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/sandoicchi/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/sandoicchi/",
+        "title": "3度一致｜サンドイッチを作ろう",
+        "bytes": 78720,
+        "checked_at": "2026-10-31T09:00:15.739236+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "shiwakezaru",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "shiwakezaru"
+      ],
+      "titles": [
+        "仕分けざる"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/shiwakezaru/",
+      "current_lab_card_ids": [
+        "game-shiwakezaru"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=shiwakezaru"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/shiwakezaru/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/shiwakezaru/",
+        "title": "仕分けざる",
+        "bytes": 81009,
+        "checked_at": "2026-10-31T09:00:15.825260+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "songen_wo_kakeyouka",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "songen_wo_kakeyouka"
+      ],
+      "titles": [
+        "尊厳を賭けようか"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/songen_wo_kakeyouka/",
+      "current_lab_card_ids": [
+        "game-songen_wo_kakeyouka"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=songen_wo_kakeyouka"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/songen_wo_kakeyouka/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/songen_wo_kakeyouka/",
+        "title": "尊厳を賭けようか",
+        "bytes": 100086,
+        "checked_at": "2026-10-31T09:00:15.932449+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "songen_wo_kakeyouka2",
+      "github_repository": "chameleonjp-lab/songen_wo_kakeyouka2",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "songen_wo_kakeyouka2"
+      ],
+      "titles": [
+        "尊厳を賭けようか2"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/songen_wo_kakeyouka2/",
+      "current_lab_card_ids": [
+        "game-songen_wo_kakeyouka2"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=songen_wo_kakeyouka2"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/songen_wo_kakeyouka2/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/songen_wo_kakeyouka2/",
+        "title": "尊厳を賭けようか2",
+        "bytes": 155309,
+        "checked_at": "2026-10-31T09:00:15.837872+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "suiteki_catch",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "suiteki_catch"
+      ],
+      "titles": [
+        "水滴キャッチ"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/suiteki_catch/",
+      "current_lab_card_ids": [
+        "game-suiteki_catch"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=suiteki_catch"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/suiteki_catch/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/suiteki_catch/",
+        "title": "水滴キャッチ",
+        "bytes": 45665,
+        "checked_at": "2026-10-31T09:00:15.969996+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "takkeu",
+      "github_repository": "chameleonjp-lab/takkeu",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "takkeu"
+      ],
+      "titles": [
+        "タッケウ"
+      ],
+      "public_url": "https://chameleonjp-lab.github.io/takkeu/",
+      "current_lab_card_ids": [
+        "game-takkeu"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=takkeu"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp-lab.github.io/takkeu/",
+        "status": 200,
+        "final_url": "https://chameleonjp-lab.github.io/takkeu/",
+        "title": "タッケウ — ラリーをつなごう",
+        "bytes": 2455,
+        "checked_at": "2026-10-31T09:00:15.665412+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "tomatooku",
+      "github_repository": "chameleonjp-lab/tomatooku",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "tomatoku_competition_v1"
+      ],
+      "titles": [
+        "トマトオク"
+      ],
+      "public_url": "https://chameleonjp-lab.github.io/tomatooku/",
+      "current_lab_card_ids": [
+        "game-tomatoku_competition_v1"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=tomatoku_competition_v1"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp-lab.github.io/tomatooku/",
+        "status": 200,
+        "final_url": "https://chameleonjp-lab.github.io/tomatooku/",
+        "title": "トマトオク",
+        "bytes": 14966,
+        "checked_at": "2026-10-31T09:00:15.698078+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "torani_yasashiku",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "torani_yasashiku"
+      ],
+      "titles": [
+        "虎に優しく"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/torani_yasashiku/",
+      "current_lab_card_ids": [
+        "game-torani_yasashiku"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=torani_yasashiku"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/torani_yasashiku/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/torani_yasashiku/",
+        "title": "🐯虎に優しく🐯",
+        "bytes": 40566,
+        "checked_at": "2026-10-31T09:00:15.970492+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "toreba_iinoyo",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "toreba_iinoyo"
+      ],
+      "titles": [
+        "取ればいいのよ"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/toreba_iinoyo/",
+      "current_lab_card_ids": [
+        "game-toreba_iinoyo"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=toreba_iinoyo"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/toreba_iinoyo/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/toreba_iinoyo/",
+        "title": "取ればいいのよ",
+        "bytes": 55573,
+        "checked_at": "2026-10-31T09:00:16.028070+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "toremeshi",
+      "github_repository": "chameleonjp-lab/toremeshi",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "toremeshi"
+      ],
+      "titles": [
+        "トレメシ"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/toremeshi/",
+      "current_lab_card_ids": [
+        "game-toremeshi"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=toremeshi"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/toremeshi/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/toremeshi/",
+        "title": "トレメシ - 15人の筋トレ相談に答えろ",
+        "bytes": 36632,
+        "checked_at": "2026-10-31T09:00:16.105299+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "uchikaeru",
+      "github_repository": "chameleonjp-lab/uchikaeru",
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "uchikaeru"
+      ],
+      "titles": [
+        "うちかえる"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/uchikaeru/",
+      "current_lab_card_ids": [
+        "game-uchikaeru"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=uchikaeru"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/uchikaeru/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/uchikaeru/",
+        "title": "うちかえる",
+        "bytes": 56228,
+        "checked_at": "2026-10-31T09:00:16.124595+00:00"
+      },
+      "gameplay_verified": false
+    },
+    {
+      "repository_candidate": "yume_wo_mitandakedosa",
+      "github_repository": null,
+      "github_relationship_verified": false,
+      "registration_slugs": [
+        "yume_wo_mitandakedosa"
+      ],
+      "titles": [
+        "夢を見たんだけどさ"
+      ],
+      "public_url": "https://chameleonjp.codeberg.page/yume_wo_mitandakedosa/",
+      "current_lab_card_ids": [
+        "game-yume_wo_mitandakedosa"
+      ],
+      "ranking_detail_urls": [
+        "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=yume_wo_mitandakedosa"
+      ],
+      "eligibility": "対象確認済み",
+      "publication_http": {
+        "url": "https://chameleonjp.codeberg.page/yume_wo_mitandakedosa/",
+        "status": 200,
+        "final_url": "https://chameleonjp.codeberg.page/yume_wo_mitandakedosa/",
+        "title": "🌠夢を見たんだけどさ🌠",
+        "bytes": 66015,
+        "checked_at": "2026-10-31T09:00:16.374731+00:00"
+      },
+      "gameplay_verified": false
+    }
+  ],
+  "excluded_inactive": [
+    {
+      "game_slug": "akerun",
+      "title": "Vault Tumbler Lab",
+      "game_url": "https://chameleonjp-lab.github.io/akerun/",
+      "is_active": false,
+      "release_date": "2026-08-25",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "verified"
+    },
+    {
+      "game_slug": "doppan",
+      "title": "DOPPAN",
+      "game_url": "https://chameleonjp-lab.github.io/doppan/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "erabaretan",
+      "title": "エラバレタン",
+      "game_url": "https://chameleonjp-lab.github.io/erabaretan/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "hakodase",
+      "title": "HAKODASE",
+      "game_url": "https://chameleonjp-lab.github.io/hakodase/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "asc",
+      "score_scale": 1000,
+      "score_decimals": 2,
+      "score_unit": "秒",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "hakoyoke",
+      "title": "CUBIC ORDEAL",
+      "game_url": "https://chameleonjp-lab.github.io/hakoyoke/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "hoketto",
+      "title": "ホケット",
+      "game_url": "https://chameleonjp-lab.github.io/hoketto/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "kakenuke",
+      "title": "カケヌケ",
+      "game_url": "https://chameleonjp-lab.github.io/kakenuke/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "mamonokiri",
+      "title": "山伏剣戟",
+      "game_url": "https://chameleonjp-lab.github.io/mamonokiri/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "nagashimasu",
+      "title": "ナガシマス",
+      "game_url": "https://chameleonjp-lab.github.io/nagashimasu/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "oitate",
+      "title": "OITATE",
+      "game_url": "https://chameleonjp-lab.github.io/oitate/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "pachipachi",
+      "title": "GEKIAZU RUSH",
+      "game_url": "https://chameleonjp-lab.github.io/pachipachi/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "popoyamanobori",
+      "title": "ぽぽ山のぼり",
+      "game_url": "https://chameleonjp-lab.github.io/popoyamanobori/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "robobon",
+      "title": "ロボボン",
+      "game_url": "https://chameleonjp-lab.github.io/robobon/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "semekome_standard_v1",
+      "title": "セメコメ",
+      "game_url": "https://chameleonjp-lab.github.io/semekome/",
+      "is_active": false,
+      "release_date": "2026-10-02",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "songen_wo_kakeyouka3",
+      "title": "尊厳を賭けようか3",
+      "game_url": "https://chameleonjp-lab.github.io/songen_wo_kakeyouka3/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "test",
+      "title": "お団子キャッチ！",
+      "game_url": "https://chameleonjp-lab.github.io/test/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    },
+    {
+      "game_slug": "wanawana",
+      "title": "ワナワナ",
+      "game_url": "https://chameleonjp-lab.github.io/wanawana/",
+      "is_active": false,
+      "release_date": "2026-08-31",
+      "score_order": "desc",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_unit": "点",
+      "top_ranking_type": "best",
+      "submission_mode": "shared"
+    }
+  ],
+  "limitations": [
+    "HTTP 200 and correct game title verified; gameplay correctness was not tested.",
+    "Chromium automation on Linux, not iPhone Safari hardware.",
+    "GitHub repository name candidates require source equivalence validation before migration.",
+    "No database changes, scores, publication flags, or URL switches were made."
+  ]
+}
