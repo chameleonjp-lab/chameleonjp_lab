@@ -1,6 +1,6 @@
-# イロナラベ40ステージと匿名開始RPC（未適用）
+# イロナラベ40ステージと匿名開始RPC（本番適用済み）
 
-2026-10-31。**匿名開始回数のSQLは本番未適用（UNAPPLIED）**。この作業では本番への開始RPC呼出し、匿名開始SQL適用、スコア送信を行わない。以前の匿名回数SQLがマージ済みでも、DBへの適用済みを意味しない。先行する8問版のPages公開は成功し、公開後受入後にゲーム登録1件のURL2列だけを更新済み。公開記録は[公開URL切替](15_ironarabe_github_pages_migration.md)を参照する。
+2026-10-31。**40問版は公開済みで、匿名開始SQLも本番適用済み。** 利用者の本番公開依頼に基づき、確認済みIroate分岐を保持するSQLをmigration `20261031040136_ironarabe_guest_play_count_forty_preserve_iroate` として認証済み管理接続で適用した。試験スコア送信は0件。匿名開始・再送・集計の本番試験は全体をrollbackし、試験回数を残していない。最終の集約証拠は[40問公開・DB適用](../evidence/ironarabe-stage40-production-20261031.json)。以下の未適用記述は各時点の履歴と、未導入環境向けの手順として保持する。
 
 ## ステージIDと互換性
 
@@ -25,7 +25,7 @@
 
 ## 管理者が選ぶ適用経路
 
-事前の読取情報では、guest RPCとguest表は両方NULLで、旧8種用SQLも未適用。公開前提の再確認では共通statsにIroate分岐が追加され、定義MD5は `a509efcc07ccae488c47ab849ad25dda` になっている。以下は将来の手動適用手順であり、この文書の作成時に匿名開始SQLを適用した記録ではない。
+適用直前の読取ではguest RPC/表が両方NULL、共通statsの定義MD5は `a509efcc07ccae488c47ab849ad25dda` だった。今回は下記の初回インストール経路を使用済み。既に本番オブジェクトが存在するため、初回用SQLを再実行しない。新規環境では以下の読取から経路を選ぶ。
 
 認証済み管理接続で、適用直前に読取だけを行い、実際の状態から経路を選ぶ。以下は関数定義/権限の照会であり、開始RPCを呼び出さない。
 
@@ -52,7 +52,7 @@ where p.oid in (
 4. statsは取得した既存 `pg_get_functiondef` のCASE fallback直前へIronarabe分岐を1つ挿入する。Takkeu/Iroateの既存分岐、名前別集計、それ以外の定義文字列をそのまま維持する。`CREATE OR REPLACE` で署名/OID/owner/ACLを保ち、statsのGRANT/REVOKEは行わない。
 5. 読取で、40種用guest関数とprivate表/RLS/権限制限、statsの署名/OID/owner/ACL、既存分岐と全既存行を確認する。Ironarabeの匿名表件数だけをtotalへ加え、player_countは変えない。Iroateありの適用後stats定義MD5は `f0593366cc04e9439a6fefa7f3d595f8`、以前のTakkeuのみからは従来どおり `9a968d97abd64bf1d26e1568a36b373d` となる。
 
-### 公開前提の再確認: Iroate追加後の共通stats（匿名SQL未適用）
+### 適用前の確認記録: Iroate追加後の共通stats
 
 利用者が40問版PRと実験場PRをマージした後、実験場main `a6086cf86d888a34fb409ac9e299abd54c5e2059` を基準に互換性を再確認した。先行するIroateの匿名回数追加により、共通statsは上記の `a509efcc07ccae488c47ab849ad25dda`。この状態では旧 `b267...` 専用guardが拒否するため、guardを迂回せず確認済み定義をもう1つ追加した。Ironarabe guest RPC/表は引き続き両方NULLで、匿名SQLは本番未適用。
 
@@ -82,4 +82,18 @@ Iroateありの元定義は[ローカルfixture](../../scripts/fixtures/ironarab
 
 実験場の `npm test` はcatalog38件/38entry、Takkeu回帰、Ironarabe/IroateのURL回帰、DB31ケースが全て成功。`npm run test:browser` は既存の共有browser配置を使用し、Chromium/WebKit各々のcatalog/fallbackを両ゲームで検証し、計8シナリオが成功した。全59リクエストを遮断/mockし、gameリンク先へ遷移せずに確認した。実行環境では `PLAYWRIGHT_BROWSERS_PATH=/workspace/pw-browsers`、`LD_LIBRARY_PATH=/workspace/pw-libs/usr/lib/x86_64-linux-gnu`、`PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1` が必要。
 
-未完了は匿名開始SQLの本番適用、40問版の公開後受入、実機Safari確認。40種用RPCの適用済みや本番での匿名回数受入済みとして報告しない。
+## 本番適用と公開後受入の記録
+
+40問版は利用者による本体PR #18のマージ後、SHA `43b6c01655932a37828152324f0f0b7622ff9921` をrun41165939863が配備した。公開release.jsonと全runtime hashをclean rebuildと照合し、Chromium/WebKitで15言語、40問の案内、新配色、音設定、縦横、開始から結果、本番ランキング29名の読取を確認した。スコア送信は遮断している。
+
+互換修正はPR #41、確定SQLの元commit `d1e4b7d`。31/31 DB検証、8 browserシナリオ、独立レビュー、CI run41166628229を確認後、上記migrationとして適用した。apply_migrationの1 transaction内で実行し、ファイル外側のBEGIN/COMMITだけを外した。lock timeout 5秒、statement timeout 30秒を設定し、適用直前の共通stats定義と他の稼働中stats DDLが0件であることも確認した。
+
+適用後のstats定義MD5は期待どおり `f0593366cc04e9439a6fefa7f3d595f8`。statsのOID17801、owner、PUBLIC/anon/authenticatedのACLを維持した。匿名開始RPCのMD5は `01149a1c07d405799c433f2dff91d9df`。新private表はRLS有効、anon/authenticatedの直接table権限なし、専用RPCはanonだけに実行許可した。Iroate/Takkeuの集計と他public関数の定義・OID・owner・ACLの集約hashは適用前後で一致した。
+
+本番DBでanon roleの開始→同じUUIDで再送→合計だけ1増加・参加者不変をassertし、全体をROLLBACKした。試験UUIDの残存0件、永続試験回数0件を再読取。公開キーによるHTTP疎通も、NULL UUIDを渡して入力拒否されるHTTP200を確認し、回数を作っていない。本番スコア送信は0件で、29名/567履歴の全列hashは適用前後で一致した。
+
+観測期間中に他ゲーム登録全体のhashは変化したが、このmigrationにはgamesへのDMLがなく、この公開作業でも他ゲーム登録を更新していない。無関係な変更を巻き戻す書込みは行わない。元のURL切替と今回のDB追加を区別して集約証拠へ記録した。
+
+セキュリティadvisorの追加指摘は、private表の「RLS有効・policyなし」と、意図的なanon専用SECURITY DEFINER開始RPCの2件。前者は直接アクセスを許さない設計、後者は入力制限・ゲーム固定・冪等・流量上限を持つ意図したAPIである（[RLS指摘](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy)、[公開RPC指摘](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable)）。authenticatedの実行権限は追加していない。
+
+未確認は実機iPhone 17 Pro Safari。ソース補正PR #41の代理マージは自動承認審査が当初の自動マージ禁止指定を理由に拒否したため、迂回していない。その後、利用者による#41のマージ `2475d7f` と本体の公開記録#19のマージ `2977122` を再取得した。適用済みDBのSQLも実験場の既定branchへ反映済み。

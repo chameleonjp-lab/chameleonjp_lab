@@ -1,0 +1,251 @@
+{
+  "checkedAt": "2026-10-31T04:06:09.602Z",
+  "gameSlug": "ironarabe",
+  "publication": {
+    "url": "https://chameleonjp-lab.github.io/ironarabe/",
+    "stageCount": 40,
+    "initialBuildSha": "43b6c01655932a37828152324f0f0b7622ff9921",
+    "actionsRun": 41165939863,
+    "build": "success",
+    "deploy": "success",
+    "verifyPublication": "success",
+    "publicFileHashes": "matched the clean rebuild from the merged commit"
+  },
+  "database": {
+    "migration": {
+      "version": "20261031040136",
+      "name": "ironarabe_guest_play_count_forty_preserve_iroate"
+    },
+    "applied": true,
+    "sourceSqlCommit": "d1e4b7d79e50f1cf92dcf783f1c9266e7f81280f",
+    "sourceSqlSha256": "b1e4e8231407d7f1249f3bae9b3b824982f132dc0588f9bbc4c2fc1918190fef",
+    "transport": "apply_migration one transaction; only source file's outer BEGIN/COMMIT removed, lock/statement timeouts added",
+    "before": {
+      "game": [
+        {
+          "game_url": "https://chameleonjp-lab.github.io/ironarabe/",
+          "game_slug": "ironarabe",
+          "is_active": true,
+          "share_text": "イロナラベ\n色の流れを見ながら、7×9のタイルを正しい場所へ並べよう。\nhttps://chameleonjp-lab.github.io/ironarabe/",
+          "score_order": "asc",
+          "score_scale": 100,
+          "score_decimals": 2,
+          "submission_mode": "shared"
+        }
+      ],
+      "role": "postgres",
+      "stats": {
+        "player_count": 29,
+        "total_play_count": 567
+      },
+      "records": [
+        {
+          "rows": 29,
+          "digest": "440f2cfaee093e2b24d0a51c953251c1",
+          "source": "game_scores"
+        },
+        {
+          "rows": 567,
+          "digest": "e82361709acd36e75fcf012533e944fe",
+          "source": "score_runs"
+        }
+      ],
+      "functions": [
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres}",
+          "oid": "17801",
+          "owner": "postgres",
+          "signature": "get_game_play_stats(text)",
+          "definition_md5": "a509efcc07ccae488c47ab849ad25dda"
+        },
+        {
+          "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres}",
+          "oid": "18483",
+          "owner": "postgres",
+          "signature": "submit_score(text,text,integer,text)",
+          "definition_md5": "7cee4fd2b0c1d67c9f005a897058eb2d"
+        }
+      ],
+      "guest_rpc": null,
+      "checked_at": "2026-10-31T03:49:51.01024+00:00",
+      "guest_table": null,
+      "other_games_digest": "28a893af98ab36e1ab5eea1204f897d5"
+    },
+    "after": {
+      "game": [
+        {
+          "game_url": "https://chameleonjp-lab.github.io/ironarabe/",
+          "game_slug": "ironarabe",
+          "share_text": "イロナラベ\n色の流れを見ながら、7×9のタイルを正しい場所へ並べよう。\nhttps://chameleonjp-lab.github.io/ironarabe/",
+          "score_order": "asc",
+          "score_scale": 100,
+          "score_decimals": 2
+        }
+      ],
+      "stats": {
+        "iroate": {
+          "player_count": 25,
+          "total_play_count": 175
+        },
+        "takkeu": {
+          "player_count": 3572,
+          "total_play_count": 59389
+        },
+        "ironarabe": {
+          "player_count": 29,
+          "total_play_count": 567
+        }
+      },
+      "records": [
+        {
+          "rows": 29,
+          "digest": "440f2cfaee093e2b24d0a51c953251c1",
+          "source": "game_scores"
+        },
+        {
+          "rows": 567,
+          "digest": "e82361709acd36e75fcf012533e944fe",
+          "source": "score_runs"
+        }
+      ],
+      "functions": [
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres}",
+          "oid": "17801",
+          "owner": "postgres",
+          "signature": "get_game_play_stats(text)",
+          "definition_md5": "f0593366cc04e9439a6fefa7f3d595f8"
+        },
+        {
+          "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres}",
+          "oid": "18483",
+          "owner": "postgres",
+          "signature": "submit_score(text,text,integer,text)",
+          "definition_md5": "7cee4fd2b0c1d67c9f005a897058eb2d"
+        },
+        {
+          "acl": "{postgres=X/postgres,anon=X/postgres}",
+          "oid": "20761",
+          "owner": "postgres",
+          "signature": "start_ironarabe_guest_play_v1(uuid,text,text)",
+          "definition_md5": "01149a1c07d405799c433f2dff91d9df"
+        }
+      ],
+      "checked_at": "2026-10-31T04:02:22.522548+00:00",
+      "guest_count": 0,
+      "guest_table": {
+        "oid": "20748",
+        "rls": true,
+        "owner": "postgres",
+        "anon_table_access": false,
+        "authenticated_table_access": false
+      },
+      "other_games_digest": "18f324c457cd76f74b5a664760b0e47d",
+      "other_public_functions_md5": "5af798985bb2727ed5ab48e17a473bfa"
+    },
+    "rollbackProbe": {
+      "stats": {
+        "player_count": 29,
+        "total_play_count": 567
+      },
+      "probe_rows_remaining": 0,
+      "persisted_guest_count": 0,
+      "checks": "anon start accepted, duplicate retry same play_id, total +1, player count unchanged; entire transaction rolled back",
+      "persistedTestCounts": 0
+    },
+    "otherGamesDigest": {
+      "before": "28a893af98ab36e1ab5eea1204f897d5",
+      "after": "18f324c457cd76f74b5a664760b0e47d",
+      "comparison": "changed during the observation interval; this migration contains no public.games DML and this deployment did not update other game registrations; no corrective writes attempted"
+    }
+  },
+  "scoreTestSubmissions": 0,
+  "pending": {
+    "realIPhone17ProSafari": "not tested"
+  },
+  "publicUIAcceptance": {
+    "checkedAt": "2026-10-31T03:52:31.981Z",
+    "url": "https://chameleonjp-lab.github.io/ironarabe/",
+    "deployedSha": "43b6c01655932a37828152324f0f0b7622ff9921",
+    "deployedStageCount": 40,
+    "scoreSubmissionsToProduction": 0,
+    "transport": "Browser assets and ranking reads use Node fetch with managed proxy and trusted environment CA; no TLS validation disabled.",
+    "scenarios": [
+      {
+        "engine": "chromium",
+        "languages": 15,
+        "viewports": [
+          "402x874",
+          "874x402"
+        ],
+        "fullGame": true,
+        "nativeAudioScheduled": true,
+        "productionRankingRows": 29,
+        "rankingReads": 2,
+        "interceptedScores": 1,
+        "productionScoreWrites": 0
+      },
+      {
+        "engine": "webkit",
+        "languages": 15,
+        "viewports": [
+          "402x874",
+          "874x402"
+        ],
+        "fullGame": true,
+        "nativeAudioScheduled": true,
+        "productionRankingRows": 29,
+        "rankingReads": 2,
+        "interceptedScores": 1,
+        "productionScoreWrites": 0
+      }
+    ]
+  },
+  "publicEndpointProbe": {
+    "checkedAt": "2026-10-31T04:03:37.242Z",
+    "endpointAvailable": true,
+    "httpStatus": 200,
+    "role": "anon via published key",
+    "probe": "null start UUID rejected before insertion",
+    "response": {
+      "reason": "required_input_missing",
+      "accepted": false
+    },
+    "persistedTestCounts": 0
+  },
+  "publicLabAcceptance": [
+    {
+      "engine": "chromium",
+      "catalogGameUrl": "https://chameleonjp-lab.github.io/ironarabe/",
+      "rankingGameUrl": "https://chameleonjp-lab.github.io/ironarabe/",
+      "sharesNewUrl": true,
+      "liveCatalogReads": 4,
+      "liveRankReads": 5,
+      "productionWrites": 0
+    },
+    {
+      "engine": "webkit",
+      "catalogGameUrl": "https://chameleonjp-lab.github.io/ironarabe/",
+      "rankingGameUrl": "https://chameleonjp-lab.github.io/ironarabe/",
+      "sharesNewUrl": true,
+      "liveCatalogReads": 4,
+      "liveRankReads": 6,
+      "productionWrites": 0
+    }
+  ],
+  "verificationCompletedAt": "2026-10-31T04:08:50.442Z",
+  "repositoryIntegration": {
+    "statsCompatibility": {
+      "pr": 41,
+      "merged": true,
+      "mergeSha": "2475d7f6d8a0c6d41bdb1ce53046cc706cdc65fb",
+      "merge": "user merge observed; agent merge was rejected by automatic approval review citing the original no-auto-merge instruction"
+    },
+    "publicationDocs": {
+      "pr": 19,
+      "merged": true,
+      "mergeSha": "2977122851e9759b17aec03f9c83826653cbc472",
+      "merge": "user merge observed"
+    }
+  }
+}
