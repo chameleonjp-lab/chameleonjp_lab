@@ -1,0 +1,66 @@
+{
+  "checked_date_utc": "2026-10-31",
+  "game_slug": "iroate",
+  "project_ref": "mlpnjgezrnhdxsxolyzj",
+  "lab_baseline_sha": "419e25e68f3ee57f9e9d5030106d3fa418c43435",
+  "game_pr": "https://github.com/chameleonjp-lab/iroate/pull/3",
+  "published_sha": "570fc1215c93d4dfb12a0a89c29dec557fccb421",
+  "deployment_run": "https://github.com/chameleonjp-lab/iroate/actions/runs/41163474834",
+  "deployment_conclusion": "success",
+  "new_url": "https://chameleonjp-lab.github.io/iroate/",
+  "published_assets_verified": 25,
+  "published_webkit": {
+    "questions_completed": 20,
+    "wrong_answers": 1,
+    "ranking_rows": 25,
+    "guest_writes_mocked": 2,
+    "score_submissions": 0,
+    "retry_and_retire": true,
+    "share_url_correct": true,
+    "landscape_667_by_375": true,
+    "page_errors": 0
+  },
+  "pages_source": {
+    "build_type": "legacy",
+    "branch": "main",
+    "path": "/",
+    "required": "workflow",
+    "update_api_status": 403,
+    "administrator_action_pending": true
+  },
+  "production_registration": {
+    "target_rows": 1,
+    "url_update_applied": false,
+    "before_game_url": "https://chameleonjp.codeberg.page/iroate/",
+    "before_share_text": "イロアテ\n文字の意味と文字の色を見分けて、20問の最終タイムを競うゲームです。\nhttps://chameleonjp.codeberg.page/iroate/",
+    "score_order": "asc",
+    "score_unit": "秒",
+    "score_scale": 100,
+    "score_decimals": 2,
+    "submission_mode": "shared"
+  },
+  "preserved_records": {
+    "checked_at_utc": "2026-10-31T03:27:59Z",
+    "game_scores": { "rows": 25, "digest": "a3d58ad196a515fa6c96294c8f696ddf" },
+    "score_runs": { "rows": 175, "digest": "c496ef4790e0111cda9002e0f7be8033" },
+    "algorithm": "md5(concatenated md5(to_jsonb(row)::text)); game_scores ordered by display_name, score_runs by numeric id; no separator",
+    "equal_to_implementation_baseline": true,
+    "personal_names_logged": false
+  },
+  "lab_tests": {
+    "npm_test": "pass",
+    "browser": "pass: Chromium/WebKit, catalog/fallback, both Iroate and existing Ironarabe",
+    "iroate_named_plays_fixture": 17,
+    "iroate_anonymous_starts_fixture": 3,
+    "public_read_only_check_games": 45
+  },
+  "physical_iphone_safari_verified": false,
+  "pending": [
+    "Pages Source changed to GitHub Actions and reverified",
+    "lab PR merged by owner",
+    "production games URL-only update and re-read",
+    "published lab navigation and sharing checks",
+    "physical iPhone Safari acceptance"
+  ],
+  "formal_release_complete": false
+}

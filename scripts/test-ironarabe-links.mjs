@@ -8,13 +8,13 @@ import { pathToFileURL } from 'node:url';
 export const IRONARABE_URL = 'https://chameleonjp-lab.github.io/ironarabe/';
 export const OLD_IRONARABE_URL = 'https://chameleonjp.codeberg.page/ironarabe/';
 
-// Data fingerprints from 88ad6a8724e556ff5b22d614091ea248f5039706. Only the
+// Data fingerprints from 88ad6a8 plus the reviewed Iroate URL-only migration. Only the
 // exact Ironarabe URL is normalized; every other URL and field stays covered.
 // Literal fingerprints keep this check usable in a shallow checkout.
 const baseline = {
-  'catalog/games.json': { hash: '8acb054dd0cb4846b8cdb8d97e42b1bb71e20d71f069b15b844462629d8b2c85', occurrences: 2 },
-  'index.html': { hash: 'bc291fb0e75ed0c035feb4bce8f2fa46ae8d3dc5b21d6c79dbace11d9eb62a70', occurrences: 2 },
-  'ranking.html': { hash: '3d11c688f5fdea1a56cc8421a4b51f654495a771d14bb2929f6d1461e2667d6c', occurrences: 4 }
+  'catalog/games.json': { hash: '5c5ab7ddd534eb3d998d960dd96f71bb872422f2aeb7ef52a93e293cf5304fdd', occurrences: 2 },
+  'index.html': { hash: 'be617701bfdecfe92cc81a6468915094c8a96eca4ffc9a4de9dbfa63d667ac33', occurrences: 2 },
+  'ranking.html': { hash: '7c7feb755f4eab1ccccb0eef1dcfdd982661ac08fdfdb8f3c703e2ee6df2a7c6', occurrences: 4 }
 };
 
 function inlineArray(source, marker) {

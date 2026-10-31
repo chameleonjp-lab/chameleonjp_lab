@@ -116,7 +116,7 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_drzcy0v97knU6FgjqSgBHw_0A9XPdFM
 display_order,game_slug,title,game_url,description,is_active,release_date,top_ranking_type,score_order,score_unit,score_scale,score_decimals,score_label,first_score_label,best_score_label
 1,torani_yasashiku,虎に優しく,https://chameleonjp.codeberg.page/torani_yasashiku/,虎を優しく受け止める60秒ミニゲーム,true,2026-05-25,best,desc,点,1,0,スコア,初回スコア,最高スコア
 2,nayuta_no_himatsubushi,暇つぶし,https://chameleonjp.codeberg.page/nayuta_no_himatsubushi/,スマホ向けブロック崩しゲーム,true,2026-05-25,best,desc,点,1,0,スコア,初回スコア,最高スコア
-3,iroate,イロアテ,https://chameleonjp.codeberg.page/iroate/,文字の意味と文字の色を見分けて、20問の最終タイムを競うゲームです。,true,2026-05-25,best,asc,秒,100,2,タイム,初回タイム,ベストタイム
+3,iroate,イロアテ,https://chameleonjp-lab.github.io/iroate/,文字の意味と文字の色を見分けて、20問の最終タイムを競うゲームです。,true,2026-05-25,best,asc,秒,100,2,タイム,初回タイム,ベストタイム
 4,yume_wo_mitandakedosa,夢を見たんだけどさ,https://chameleonjp.codeberg.page/yume_wo_mitandakedosa/,夜空から降ってくる流星を避けながら、赤い流星を壊し、🍶を拾って生きのびる60秒ゲームです。,true,2026-05-26,best,desc,点,1,0,スコア,初回スコア,最高スコア
 5,suiteki_catch,水滴キャッチ,https://chameleonjp.codeberg.page/suiteki_catch/,水滴がコップに完全に入ったと思ったら操作するゲーム,true,2026-05-24,first,desc,点,1,0,スコア,初回スコア,最高スコア
 6,jouzuni_kakerukana,上手に描けるかな？,https://chameleonjp.codeberg.page/jouzuni_kakerukana/,お題の形をなぞって、どれだけ上手に描けたかを競うスマホ向けゲームです。,true,2026-05-29,best,desc,pt,1,0,スコア,初回スコア,最高スコア

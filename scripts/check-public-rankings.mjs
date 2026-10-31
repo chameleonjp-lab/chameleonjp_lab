@@ -64,7 +64,7 @@ await Promise.all(Array.from({ length: Math.min(4, games.length) }, async () => 
     const namedPlayCount = Number(stats[0].registered_play_count ?? totalPlayCount);
     // Dedicated anonymous-start counters contribute to total, but never create a named ranking row.
     // Exact anonymous + named aggregation is covered by the isolated guest-counter database test.
-    const anonymousStarts = ["takkeu", "ironarabe"].includes(game.game_slug);
+    const anonymousStarts = ["takkeu", "ironarabe", "iroate"].includes(game.game_slug);
     if (playerCount <= 100 && !anonymousStarts) assert.equal(namedPlayCount, rankedPlays, game.game_slug + ": stats/ranking play totals differ");
     if (playerCount <= 100 && anonymousStarts) assert.ok(totalPlayCount >= rankedPlays, game.game_slug + ": total must retain every named play plus anonymous starts");
     const playsByName = new Map(plays.map(row => [row.display_name, Number(row.play_count)]));
