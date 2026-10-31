@@ -51,6 +51,18 @@ test('legacy receipt preserves rules, exact response, prior records and failure 
     const responses=await Promise.all(Array.from({length:12},()=>submit(parallelId,'one-play','negative',3)));
     assert.equal(responses.filter(x=>!x.rows[0].was_duplicate).length,1);
     assert.deepEqual(await counts(),{runs:5,receipts:5});
+    const metadataId=randomUUID();
+    const metadataCall=(metadata, id=metadataId)=>db.query(
+      'select * from public.submit_score_with_metadata_once_shared_v1($1::uuid,$2,$3,$4::integer,$5,$6::jsonb)',
+      [id,'metadata-name','negative',83590,'fixture-v1',JSON.stringify(metadata)]);
+    const metadata={accuracy:83.7,seconds:11};
+    const metadataFirst=(await metadataCall(metadata)).rows[0];
+    assert.equal(metadataFirst.accepted,true);assert.equal(metadataFirst.was_duplicate,false);
+    assert.deepEqual((await metadataCall({seconds:11,accuracy:83.7})).rows[0],{...metadataFirst,was_duplicate:true});
+    await assert.rejects(metadataCall({accuracy:83.8,seconds:11}),e=>e.code==='PT409');
+    await assert.rejects(submit(metadataId,'metadata-name','negative',83590),e=>e.code==='PT409');
+    assert.deepEqual((await db.query("select metadata from public.score_runs where normalized_name='metadata-name'")).rows,[{metadata}]);
+    assert.deepEqual(await counts(),{runs:6,receipts:6});
     t.diagnostic('PGlite uses a single PostgreSQL connection: 12 queued calls verified; separate-connection lock contention is not claimed. No hosted DB used.');
   } finally {await db.close();}
 });

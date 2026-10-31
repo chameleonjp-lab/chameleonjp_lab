@@ -20,6 +20,8 @@ p_client_version text
 
 返答は従来の8項目に `was_duplicate boolean` を追加した1行。再送では、別プレイにより自己ベストが更新されていても、最初の返答を返す。最新ランキングは成功後に別の読取RPCで取得する。
 
+既存で `submit_score_with_metadata` を使うゲームには、同じ引数に `p_metadata jsonb` を加えた **`submit_score_with_metadata_once_shared_v1`** を使う。既存のメタデータ付き関数全体をトランザクション内で呼ぶため、精度・所要時間などの保存を省略しない。再送ではメタデータも固定する。違うメタデータや通常版RPCへの切替は同じUUIDで許可しない。両方のRPCは同じ受領テーブルを使い、二重登録を防ぐ。
+
 ## クライアントの適用条件
 
 - 名前・参加可否・UUIDは開始時に固定し、確定結果とともに端末キューへ保存する。空欄のプレイは送信・受領記録とも作らない。
@@ -41,6 +43,8 @@ select has_function_privilege('anon', 'public.submit_score_once_shared_v1(uuid,t
        has_function_privilege('authenticated', 'public.submit_score_once_shared_v1(uuid,text,text,integer,text)', 'EXECUTE') as authenticated_execute,
        has_table_privilege('anon','private.common_score_receipts_v1','SELECT') as anon_can_read_receipts;
 select relrowsecurity from pg_class where oid='private.common_score_receipts_v1'::regclass;
+select pg_get_functiondef('public.submit_score_with_metadata_once_shared_v1(uuid,text,text,integer,text,jsonb)'::regprocedure);
+select has_function_privilege('anon','public.submit_score_with_metadata_once_shared_v1(uuid,text,text,integer,text,jsonb)','EXECUTE');
 ```
 
 期待値は関数がレビューした定義と一致、`true / true / false`、RLS `true`。受領テーブルを公開するポリシーは追加しない。
@@ -58,3 +62,5 @@ select relrowsecurity from pg_class where oid='private.common_score_receipts_v1'
 `node scripts/test-common-score-receipt.mjs` はPGlite内のPostgreSQLを使い、2026-10-31に読取確認した既存関数の定義と合成データだけで実行する。本番の名前・記録・接続情報は使用しない。
 
 負点・昇順・降順・別プレイ後も同一返答・名前/slug/score/version不一致・匿名拒否・検証付きゲーム拒否・非公開ゲーム拒否・範囲外・権限・全体rollback・受領記録失敗時のスコアrollback・再適用を確認。12回の同一UUID呼出しでも1記録。PGliteは単一接続であり、複数の独立接続によるロック競合試験は未実施。トランザクションadvisory lockの利用を別担当レビューする。
+
+メタデータ版は既存の実関数定義を合成データで実行し、accuracy/secondsの保存、JSONキー順によらない再送一致、内容変更の拒否、同じUUIDでの通常版への切替拒否も確認する。

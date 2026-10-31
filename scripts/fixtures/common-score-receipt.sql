@@ -288,3 +288,52 @@ begin
 end;
 $function$
 ;
+
+CREATE OR REPLACE FUNCTION public.submit_score_with_metadata(p_display_name text, p_game_slug text, p_score integer, p_client_version text DEFAULT ''::text, p_metadata jsonb DEFAULT NULL::jsonb)
+ RETURNS TABLE(accepted boolean, result_normalized_name text, result_display_name text, result_first_score integer, result_best_score integer, result_play_count integer, is_first_play boolean, is_new_best boolean)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_result record;
+begin
+  -- 既存の submit_score を使い、既存ロジックを壊さない
+  select *
+  into v_result
+  from public.submit_score(
+    p_display_name,
+    p_game_slug,
+    p_score,
+    p_client_version
+  );
+
+  -- 今回追加された score_runs の最新行に metadata を付ける
+  if v_result.accepted is true then
+    update public.score_runs
+    set metadata = p_metadata
+    where id = (
+      select sr.id
+      from public.score_runs sr
+      where sr.normalized_name = v_result.result_normalized_name
+        and sr.game_slug = p_game_slug
+        and sr.score = p_score
+        and coalesce(sr.client_version, '') = coalesce(p_client_version, '')
+      order by sr.created_at desc, sr.id desc
+      limit 1
+    );
+  end if;
+
+  return query
+  select
+    v_result.accepted,
+    v_result.result_normalized_name,
+    v_result.result_display_name,
+    v_result.result_first_score,
+    v_result.result_best_score,
+    v_result.result_play_count,
+    v_result.is_first_play,
+    v_result.is_new_best;
+end;
+$function$
+;
