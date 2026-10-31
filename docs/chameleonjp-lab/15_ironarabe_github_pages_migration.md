@@ -5,13 +5,13 @@
 ## 対象と正本
 
 - 実験場: `chameleonjp-lab/chameleonjp_lab`、既定`main`、開始SHA `88ad6a8724e556ff5b22d614091ea248f5039706`。
-- 本体: [PR-A #16](https://github.com/chameleonjp-lab/ironarabe/pull/16)。既定 `claude/ironarabe-new-game-wlys30` の8ステージ版 `2e0ef14` から変更。旧main/pagesは正本にしない。
+- 本体: [本体追補PR #17](https://github.com/chameleonjp-lab/ironarabe/pull/17)。既定 `claude/ironarabe-new-game-wlys30` の8ステージ版 `2e0ef14` から変更。旧main/pagesは正本にしない。
 - 新正式URL: `https://chameleonjp-lab.github.io/ironarabe/`
 - 現在の旧公開URL: `https://chameleonjp.codeberg.page/ironarabe/`
 - `game_id` / `game_slug`: `ironarabe`。URLから生成しない。
 - client_version基礎値: `ironarabe-web-1.4.1-stagepack001-v2`。ステージsuffix8種を維持。
-- submission_mode: `shared`。既存の `submit_score` をクリア時1回。開始記録RPCは使用しない。
-- 今回はURLだけの切替。開始カウントや新RPCへの移行、再送追加、新規ゲーム登録、スコア方式変更はしない。利用者の明示した既存互換性・データ維持を優先する。
+- submission_mode: `shared`。既存の `submit_score` をクリア時1回。名前ありは開始記録RPCを使用しない。追加依頼の名前なし開始のみ `start_ironarabe_guest_play_v1` を使う。
+- 名前ありのランキング契約は維持する。追加依頼により匿名回数の専用集計も加える。名前ありの開始カウント/スコアRPC移行、新規ゲーム登録、スコア方式変更はしない。匿名回数のみ別の開始RPCと同一UUID再送を追加する。利用者の明示した既存互換性・データ維持を優先する。
 
 ## URL調査と変更範囲
 
@@ -84,3 +84,29 @@ SQLをHTML・公開workflowへ入れず、管理接続だけで手動適用す�
 
 - 実験場 `npm test`: catalog38ゲーム/38entry、既存Takkeu回帰、新規URL検証が全て成功。3公開用ソースは開始SHAと比較し、8か所のURL置換以外がbyte単位で同一。
 - 実験場 `npm run test:browser`: Chromium/WebKit各々、Supabase catalog優先とSDK/REST不通のfallbackの4シナリオ（8ページload）成功。全30リクエストを遮断/mockし、本番へのアクセス・書込みなし。カード/共有/詳細の新URL、初回/ベスト/回数の同率1,1,3、ユーザー名の特殊文字、100/2秒表示、集計、tabを確認。
+
+
+## 追加依頼: 名前任意と匿名回数（本番未適用）
+
+利用者の追記に合わせ、タッケウ同様に開始前の名前を任意にした。空欄または「名前なしで遊ぶ」で開始可能。保存名は消さない。名前ありの既存スコア送信、初回/ベスト/名前別回数は従来どおりクリア時の方式を維持する。
+
+匿名は実際にプレイ画面が始まった時点で数える。匿名の名前/参加者/スコア/順位は作らない。ホームと結果の実験場導線は `ranking.html?game=ironarabe` の詳細へ変更し、結果は名前の有無に関わらず上位30名を表示する。
+
+追加用SQL: [ironarabe-guest-play-count.sql](sql/ironarabe-guest-play-count.sql)。**未適用**。これはURL切替SQLとは別で、本体の新規公開前に管理者が適用する必要がある。
+
+1. このPRの確定commitのSQLとローカルDB試験結果をreviewする。既存共通stats関数の定義fingerprintが `b267a6060af97a4845c2d18f5e3ab02e` と一致することを管理接続で再読取する。他のstats関数DDLと同時に適用しない。
+2. SQLを認証済みSQL Editorでtransaction実行する。privateの匿名開始表とRLS、直接table権限を持たないanon向けの限定開始RPCを追加する。新しく必要なのは匿名回数専用RPCの実行権限だけで、URL更新用やスコア表への公開書込権限は増やさない。
+3. 既存 `get_game_play_stats` の署名/権限/タッケウ分岐/名前別計算は維持し、イロナラベのtotalに匿名表件数を加える。player_countや名前別ランキングを変えない。事前条件が不一致なら停止し、function定義を再確認・再reviewする。
+4. SQL適用後もゲーム登録URLは変更せず、前述のPages設定→PR-Aマージ→公開後受入を進める。その後にのみURL2列切替SQLとPR-Bマージを行う。
+5. 匿名開始の回数はstart UUIDで冪等。未送信queueは再プレイで消さず、reload/online/次の開始で再送する。匿名回数を送れなくてもゲームは停止しない。
+
+検証はdev専用 `@electric-sql/pglite@0.3.14` の隔離PostgreSQL17/WASMへfixtureだけを作り、実際のSQLを適用して15テスト成功。1回加算、再送不変、8ステージ、入力拒否、権限、流量制限、全名前/スコア/履歴/他ゲーム/タッケウの不変、guardと途中DDL失敗時rollbackを検証した。本番DBへの試験書込みは行わない。
+
+公開read API検証の「名前別回数総和=全回数」という旧assertは、匿名専用回数を持つタッケウ/イロナラベでは「全回数が名前別総和以上」へ変更し、正確な加算は隔離DBテストで検証する。その他ゲームの同一性チェックは維持する。
+
+本体側の別レビューで見つかった応答body timeout・online再送競合・未送信queueの失敗表示を回帰テストで修正した。追加後の本番匿名回数・実機Safari・公開後の受入は未確認で、適用/公開済みとは報告しない。
+
+
+### 初回マージ後の追補状況
+初回本体#16/実験場#37は作業中にマージされたため、任意名の本体追補[#17](https://github.com/chameleonjp-lab/ironarabe/pull/17)、匿名回数SQLのDB追補[#38](https://github.com/chameleonjp-lab/chameleonjp_lab/pull/38)を最新既定branch（50cc78d/80143a9）から作成した。両方Draft。
+初回公開run41159990774はconfigure-pagesの設定取得404で配備失敗、新URLも404。共通DBのironarabe登録URLは旧URLのまま。追加匿名SQLを本体追補公開前に、URL切替SQLは新URL受入後に、管理者が別々に適用する。本文のPR-A/PR-Bの残手順は追補#17/#38を対象とする。
