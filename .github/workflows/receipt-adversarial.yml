@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'docs/chameleonjp-lab/sql/common-score-receipt-v1.sql'
+      - 'docs/chameleonjp-lab/18_common_score_receipts.md'
       - 'scripts/fixtures/common-score-receipt.sql'
       - 'scripts/test-common-score-receipt*.mjs'
       - '.github/workflows/receipt-adversarial.yml'

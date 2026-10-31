@@ -64,6 +64,21 @@ select proacl from pg_proc where oid='public.submit_score_with_metadata(text,tex
 
 `node scripts/test-common-score-receipt.mjs` はPGlite内のPostgreSQLを使い、2026-10-31に読取確認した既存関数の定義と合成データだけで実行する。本番の名前・記録・接続情報は使用しない。
 
-負点・昇順・降順・別プレイ後も同一返答・名前/slug/score/version不一致・匿名拒否・検証付きゲーム拒否・非公開ゲーム拒否・範囲外・権限・全体rollback・受領記録失敗時のスコアrollback・再適用を確認。12回の同一UUID呼出しでも1記録。PGliteは単一接続であり、複数の独立接続によるロック競合試験は未実施。トランザクションadvisory lockの利用を別担当レビューする。
+負点・昇順・降順・別プレイ後も同一返答・名前/slug/score/version不一致・匿名拒否・検証付きゲーム拒否・非公開ゲーム拒否・範囲外・権限・全体rollback・受領記録失敗時のスコアrollback・再適用を確認。12回の同一UUID呼出しでも1記録。PGliteは単一接続であり、このテスト単独では複数の独立接続によるロック競合を証明しない。別途、以下の隔離PostgreSQL検査を行う。
 
 旧metadata関数の定義・ACLが変わらずanon/authenticatedの実呼出しが拒否されること、新metadata入口が作られないことを確認する。既に新metadata wrapperがある環境では適用が安全停止し、既存定義・ACLを変更しないことも確認する。受領作成失敗後の同UUID再送は成功1回とduplicate応答を検査する。CIはこのファイルをPRでも実行するが、本番DBへ接続しない。
+
+## 敵対的検証：独立PostgreSQL接続
+
+`scripts/test-common-score-receipt-postgres.mjs` をPR専用workflow `receipt-adversarial.yml` で実行する。GitHub標準runner内の使い捨てPostgreSQL 17 serviceだけを使い、host URLを受け取らず、host portを公開しない。既存の配備workflow・branch protection・本番DBは変更しない。この検査はPR内追加検証であり、自動配備の必須gateを設定したものではない。
+
+2026-10-31 22:29 UTC、[実行41248372229](https://github.com/chameleonjp-lab/chameleonjp_lab/actions/runs/41248372229)（コードcommit `cddda0f3b5376c6a57cbe9a80d2ccadd3e62899e`、PostgreSQL 17.11）で7 tests成功・失敗0・skip0を確認した。別backend PID 2個と実advisory lock待機を観測してから先行transactionを解放するため、単に並列要求を並べただけではない。
+
+- 同UUID/同payload競合：受領と実score_runsが各1、play_count増分1、重複応答が初回と一致。
+- 同UUID/異payload競合：待機後にPT409、受領/実スコアとも1。
+- 先行transaction rollback：待機側が初回として1回だけ成功。
+- null/不正UUID/空・過長名/非公開・検証付き・Takkeu/範囲外/小数/整数overflowは記録を増やさない。上下限ちょうどと20文字Unicode名は許容。
+- anon/authenticatedはreceiptの読取/追加/変更/削除と旧metadata実行が不可。通常送信は実行可能。RLS有効・公開policyなし・新metadata入口なし。
+- 旧スコアと旧関数の定義/ACL不変。受領作成失敗後の同UUID再送は別のPGlite suiteで検査する。
+
+検査は既存の名前ベース・未検証スコア契約の安全性を拡張保証しない。名前だけでは同名別人の識別や改名時の本人継続は解決せず、クライアント提出スコアの真偽を新たに認証する仕組みでもない。本番の適用・実機・公開後検査は引き続き別工程。
