@@ -26,20 +26,8 @@ jobs:
           node-version: '24'
       - name: Install locked test dependency
         run: npm ci
-      - name: Validate catalog and inline JavaScript
-        run: node scripts/validate-lab.mjs
-      - name: Verify Takkeu abnormal ranking presentation
-        run: node scripts/test-takkeu-abnormal-ranking.mjs
-      - name: Verify Ironarabe URL-only change
-        run: node scripts/test-ironarabe-links.mjs
-      - name: Verify Iroate URL-only change
-        run: node scripts/test-iroate-links.mjs
-      - name: Verify anonymous play counts in isolated PostgreSQL
-        run: node scripts/test-ironarabe-guest-db.mjs
-      - name: Verify score receipt rules and metadata privilege boundary in isolated PostgreSQL
-        run: node scripts/test-common-score-receipt.mjs
-      - name: Verify Pages artifact isolation
-        run: node scripts/test-build-pages.mjs
+      - name: Run complete Node regression suite including receipt privilege boundaries
+        run: npm test
       - name: Install test browsers
         run: npx playwright install --with-deps chromium webkit
       - name: Verify catalog and ranking links with mocked requests

@@ -20,7 +20,7 @@ p_client_version text
 
 返答は従来の8項目に `was_duplicate boolean` を追加した1行。再送では、別プレイにより自己ベストが更新されていても、最初の返答を返す。最新ランキングは成功後に別の読取RPCで取得する。
 
-既存で `submit_score_with_metadata` を使うゲームには、同じ引数に `p_metadata jsonb` を加えた **`submit_score_with_metadata_once_shared_v1`** を使う。既存のメタデータ付き関数全体をトランザクション内で呼ぶため、精度・所要時間などの保存を省略しない。再送ではメタデータも固定する。違うメタデータや通常版RPCへの切替は同じUUIDで許可しない。両方のRPCは同じ受領テーブルを使い、二重登録を防ぐ。
+**今回の適用範囲は通常版RPCだけです。** イロナラベPR #22とイロアテPR #6は通常版のみを使用します。既存 `submit_score_with_metadata` の定義・ACLは変更せず、新しい `submit_score_with_metadata_once_shared_v1` を作成・公開しません。2026-10-31の読取では旧metadata RPCはanon/authenticatedともEXECUTE不可でした。SECURITY DEFINERのwrapperに権限を付けると、その閉じた経路を開くためです。metadataを送るゲームの後続PRは本SQLで公開可能とは扱わず、個別レビューと承認を要します。旧版SQLの適用済み環境で新metadata wrapperが存在する場合は、修正版SQLが変更前に例外で停止します。自動DROP・REVOKE・上書きで取り除きません。
 
 ## クライアントの適用条件
 
@@ -33,8 +33,8 @@ p_client_version text
 
 ## 適用順・読戻し
 
-1. 実験場PRのSQLとローカルテストをレビューする。関連ゲームPRはこの手順を依存関係として明示する。未適用の間に依存ゲームを公開しない。
-2. Supabaseの対象プロジェクト `mlpnjgezrnhdxsxolyzj` を確認し、管理権限のSQL Editorまたは既存のマイグレーション手順で [common-score-receipt-v1.sql](sql/common-score-receipt-v1.sql) を実行する。既存の関数定義・件数を事前に読取保存して比較する。
+1. 実験場PRの固定commitのSQLとCIの受領・権限回帰テストをレビューする。本番DB適用とマージは別承認であり、このPR修正の承認には含まれない。関連ゲームPRはこの手順を依存関係として明示する。未適用の間に依存ゲームを公開しない。
+2. Supabaseの対象プロジェクト `mlpnjgezrnhdxsxolyzj` を確認し、管理権限のSQL Editorまたは既存のマイグレーション手順で [common-score-receipt-v1.sql](sql/common-score-receipt-v1.sql) を実行する。既存の関数定義・ACL・件数を事前に読取保存して比較する。通常submit_scoreのanon/authenticated公開が既存契約と一致すること、metadata wrapperが不存在であることを確認する。存在時は適用せず、所有者・定義・利用者を調査して別判断する。
 3. 次の読取SQLで、関数、権限、RLSを確認する。本番への架空スコア登録は不要。
 
 ```sql
@@ -43,11 +43,14 @@ select has_function_privilege('anon', 'public.submit_score_once_shared_v1(uuid,t
        has_function_privilege('authenticated', 'public.submit_score_once_shared_v1(uuid,text,text,integer,text)', 'EXECUTE') as authenticated_execute,
        has_table_privilege('anon','private.common_score_receipts_v1','SELECT') as anon_can_read_receipts;
 select relrowsecurity from pg_class where oid='private.common_score_receipts_v1'::regclass;
-select pg_get_functiondef('public.submit_score_with_metadata_once_shared_v1(uuid,text,text,integer,text,jsonb)'::regprocedure);
-select has_function_privilege('anon','public.submit_score_with_metadata_once_shared_v1(uuid,text,text,integer,text,jsonb)','EXECUTE');
+select to_regprocedure('public.submit_score_with_metadata_once_shared_v1(uuid,text,text,integer,text,jsonb)') is null as metadata_wrapper_absent;
+select has_function_privilege('anon','public.submit_score_with_metadata(text,text,integer,text,jsonb)','EXECUTE') as old_metadata_anon,
+       has_function_privilege('authenticated','public.submit_score_with_metadata(text,text,integer,text,jsonb)','EXECUTE') as old_metadata_authenticated;
+select pg_get_functiondef('public.submit_score_with_metadata(text,text,integer,text,jsonb)'::regprocedure);
+select proacl from pg_proc where oid='public.submit_score_with_metadata(text,text,integer,text,jsonb)'::regprocedure;
 ```
 
-期待値は関数がレビューした定義と一致、`true / true / false`、RLS `true`。受領テーブルを公開するポリシーは追加しない。
+期待値は関数がレビューした定義と一致、`true / true / false`、RLS `true`、metadata wrapper不存在 `true`、旧metadata権限は事前の `false / false` と不変。旧metadata定義・ACLも事前保存と完全一致すること。受領テーブルを公開するポリシーは追加しない。
 
 4. 関連ゲームPRを利用者がマージし、検証・配備成功後の公開URLとrelease SHAを確認する。匿名プレイの非公開・名前の保存・ランキング読取・X共有を実機で確認。スコア送信は本人が希望する通常の1プレイで確認し、同じ結果の再試行で増分が1のままか監査する。
 
@@ -63,4 +66,4 @@ select has_function_privilege('anon','public.submit_score_with_metadata_once_sha
 
 負点・昇順・降順・別プレイ後も同一返答・名前/slug/score/version不一致・匿名拒否・検証付きゲーム拒否・非公開ゲーム拒否・範囲外・権限・全体rollback・受領記録失敗時のスコアrollback・再適用を確認。12回の同一UUID呼出しでも1記録。PGliteは単一接続であり、複数の独立接続によるロック競合試験は未実施。トランザクションadvisory lockの利用を別担当レビューする。
 
-メタデータ版は既存の実関数定義を合成データで実行し、accuracy/secondsの保存、JSONキー順によらない再送一致、内容変更の拒否、同じUUIDでの通常版への切替拒否も確認する。
+旧metadata関数の定義・ACLが変わらずanon/authenticatedの実呼出しが拒否されること、新metadata入口が作られないことを確認する。既に新metadata wrapperがある環境では適用が安全停止し、既存定義・ACLを変更しないことも確認する。受領作成失敗後の同UUID再送は成功1回とduplicate応答を検査する。CIはこのファイルをPRでも実行するが、本番DBへ接続しない。
