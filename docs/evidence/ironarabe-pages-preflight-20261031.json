@@ -69,5 +69,15 @@
     "page_loads": 8,
     "intercepted_requests": 30,
     "external_browser_requests": 0
+  },
+  "optional_name_followup": {
+    "guest_sql_applied": false,
+    "guest_rpc": "start_ironarabe_guest_play_v1",
+    "guest_storage": "private.ironarabe_guest_plays_v1",
+    "count_at": "unnamed game start",
+    "named_score_contract": "unchanged submit_score at clear",
+    "local_database_tests": 15,
+    "existing_stats_definition_md5": "b267a6060af97a4845c2d18f5e3ab02e",
+    "production_score_writes": 0
   }
 }

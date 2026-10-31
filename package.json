@@ -2,9 +2,14 @@
   "name": "chameleonjp-lab",
   "private": true,
   "scripts": {
-    "test": "node scripts/validate-lab.mjs && node scripts/test-takkeu-abnormal-ranking.mjs && node scripts/test-ironarabe-links.mjs",
+    "test": "node scripts/validate-lab.mjs && node scripts/test-takkeu-abnormal-ranking.mjs && node scripts/test-ironarabe-links.mjs && node scripts/test-ironarabe-guest-db.mjs",
     "test:browser": "node scripts/test-ironarabe-links-browser.cjs"
   },
-  "devDependencies": { "playwright": "1.62.1" },
-  "engines": { "node": ">=24" }
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "playwright": "1.62.1"
+  },
+  "engines": {
+    "node": ">=24"
+  }
 }
