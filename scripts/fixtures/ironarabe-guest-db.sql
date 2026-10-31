@@ -82,6 +82,22 @@ insert into public.score_runs values
   (3, 'ironarabe', 'fixture-b', 10000, 'ironarabe-web-1.4.1-stagepack001-v2-sunset-r2', '{"stage":"sunset-r2","fixture":true}', '2026-01-01'),
   (4, 'takkeu', 'fixture-takkeu', 20, 'fixture-takkeu-v1', '{"fixture":true}', '2026-01-02'),
   (5, 'fixture-other', 'fixture-other', 40, 'fixture-other-v1', '{"fixture":true}', '2026-01-02');
+
+-- Match the preservation check's 29 Ironarabe name rows and 567 history rows
+-- with synthetic hidden records only. No production names or data are copied.
+insert into public.players
+select 'fixture-hidden-' || n, 'Fixture hidden ' || n, '2026-01-01', '2026-01-02'
+from pg_catalog.generate_series(1, 26) as fixture(n);
+insert into public.game_scores
+select 'ironarabe', 'fixture-hidden-' || n, 'Fixture hidden ' || n,
+  12000 + n, 11000 + n, n, '2026-01-01', '2026-01-02', '2026-01-02', 'hidden'
+from pg_catalog.generate_series(1, 26) as fixture(n);
+insert into public.score_runs
+select 1000 + n, 'ironarabe', 'fixture-hidden-' || (1 + (n % 26)), 11000 + n,
+  'ironarabe-web-1.4.1-stagepack001-v2-sunset-r0',
+  pg_catalog.jsonb_build_object('stage', 'sunset-r0', 'fixture', true, 'sequence', n),
+  '2026-01-02'::timestamptz + n * interval '1 second'
+from pg_catalog.generate_series(1, 564) as fixture(n);
 insert into private.game_play_sessions
   (start_id, game_slug, normalized_name, display_name, client_version, started_at, updated_at) values
   ('10000000-0000-4000-8000-000000000001', 'ironarabe', 'fixture-a', 'fixture-a', 'fixture-named-v1', '2026-01-01', '2026-01-02'),

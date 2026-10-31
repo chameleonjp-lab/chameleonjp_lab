@@ -1,0 +1,113 @@
+{
+  "url": "https://chameleonjp-lab.github.io/ironarabe/",
+  "deployedSha": "5a24e283b99c887dffa4c828b0fdf992b1c9f76e",
+  "deployedStageCount": 8,
+  "scoreSubmissionsToProduction": 0,
+  "transport": "Browser assets and ranking reads use Node fetch with managed proxy and trusted environment CA; no TLS validation disabled.",
+  "scenarios": [
+    {
+      "engine": "chromium",
+      "languages": 15,
+      "viewports": [
+        "402x874",
+        "874x402"
+      ],
+      "fullGame": true,
+      "nativeAudioScheduled": true,
+      "productionRankingRows": 29,
+      "rankingReads": 2,
+      "interceptedScores": 1,
+      "productionScoreWrites": 0
+    },
+    {
+      "engine": "webkit",
+      "languages": 15,
+      "viewports": [
+        "402x874",
+        "874x402"
+      ],
+      "fullGame": true,
+      "nativeAudioScheduled": true,
+      "productionRankingRows": 29,
+      "rankingReads": 2,
+      "interceptedScores": 1,
+      "productionScoreWrites": 0
+    }
+  ],
+  "actionsRun": {
+    "id": 41163489475,
+    "build": "success",
+    "deploy": "success",
+    "verifyPublication": "success"
+  },
+  "pages": {
+    "buildType": "workflow",
+    "url": "https://chameleonjp-lab.github.io/ironarabe/",
+    "oneTimeAdminSetup": "already completed"
+  },
+  "urlSwitch": {
+    "applied": true,
+    "via": "authenticated Supabase administrator connection (postgres)",
+    "observedAt": "2026-10-31T03:35:39Z",
+    "target": "public.games",
+    "gameSlug": "ironarabe",
+    "plannedRows": 1,
+    "updatedRows": 1,
+    "userTriggers": 0,
+    "columns": [
+      "game_url",
+      "share_text URL substring only"
+    ],
+    "oldUrl": "https://chameleonjp.codeberg.page/ironarabe/",
+    "newUrl": "https://chameleonjp-lab.github.io/ironarabe/",
+    "scoreOrder": "asc",
+    "scoreScale": 100,
+    "scoreDecimals": 2,
+    "otherColumnsUnchanged": "transaction guard compared complete target row excluding the two URL columns",
+    "otherGamesDigestBefore": "28a893af98ab36e1ab5eea1204f897d5",
+    "otherGamesDigestAfter": "28a893af98ab36e1ab5eea1204f897d5"
+  },
+  "records": {
+    "gameScores": {
+      "rowsBefore": 29,
+      "rowsAfter": 29,
+      "digestBefore": "440f2cfaee093e2b24d0a51c953251c1",
+      "digestAfter": "440f2cfaee093e2b24d0a51c953251c1"
+    },
+    "scoreRuns": {
+      "rowsBefore": 567,
+      "rowsAfter": 567,
+      "digestBefore": "e82361709acd36e75fcf012533e944fe",
+      "digestAfter": "e82361709acd36e75fcf012533e944fe"
+    },
+    "scoreWrites": 0,
+    "scoreTestSubmissions": 0
+  },
+  "pending": {
+    "stagePack40": "unpublished; separate PR awaiting user merge",
+    "guestCountSql": "UNAPPLIED; guest RPC and table absent on read",
+    "realIPhone17ProSafari": "untested"
+  },
+  "browserCheckedAt": "2026-10-31T03:32:58.232Z",
+  "labPublicScenarios": [
+    {
+      "engine": "chromium",
+      "catalogGameUrl": "https://chameleonjp-lab.github.io/ironarabe/",
+      "rankingGameUrl": "https://chameleonjp-lab.github.io/ironarabe/",
+      "sharesNewUrl": true,
+      "liveCatalogReads": 4,
+      "liveRankReads": 5,
+      "productionWrites": 0
+    },
+    {
+      "engine": "webkit",
+      "catalogGameUrl": "https://chameleonjp-lab.github.io/ironarabe/",
+      "rankingGameUrl": "https://chameleonjp-lab.github.io/ironarabe/",
+      "sharesNewUrl": true,
+      "liveCatalogReads": 4,
+      "liveRankReads": 7,
+      "productionWrites": 0
+    }
+  ],
+  "verificationCompletedAt": "2026-10-31T03:38:20.310Z"
+}
