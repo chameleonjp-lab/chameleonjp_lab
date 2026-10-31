@@ -100,3 +100,21 @@
 - `score_unit`: `秒`
 - `score_scale`: `1000`
 - `score_decimals`: `3`
+
+
+## イロナラベのGitHub Pages切替（公開待ち）
+
+[本体PR-A #16](https://github.com/chameleonjp-lab/ironarabe/pull/16) のマージ・公開後受入が終わるまで、実験場側PR-Bはマージしません。新URLが未公開の間、Supabase登録URLを変更しません。
+
+切替対象は `ironarabe` だけです。他ゲーム・既存記録・ランキング方式は維持します。公開順序、未適用のURL2列だけの安全なSQL、読取証拠、管理画面操作は [切替手順](docs/chameleonjp-lab/15_ironarabe_github_pages_migration.md) を参照してください。
+
+追加検証:
+
+```bash
+npm ci
+npm test
+npx playwright install --with-deps chromium webkit
+npm run test:browser
+```
+
+ブラウザ試験は外部通信をmockにし、本番スコアを送信しません。既存の `scripts/check-public-rankings.mjs` は読取専用API確認です。

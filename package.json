@@ -1,0 +1,10 @@
+{
+  "name": "chameleonjp-lab",
+  "private": true,
+  "scripts": {
+    "test": "node scripts/validate-lab.mjs && node scripts/test-takkeu-abnormal-ranking.mjs && node scripts/test-ironarabe-links.mjs",
+    "test:browser": "node scripts/test-ironarabe-links-browser.cjs"
+  },
+  "devDependencies": { "playwright": "1.62.1" },
+  "engines": { "node": ">=24" }
+}
