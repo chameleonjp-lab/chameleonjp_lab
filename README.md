@@ -108,6 +108,10 @@
 
 切替対象は `ironarabe` だけです。他ゲーム・既存記録・ランキング方式は維持します。公開順序、未適用のURL2列だけの安全なSQL、読取証拠、管理画面操作は [切替手順](docs/chameleonjp-lab/15_ironarabe_github_pages_migration.md) を参照してください。
 
+## イロアテのGitHub Pages移行
+
+本体PR①のマージ・新版の公開とプレイを確認済みです。実験場PR②のマージとSupabase登録URLの切替は未完了です。Pagesの公開元設定、URL2列だけの切替手順、既存25名/175履歴の保全、テストと残作業は [イロアテ切替記録](docs/chameleonjp-lab/16_iroate_github_pages_migration.md) を参照してください。
+
 追加検証:
 
 ```bash
