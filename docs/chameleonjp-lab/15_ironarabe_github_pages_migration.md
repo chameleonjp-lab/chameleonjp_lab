@@ -1,6 +1,6 @@
-# イロナラベの公開URL切替（未適用）
+# イロナラベの公開URL切替記録
 
-2026-10-31。**PR-A公開後の受入が終わるまで、このPR-Bをマージしない。Supabase更新SQLも実行しない。**
+2026-10-31。**最新状況:** 本体#17 / 実験場#38は利用者がマージ済み。PagesはマージSHA `5a24e28` で公開・受入済み。ゲーム登録1件の `game_url` と `share_text` のURL部分だけを認証済み管理接続で切替済み。匿名開始回数SQLは引き続き未適用で、40問対応は[別の手順](16_ironarabe_stage_pack_40.md)を参照。以下の未適用・404・Draftの記述は、それぞれの調査時点の履歴として保持する。
 
 ## 対象と正本
 
@@ -110,3 +110,17 @@ SQLをHTML・公開workflowへ入れず、管理接続だけで手動適用す�
 ### 初回マージ後の追補状況
 初回本体#16/実験場#37は作業中にマージされたため、任意名の本体追補[#17](https://github.com/chameleonjp-lab/ironarabe/pull/17)、匿名回数SQLのDB追補[#38](https://github.com/chameleonjp-lab/chameleonjp_lab/pull/38)を最新既定branch（50cc78d/80143a9）から作成した。両方Draft。
 初回公開run41159990774はconfigure-pagesの設定取得404で配備失敗、新URLも404。共通DBのironarabe登録URLは旧URLのまま。追加匿名SQLを本体追補公開前に、URL切替SQLは新URL受入後に、管理者が別々に適用する。本文のPR-A/PR-Bの残手順は追補#17/#38を対象とする。
+
+### 公開成功とURL2列の切替（2026-10-31、最新）
+
+利用者による#17/#38のマージ後、[run 41163489475](https://github.com/chameleonjp-lab/ironarabe/actions/runs/41163489475) はbuild/deploy/verify-publicationの全jobが成功した。Pages設定は `build_type: workflow`、新URLはHTTP200。公開 `release.json` と全runtime hashは既定ブランチのマージSHA **`5a24e283b99c887dffa4c828b0fdf992b1c9f76e`** に一致した。この公開版は8問であり、追加依頼の40問版は別PRのマージ待ち。
+
+Chromium/WebKitで配信されたHTML/JSを読み、15言語、効果音ON/OFFと実際のAudioContext scheduling、縦横、開始→完成→4秒後の結果を受入した。`submit_score` は各エンジン1件ずつ遮断/mockし、本番スコア送信0件。ランキングは本番の読取RPCから29名を取得した。環境プロキシCAのため、ブラウザへの公開ファイルと読取RPCの取得には環境CAを信頼するNode fetchを使い、TLS検証は無効化していない。実機iPhone 17 Pro Safariは未確認。
+
+切替直前の認証済み管理接続は `postgres`、対象は1件、user triggerは0件、旧URLとasc/100/2を確認した。既存の切替SQLと同じ1件・旧値一致・URL2列以外の全列不変guardをtransaction内で実行し、`game_url` と `share_text` 内の旧URL1箇所だけを更新した。説明・改行表現・識別子・スコア契約・他列は変更していない。これは許可済みのゲーム登録更新であり、スコア表への変更ではない。
+
+切替後の再読取もgame_scores29件 / score_runs567件で全列hashが基準と一致。他ゲーム登録の全列hashも前後 `28a893af98ab36e1ab5eea1204f897d5` で一致した。[公開後の集約証拠](../evidence/ironarabe-pages-live-20261031.json)を参照。
+
+実際の公開実験場もChromium/WebKitで確認した。本番gamesの読取を使った一覧カードの「遊ぶ」と共有、詳細ランキングの「ゲームで遊ぶ」と共有が新URLを含み、初回/ベストの既存ランキングとtab切替も表示できた。外部への共有はテスト用に捕捉し送信していない。既知の読取RPCだけを許可し、本番への書込リクエストは発生していない。
+
+URL切替SQLのファイルは今後の再適用を意図しない安全なテンプレートとして残す。既に新URLのため、そのまま再実行すると旧値guardで停止する。匿名開始回数のSQLは引き続き**未適用**で、guest RPC/表は読取時に両方NULL。40問対応SQLと適用経路は[手順16](16_ironarabe_stage_pack_40.md)へ分ける。旧Codebergサイトは停止・削除していない。

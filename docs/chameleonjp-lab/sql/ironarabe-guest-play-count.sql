@@ -49,7 +49,7 @@ BEGIN
   IF p_game_slug <> 'ironarabe'
      OR p_client_version <> pg_catalog.btrim(p_client_version)
      OR pg_catalog.char_length(p_client_version) NOT BETWEEN 1 AND 80
-     OR p_client_version !~ '^ironarabe-web-1[.]4[.]1-stagepack001-v2-(sunset|aurora)-r[0-3]$' THEN
+     OR p_client_version !~ '^ironarabe-web-1[.]4[.]1-stagepack001-v2-(sunset|aurora|ocean|leaf|amber|wisteria|coral|nebula|breeze|autumn)-r[0-3]$' THEN
     RETURN pg_catalog.jsonb_build_object('accepted', false, 'reason', 'invalid_input');
   END IF;
 
