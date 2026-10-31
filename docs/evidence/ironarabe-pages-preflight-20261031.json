@@ -79,5 +79,16 @@
     "local_database_tests": 15,
     "existing_stats_definition_md5": "b267a6060af97a4845c2d18f5e3ab02e",
     "production_score_writes": 0
+  },
+  "followup_prs": {
+    "initial_merged": [
+      16,
+      37
+    ],
+    "game": 17,
+    "database": 38,
+    "draft": true,
+    "pages_deployment": "run41159990774 failed at configure-pages:NotFound",
+    "new_site_http_status": 404
   }
 }

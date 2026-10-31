@@ -5,7 +5,7 @@
 ## 対象と正本
 
 - 実験場: `chameleonjp-lab/chameleonjp_lab`、既定`main`、開始SHA `88ad6a8724e556ff5b22d614091ea248f5039706`。
-- 本体: [PR-A #16](https://github.com/chameleonjp-lab/ironarabe/pull/16)。既定 `claude/ironarabe-new-game-wlys30` の8ステージ版 `2e0ef14` から変更。旧main/pagesは正本にしない。
+- 本体: [本体追補PR #17](https://github.com/chameleonjp-lab/ironarabe/pull/17)。既定 `claude/ironarabe-new-game-wlys30` の8ステージ版 `2e0ef14` から変更。旧main/pagesは正本にしない。
 - 新正式URL: `https://chameleonjp-lab.github.io/ironarabe/`
 - 現在の旧公開URL: `https://chameleonjp.codeberg.page/ironarabe/`
 - `game_id` / `game_slug`: `ironarabe`。URLから生成しない。
@@ -105,3 +105,8 @@ SQLをHTML・公開workflowへ入れず、管理接続だけで手動適用す�
 公開read API検証の「名前別回数総和=全回数」という旧assertは、匿名専用回数を持つタッケウ/イロナラベでは「全回数が名前別総和以上」へ変更し、正確な加算は隔離DBテストで検証する。その他ゲームの同一性チェックは維持する。
 
 本体側の別レビューで見つかった応答body timeout・online再送競合・未送信queueの失敗表示を回帰テストで修正した。追加後の本番匿名回数・実機Safari・公開後の受入は未確認で、適用/公開済みとは報告しない。
+
+
+### 初回マージ後の追補状況
+初回本体#16/実験場#37は作業中にマージされたため、任意名の本体追補[#17](https://github.com/chameleonjp-lab/ironarabe/pull/17)、匿名回数SQLのDB追補[#38](https://github.com/chameleonjp-lab/chameleonjp_lab/pull/38)を最新既定branch（50cc78d/80143a9）から作成した。両方Draft。
+初回公開run41159990774はconfigure-pagesの設定取得404で配備失敗、新URLも404。共通DBのironarabe登録URLは旧URLのまま。追加匿名SQLを本体追補公開前に、URL切替SQLは新URL受入後に、管理者が別々に適用する。本文のPR-A/PR-Bの残手順は追補#17/#38を対象とする。

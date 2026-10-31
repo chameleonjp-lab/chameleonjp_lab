@@ -104,7 +104,7 @@
 
 ## イロナラベのGitHub Pages切替（公開待ち）
 
-[本体PR-A #16](https://github.com/chameleonjp-lab/ironarabe/pull/16) のマージ・公開後受入が終わるまで、実験場側PR-Bはマージしません。新URLが未公開の間、Supabase登録URLを変更しません。
+[本体追補PR #17](https://github.com/chameleonjp-lab/ironarabe/pull/17) のマージ・公開後受入が終わるまで、DB追補PR #38はマージしません。新URLが未公開の間、Supabase登録URLを変更しません。
 
 切替対象は `ironarabe` だけです。他ゲーム・既存記録・ランキング方式は維持します。公開順序、未適用のURL2列だけの安全なSQL、読取証拠、管理画面操作は [切替手順](docs/chameleonjp-lab/15_ironarabe_github_pages_migration.md) を参照してください。
 
