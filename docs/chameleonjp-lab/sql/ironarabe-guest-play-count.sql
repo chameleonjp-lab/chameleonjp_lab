@@ -5,13 +5,20 @@
 BEGIN;
 
 DO $precondition$
+DECLARE
+  v_stats_rpc pg_catalog.regprocedure := pg_catalog.to_regprocedure('public.get_game_play_stats(text)');
+  v_definition text;
 BEGIN
-  IF pg_catalog.to_regprocedure('public.get_game_play_stats(text)') IS NULL
-     OR pg_catalog.md5(pg_catalog.pg_get_functiondef(
-       'public.get_game_play_stats(text)'::pg_catalog.regprocedure))
-       IS DISTINCT FROM 'b267a6060af97a4845c2d18f5e3ab02e' THEN
+  IF v_stats_rpc IS NULL THEN
+    RAISE EXCEPTION 'get_game_play_stats precondition failed; function is missing';
+  END IF;
+  v_definition := pg_catalog.pg_get_functiondef(v_stats_rpc);
+  -- Exact reviewed baselines: Takkeu only, or Takkeu plus deployed Iroate.
+  IF pg_catalog.md5(v_definition) NOT IN (
+       'b267a6060af97a4845c2d18f5e3ab02e', 'a509efcc07ccae488c47ab849ad25dda') THEN
     RAISE EXCEPTION 'get_game_play_stats precondition failed; re-read the current definition before applying';
   END IF;
+  PERFORM pg_catalog.set_config('ironarabe_guest_install_v1.stats_definition_before', v_definition, true);
 END;
 $precondition$;
 
@@ -109,33 +116,35 @@ GRANT EXECUTE ON FUNCTION public.start_ironarabe_guest_play_v1(uuid, text, text)
 -- RPC DDL paused for this application; the guard never authorizes an overwrite
 -- of a newly reviewed upstream definition.
 DO $precondition$
+DECLARE
+  v_stats_rpc pg_catalog.regprocedure := pg_catalog.to_regprocedure('public.get_game_play_stats(text)');
+  v_definition text;
+  v_marker text := ' else 0::bigint end,';
+  v_ironarabe_arm text := $ironarabe_arm$
+    when pg_catalog.lower(pg_catalog.btrim(coalesce(p_game_slug, ''))) = 'ironarabe'
+      then (select count(*) from private.ironarabe_guest_plays_v1)$ironarabe_arm$;
 BEGIN
-  IF pg_catalog.md5(pg_catalog.pg_get_functiondef(
-       'public.get_game_play_stats(text)'::pg_catalog.regprocedure))
-       IS DISTINCT FROM 'b267a6060af97a4845c2d18f5e3ab02e' THEN
+  IF v_stats_rpc IS NULL THEN
     RAISE EXCEPTION 'get_game_play_stats precondition failed; upstream definition changed during application';
   END IF;
+  v_definition := pg_catalog.pg_get_functiondef(v_stats_rpc);
+  IF v_definition IS DISTINCT FROM pg_catalog.current_setting(
+       'ironarabe_guest_install_v1.stats_definition_before', true)
+     OR pg_catalog.md5(v_definition) NOT IN (
+       'b267a6060af97a4845c2d18f5e3ab02e', 'a509efcc07ccae488c47ab849ad25dda') THEN
+    RAISE EXCEPTION 'get_game_play_stats precondition failed; upstream definition changed during application';
+  END IF;
+  IF pg_catalog.char_length(v_definition)
+       - pg_catalog.char_length(pg_catalog.replace(v_definition, v_marker, ''))
+       <> pg_catalog.char_length(v_marker) THEN
+    RAISE EXCEPTION 'get_game_play_stats precondition failed; expected one reviewed CASE insertion point';
+  END IF;
+  -- Preserve every existing branch and all named-player aggregation verbatim.
+  -- pg_get_functiondef supplies CREATE OR REPLACE, retaining OID/owner/ACL.
+  -- Insert the Ironarabe arm immediately before the existing CASE fallback.
+  EXECUTE pg_catalog.replace(v_definition, v_marker, v_ironarabe_arm || v_marker);
 END;
 $precondition$;
-
--- Preserve the existing Takkeu branch and named-player aggregation verbatim.
--- Ironarabe guest starts affect only total_play_count. CREATE OR REPLACE keeps
--- the existing aggregate signature, owner and execute grants.
-CREATE OR REPLACE FUNCTION public.get_game_play_stats(p_game_slug text)
-RETURNS TABLE(total_play_count bigint, player_count bigint)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
-AS $function$
-  select named.total_play_count + case
-    when pg_catalog.lower(pg_catalog.btrim(coalesce(p_game_slug, ''))) = 'takkeu'
-      then (select count(*) from private.takkeu_guest_plays_v1)
-    when pg_catalog.lower(pg_catalog.btrim(coalesce(p_game_slug, ''))) = 'ironarabe'
-      then (select count(*) from private.ironarabe_guest_plays_v1) else 0::bigint end,
-    named.player_count
-  from (
-    select coalesce(sum(pc.play_count), 0)::bigint as total_play_count, count(*)::bigint as player_count
-    from private.get_game_player_counts_v1(p_game_slug) as pc
-  ) as named;
-$function$;
 
 NOTIFY pgrst, 'reload schema';
 COMMIT;

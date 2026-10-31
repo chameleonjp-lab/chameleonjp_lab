@@ -9,20 +9,23 @@ import { test } from 'node:test';
 import { PGlite } from '@electric-sql/pglite';
 
 const originalDigest = 'b267a6060af97a4845c2d18f5e3ab02e';
+const iroateStatsDigest = 'a509efcc07ccae488c47ab849ad25dda';
 const originalGuestDigest = '3bd02ffa7b92def627e1334750085989';
 const validVersion = 'ironarabe-web-1.4.1-stagepack001-v2-sunset-r0';
 const stageFamilies = ['sunset', 'aurora', 'ocean', 'leaf', 'amber', 'wisteria', 'coral',
   'nebula', 'breeze', 'autumn'];
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const load = relative => readFile(new URL(relative, import.meta.url), 'utf8');
-const [fixture, namedRanking, beforeStats, migration, originalGuestMigration, guestUpgrade] = await Promise.all([
+const [fixture, namedRanking, beforeStats, migration, originalGuestMigration, guestUpgrade,
+  iroateStatsFixture] = await Promise.all([
   load('./fixtures/ironarabe-guest-db.sql'),
   load('../docs/chameleonjp-lab/sql/20261013202016_restore_legacy_play_count_ranking.sql'),
   load('./fixtures/ironarabe-play-stats-before.sql'),
   load('../docs/chameleonjp-lab/sql/ironarabe-guest-play-count.sql'),
   // Captured byte-for-byte from origin/main at 419e25e, before the allowlist edit.
   load('./fixtures/ironarabe-guest-play-count-8.sql'),
-  load('../docs/chameleonjp-lab/sql/ironarabe-guest-stage-pack-40.sql')
+  load('../docs/chameleonjp-lab/sql/ironarabe-guest-stage-pack-40.sql'),
+  load('./fixtures/ironarabe-play-stats-with-iroate.sql')
 ]);
 
 async function setup() {
@@ -52,10 +55,10 @@ async function asRole(db, role, callback) {
   try { return await callback(); } finally { await db.exec('reset role'); }
 }
 
-async function rowSnapshots(db) {
+async function rowSnapshots(db, extraTables = []) {
   const snapshots = {};
   for (const table of ['public.games', 'public.players', 'public.game_scores', 'public.score_runs',
-    'private.game_play_sessions', 'private.takkeu_guest_plays_v1']) {
+    'private.game_play_sessions', 'private.takkeu_guest_plays_v1', ...extraTables]) {
     // Full JSON rows include score history, client metadata, names and dates.
     snapshots[table] = (await db.query(`select pg_catalog.to_jsonb(t)::text as row from ${table} as t order by row`)).rows;
   }
@@ -83,6 +86,21 @@ async function guestFunction(db) {
     (pg_catalog.to_jsonb(p) - 'prosrc')::text as metadata
     from pg_catalog.pg_proc as p where p.oid =
       'public.start_ironarabe_guest_play_v1(uuid,text,text)'::regprocedure`)).rows[0];
+}
+
+async function statsFunction(db) {
+  return (await db.query(`select pg_catalog.md5(pg_catalog.pg_get_functiondef(p.oid)) as digest,
+    pg_catalog.pg_get_functiondef(p.oid) as definition,
+    (pg_catalog.to_jsonb(p) - 'prosrc')::text as metadata
+    from pg_catalog.pg_proc as p where p.oid = 'public.get_game_play_stats(text)'::regprocedure`)).rows[0];
+}
+
+async function setupIroateStats() {
+  const db = await setup();
+  await db.exec(iroateStatsFixture);
+  assert.equal((await statsFunction(db)).digest, iroateStatsDigest,
+    'Iroate fixture must reproduce the exact observed stats precondition');
+  return db;
 }
 
 async function guestTableSchema(db) {
@@ -499,5 +517,140 @@ test('40-ID upgrade refuses reapplication after a successful upgrade', async () 
     await assert.rejects(db.exec(guestUpgrade), /start_ironarabe_guest_play_v1.*precondition/i);
     await db.exec('rollback');
     assert.deepEqual(await guestFunction(db), before);
+  } finally { await db.close(); }
+});
+
+test('fresh installation on the Iroate stats baseline preserves existing branches and accepts 40 stages', async t => {
+  const db = await setupIroateStats();
+  try {
+    const before = {
+      rows: await rowSnapshots(db, ['private.iroate_guest_plays_v1']),
+      rpcs: await rpcSnapshots(db), statsFunction: await statsFunction(db),
+      rankings: await rankings(db),
+      iroateRanking: (await db.query("select * from public.get_play_count_ranking('iroate', 100)")).rows,
+      iroateTable: (await db.query(`select pg_catalog.to_jsonb(c)::text as metadata
+        from pg_catalog.pg_class as c where c.oid = 'private.iroate_guest_plays_v1'::regclass`)).rows
+    };
+    assert.deepEqual(await stats(db, 'iroate'), { total_play_count: 7, player_count: 1 });
+    assert.deepEqual(await stats(db, 'takkeu'), { total_play_count: 6, player_count: 1 });
+    assert.deepEqual(await stats(db, 'ironarabe'), { total_play_count: 6, player_count: 3 });
+    await db.exec(migration);
+
+    await t.test('only the Ironarabe CASE arm is added while stats OID, owner, ACL and existing data survive', async () => {
+      const after = await statsFunction(db);
+      assert.equal(after.metadata, before.statsFunction.metadata);
+      assert.equal(after.definition, before.statsFunction.definition.replace(' else 0::bigint end,',
+        "\n    when pg_catalog.lower(pg_catalog.btrim(coalesce(p_game_slug, ''))) = 'ironarabe'\n" +
+        '      then (select count(*) from private.ironarabe_guest_plays_v1) else 0::bigint end,'));
+      assert.deepEqual(await rowSnapshots(db, ['private.iroate_guest_plays_v1']), before.rows);
+      assert.deepEqual(await rpcSnapshots(db), before.rpcs);
+      assert.deepEqual(await stats(db, 'iroate'), { total_play_count: 7, player_count: 1 });
+      assert.deepEqual(await stats(db, ' IROATE '), { total_play_count: 7, player_count: 1 });
+      assert.deepEqual(await stats(db, 'takkeu'), { total_play_count: 6, player_count: 1 });
+      assert.deepEqual(await stats(db, 'fixture-other'), { total_play_count: 7, player_count: 1 });
+    });
+
+    await t.test('all 40 anonymous stages add only Ironarabe totals with idempotent retries', async () => {
+      const playIds = new Set();
+      for (const family of stageFamilies) {
+        for (const rotation of [0, 1, 2, 3]) {
+          const version = `ironarabe-web-1.4.1-stagepack001-v2-${family}-r${rotation}`;
+          const startId = randomUUID();
+          const first = await asRole(db, 'anon', () => guest(db, startId, version));
+          assert.equal(first.accepted, true, version);
+          assert.equal(first.duplicate, false);
+          playIds.add(first.play_id);
+          assert.deepEqual(await asRole(db, 'anon', () => guest(db, startId, version)),
+            { ...first, duplicate: true });
+        }
+      }
+      assert.equal(playIds.size, 40);
+      assert.deepEqual(await stats(db, 'ironarabe'), { total_play_count: 46, player_count: 3 });
+      assert.deepEqual(await stats(db, 'iroate'), { total_play_count: 7, player_count: 1 });
+      assert.deepEqual(await stats(db, 'takkeu'), { total_play_count: 6, player_count: 1 });
+      assert.deepEqual(await guest(db, randomUUID(), 'ironarabe-web-1.4.1-stagepack001-v2-unknown-r0'),
+        { accepted: false, reason: 'invalid_input' });
+      assert.deepEqual(await stats(db, 'ironarabe'), { total_play_count: 46, player_count: 3 });
+    });
+
+    await t.test('Iroate tables, RPCs, named rankings and browser restrictions remain unchanged after plays', async () => {
+      assert.deepEqual(await rowSnapshots(db, ['private.iroate_guest_plays_v1']), before.rows);
+      assert.deepEqual(await rpcSnapshots(db), before.rpcs);
+      assert.deepEqual(await rankings(db), before.rankings);
+      assert.deepEqual((await db.query("select * from public.get_play_count_ranking('iroate', 100)")).rows,
+        before.iroateRanking);
+      assert.deepEqual((await db.query(`select pg_catalog.to_jsonb(c)::text as metadata
+        from pg_catalog.pg_class as c where c.oid = 'private.iroate_guest_plays_v1'::regclass`)).rows,
+      before.iroateTable);
+      for (const role of ['anon', 'authenticated']) {
+        assert.equal((await db.query(`select pg_catalog.has_table_privilege($1,
+          'private.ironarabe_guest_plays_v1', 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') as allowed`,
+        [role])).rows[0].allowed, false);
+      }
+      await asRole(db, 'authenticated', () => assert.rejects(guest(db), error => error.code === '42501'));
+    });
+  } finally { await db.close(); }
+});
+
+test('an unknown Iroate stats definition aborts without changing any rows, RPCs or guest schema', async () => {
+  const db = await setupIroateStats();
+  try {
+    const definition = (await statsFunction(db)).definition;
+    await db.exec(definition.replace('named.player_count', 'named.player_count + 0'));
+    const before = { statsFunction: await statsFunction(db), rpcs: await rpcSnapshots(db),
+      rows: await rowSnapshots(db, ['private.iroate_guest_plays_v1']) };
+    await assert.rejects(db.exec(migration), /get_game_play_stats.*precondition/i);
+    await assert.rejects(db.query('select 1'), error => error.code === '25P02');
+    await db.exec('rollback');
+    assert.deepEqual(await statsFunction(db), before.statsFunction);
+    assert.deepEqual(await rpcSnapshots(db), before.rpcs);
+    assert.deepEqual(await rowSnapshots(db, ['private.iroate_guest_plays_v1']), before.rows);
+    assert.deepEqual((await db.query(`select
+      pg_catalog.to_regclass('private.ironarabe_guest_plays_v1') as guest_table,
+      pg_catalog.to_regprocedure('public.start_ironarabe_guest_play_v1(uuid,text,text)') as guest_rpc`)).rows,
+    [{ guest_table: null, guest_rpc: null }]);
+  } finally { await db.close(); }
+});
+
+test('drift from the Iroate baseline to the other known baseline aborts and rolls back the whole install', async () => {
+  const db = await setupIroateStats();
+  try {
+    const before = { statsFunction: await statsFunction(db), rpcs: await rpcSnapshots(db),
+      rows: await rowSnapshots(db, ['private.iroate_guest_plays_v1']) };
+    // Replay only the baseline function DDL; its fixture grants must not alter
+    // the Iroate ACL outside the transaction whose rollback is under test.
+    await db.exec(beforeStats.slice(0, beforeStats.indexOf('$function$;') + '$function$;'.length));
+    const legacyDefinition = (await statsFunction(db)).definition;
+    assert.equal((await statsFunction(db)).digest, originalDigest);
+    await db.exec(before.statsFunction.definition);
+    // PGlite is single-connection: inject definition drift after the initial
+    // guard and guest DDL, immediately before the second guard observes it.
+    const withDrift = migration.replace('-- Check again immediately',
+      () => `${legacyDefinition};\n-- Check again immediately`);
+    assert.notEqual(withDrift, migration, 'the fixture must actually inject definition drift');
+    await assert.rejects(db.exec(withDrift), /get_game_play_stats.*definition changed during application/i);
+    await assert.rejects(db.query('select 1'), error => error.code === '25P02');
+    await db.exec('rollback');
+    assert.deepEqual(await statsFunction(db), before.statsFunction);
+    assert.deepEqual(await rpcSnapshots(db), before.rpcs);
+    assert.deepEqual(await rowSnapshots(db, ['private.iroate_guest_plays_v1']), before.rows);
+    assert.deepEqual((await db.query(`select
+      pg_catalog.to_regclass('private.ironarabe_guest_plays_v1') as guest_table,
+      pg_catalog.to_regprocedure('public.start_ironarabe_guest_play_v1(uuid,text,text)') as guest_rpc`)).rows,
+    [{ guest_table: null, guest_rpc: null }]);
+  } finally { await db.close(); }
+});
+
+test('a missing stats function aborts the fresh installation before creating guest objects', async () => {
+  const db = await setup();
+  try {
+    await db.exec('drop function public.get_game_play_stats(text)');
+    await assert.rejects(db.exec(migration), /get_game_play_stats.*precondition/i);
+    await db.exec('rollback');
+    assert.deepEqual((await db.query(`select
+      pg_catalog.to_regclass('private.ironarabe_guest_plays_v1') as guest_table,
+      pg_catalog.to_regprocedure('public.start_ironarabe_guest_play_v1(uuid,text,text)') as guest_rpc,
+      pg_catalog.to_regprocedure('public.get_game_play_stats(text)') as stats_rpc`)).rows,
+    [{ guest_table: null, guest_rpc: null, stats_rpc: null }]);
   } finally { await db.close(); }
 });

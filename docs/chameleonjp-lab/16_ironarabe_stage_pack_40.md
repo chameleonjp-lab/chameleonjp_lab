@@ -25,7 +25,7 @@
 
 ## 管理者が選ぶ適用経路
 
-事前の読取情報では、guest RPCとguest表は両方NULLで、旧8種用SQLも未適用。以下は将来の手動適用手順であり、この文書の作成時に実行した記録ではない。
+事前の読取情報では、guest RPCとguest表は両方NULLで、旧8種用SQLも未適用。公開前提の再確認では共通statsにIroate分岐が追加され、定義MD5は `a509efcc07ccae488c47ab849ad25dda` になっている。以下は将来の手動適用手順であり、この文書の作成時に匿名開始SQLを適用した記録ではない。
 
 認証済み管理接続で、適用直前に読取だけを行い、実際の状態から経路を選ぶ。以下は関数定義/権限の照会であり、開始RPCを呼び出さない。
 
@@ -46,10 +46,19 @@ where p.oid in (
 
 ### 初回インストール: guest RPCと表が両方ない場合
 
-1. [ironarabe-guest-play-count.sql](sql/ironarabe-guest-play-count.sql) をreviewする。今回の差分は匿名開始RPCのallowlist拡張1行だけで、初回用の表/RLS/権限制限とstats追加処理は元のまま。
-2. 既存 `get_game_play_stats(text)` の定義MD5が `b267a6060af97a4845c2d18f5e3ab02e` であること、guest RPC/表がないこと、既存記録の件数/全列hash、権限を読取で保管する。
-3. 共通stats関数のDDLを停止した適用時間帯に、認証済み管理者がSQL全体をtransactionとして手動適用する。元のstats fingerprint guardは変更していない。不一致や既存オブジェクトとの衝突は停止/rollbackする。
-4. 読取で、40種用guest関数とprivate表/RLS/権限制限を確認する。statsの署名/owner/ACL、Takkeu分岐と名前別集計は維持し、Ironarabeの匿名表件数だけをtotalへ加える。player_countは変えない。
+1. [ironarabe-guest-play-count.sql](sql/ironarabe-guest-play-count.sql) をreviewする。40種の匿名開始RPC、初回用の表/RLS/権限制限に加え、下記の2つの確認済みstats定義だけに対応する。
+2. 既存 `get_game_play_stats(text)` の定義MD5が `b267a6060af97a4845c2d18f5e3ab02e`（Takkeu分岐あり）、または `a509efcc07ccae488c47ab849ad25dda`（TakkeuとIroate分岐あり）であることを確認する。現在観測済みの本番は後者。guest RPC/表がないこと、既存記録の件数/全列hash、関数の署名/OID/owner/ACLを読取で保管する。
+3. 共通stats関数のDDLを停止した適用時間帯に、認証済み管理者がSQL全体をtransactionとして手動適用する。最初のguardで確認済み定義の全文をtransaction内だけの設定へ保存し、置換直前に全文の一致とfingerprintを再確認する。2つの確認済み定義間の変化も拒否する。不明な定義や既存オブジェクトとの衝突は停止/rollbackする。
+4. statsは取得した既存 `pg_get_functiondef` のCASE fallback直前へIronarabe分岐を1つ挿入する。Takkeu/Iroateの既存分岐、名前別集計、それ以外の定義文字列をそのまま維持する。`CREATE OR REPLACE` で署名/OID/owner/ACLを保ち、statsのGRANT/REVOKEは行わない。
+5. 読取で、40種用guest関数とprivate表/RLS/権限制限、statsの署名/OID/owner/ACL、既存分岐と全既存行を確認する。Ironarabeの匿名表件数だけをtotalへ加え、player_countは変えない。Iroateありの適用後stats定義MD5は `f0593366cc04e9439a6fefa7f3d595f8`、以前のTakkeuのみからは従来どおり `9a968d97abd64bf1d26e1568a36b373d` となる。
+
+### 公開前提の再確認: Iroate追加後の共通stats（匿名SQL未適用）
+
+利用者が40問版PRと実験場PRをマージした後、実験場main `a6086cf86d888a34fb409ac9e299abd54c5e2059` を基準に互換性を再確認した。先行するIroateの匿名回数追加により、共通statsは上記の `a509efcc07ccae488c47ab849ad25dda`。この状態では旧 `b267...` 専用guardが拒否するため、guardを迂回せず確認済み定義をもう1つ追加した。Ironarabe guest RPC/表は引き続き両方NULLで、匿名SQLは本番未適用。
+
+確認済みの既存statsはOID `17801`、owner `postgres`、ACL `{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres}`。既存PUBLIC実行権限を含めて維持し、匿名開始専用RPCとは別の権限として扱う。`submit_score` の定義MD5 `7cee4fd2b0c1d67c9f005a897058eb2d` を変更しない。公開受入や本番適用の完了記録はこの前提確認に含めない。
+
+Iroateありの元定義は[ローカルfixture](../../scripts/fixtures/ironarabe-play-stats-with-iroate.sql)に固定し、定義fingerprintを再現した。fixtureの行とIroate RPC sentinelは合成データで、実ユーザー記録や本番Iroate開始RPCのコピーではない。初回SQLのSHA-256は `b1e4e8231407d7f1249f3bae9b3b824982f132dc0588f9bbc4c2fc1918190fef`。8→40のupgrade SQLは今回変更せず、適用経路は以下のまま。
 
 ### 旧8種を適用済み: guest RPCと表がある場合
 
@@ -67,10 +76,10 @@ where p.oid in (
 
 ローカルは既存の `@electric-sql/pglite@0.3.14` による隔離PostgreSQL 17/WASMだけを使う。固定8種fixtureを含む `scripts/fixtures/` は合成データ専用で、本番に実行しない。29件の名前行/567件の履歴を合成し、スコア、metadata、client_version、名前、日時を含む全行JSONの一致を確認する。他ゲームとTakkeuの行も比較する。
 
-`node scripts/test-ironarabe-guest-db.mjs` は既存15ケースを維持して計24ケース。新規40種対応のテストが旧allowlistの `ocean-r0` で失敗するREDを確認後、初回用SQLの1行を変えてGREEN。upgradeも未実装で拒否/40種受入が失敗するREDを確認後、SQLを実装して24/24成功。初回と旧8種からのupgradeの両方で40種受入/未知ID拒否、UUID再送/競合を確認する。旧8種の保存済みplay_id、全既存行、関数と表のOID/署名/owner/ACL、RLS/索引/制約、stats/他RPCを維持する。
+`node scripts/test-ironarabe-guest-db.mjs` は既存24ケースを維持して計31ケース。40種追加時は旧allowlistの `ocean-r0` で失敗するRED後に初回用SQLを変えてGREEN。今回もIroateありの初回適用、既知定義間のdrift検出、stats欠落の3箇所でREDを確認後、互換SQLで31/31成功した。初回と旧8種からのupgradeの両方で40種受入/未知ID拒否、UUID再送/競合を確認する。旧8種の保存済みplay_id、全既存行、関数と表のOID/署名/owner/ACL、RLS/索引/制約、stats/他RPCを維持する。Iroate/Takkeuの行、既存RPC、名前別順位、stats値も前後で比較し、IroateありでもIronarabeのtotalだけが増えることを確認する。
 
-欠落/変更済み/再適用のguardとtransaction rollbackも検証する。PGliteは単一接続のため、適用中の定義変更をguard直前へ注入する試験であり、複数接続の同時DDLを再現した試験ではない。`npm test` が同じファイルを実行するので、新しい依存関係やCI stepは不要。
+欠落/変更済み/再適用のguardとtransaction rollbackも検証する。Iroateありの未知定義は先頭guardで拒否し、最初の確認後に別の既知定義へ変わった場合も、作成途中のIronarabe表/RPCを含めてrollbackする。PGliteは単一接続のため、適用中の定義変更をguard直前へ注入する試験であり、複数接続の同時DDLを再現した試験ではない。`npm test` が同じファイルを実行するので、新しい依存関係やCI stepは不要。
 
-実験場の `npm test` はcatalog38件/38entry、Takkeu回帰、URL回帰、DB24ケースが全て成功。`npm run test:browser` も既存の共有browser配置を使用し、Chromium/WebKit各々のcatalog/fallback、計4シナリオが成功した。全30リクエストを遮断/mockし、gameリンク先へ遷移せずに確認した。実行環境では `PLAYWRIGHT_BROWSERS_PATH=/workspace/pw-browsers`、`LD_LIBRARY_PATH=/workspace/pw-libs/usr/lib/x86_64-linux-gnu`、`PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1` が必要だった。
+実験場の `npm test` はcatalog38件/38entry、Takkeu回帰、Ironarabe/IroateのURL回帰、DB31ケースが全て成功。`npm run test:browser` は既存の共有browser配置を使用し、Chromium/WebKit各々のcatalog/fallbackを両ゲームで検証し、計8シナリオが成功した。全59リクエストを遮断/mockし、gameリンク先へ遷移せずに確認した。実行環境では `PLAYWRIGHT_BROWSERS_PATH=/workspace/pw-browsers`、`LD_LIBRARY_PATH=/workspace/pw-libs/usr/lib/x86_64-linux-gnu`、`PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1` が必要。
 
 未完了は匿名開始SQLの本番適用、40問版の公開後受入、実機Safari確認。40種用RPCの適用済みや本番での匿名回数受入済みとして報告しない。
