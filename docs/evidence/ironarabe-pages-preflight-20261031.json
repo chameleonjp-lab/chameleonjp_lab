@@ -1,0 +1,73 @@
+{
+  "checked_date_utc": "2026-10-31",
+  "project_ref": "mlpnjgezrnhdxsxolyzj",
+  "read_only": true,
+  "url_switch_applied": false,
+  "production_test_scores_sent": false,
+  "game_slug": "ironarabe",
+  "target_rows": 1,
+  "before": {
+    "game_url": "https://chameleonjp.codeberg.page/ironarabe/",
+    "share_text_url": "https://chameleonjp.codeberg.page/ironarabe/",
+    "score_order": "asc",
+    "score_scale": 100,
+    "score_decimals": 2
+  },
+  "planned": {
+    "game_url": "https://chameleonjp-lab.github.io/ironarabe/",
+    "share_text_change": "replace only the old URL substring",
+    "rows": 1
+  },
+  "new_site": {
+    "http_status": 404,
+    "published_verified": false,
+    "pages_configuration_attempt": "HTTP 403 Resource not accessible by integration"
+  },
+  "snapshots": {
+    "game_scores": {
+      "rows": 29,
+      "digest": "440f2cfaee093e2b24d0a51c953251c1"
+    },
+    "score_runs": {
+      "rows": 567,
+      "digest": "e82361709acd36e75fcf012533e944fe"
+    },
+    "unchanged_during_implementation": true,
+    "algorithm": "md5 of ordered row_to_json(all columns), newline delimited"
+  },
+  "read_rpc": {
+    "name": "get_best_score_ranking",
+    "rows": 29,
+    "minimum_best_score": 6071,
+    "first_rank": 1
+  },
+  "public_games_user_triggers": 0,
+  "pending": [
+    "PR-A merge",
+    "Pages activation by administrator",
+    "published SHA/hash and browser acceptance",
+    "physical iPhone17Pro Safari",
+    "PR-B merge",
+    "games URL-only update",
+    "post-cutover read-only snapshots"
+  ],
+  "readonly_public_api_check": {
+    "command": "NODE_USE_ENV_PROXY=1 node scripts/check-public-rankings.mjs",
+    "games": 45,
+    "nonempty_play_rankings": 45,
+    "result": "pass"
+  },
+  "sql_validation": {
+    "parser": "pglast 8.7 (local tooling only)",
+    "sql_parsed": true,
+    "plpgsql_body_parsed": true,
+    "database_execution": false
+  },
+  "lab_tests": {
+    "static": "pass:38 games,38 entries,Takkeu,URL-only baseline comparison",
+    "browser": "pass:Chromium/WebKit,catalog/fallback",
+    "page_loads": 8,
+    "intercepted_requests": 30,
+    "external_browser_requests": 0
+  }
+}
