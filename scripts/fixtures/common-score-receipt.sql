@@ -337,3 +337,6 @@ begin
 end;
 $function$
 ;
+
+-- Match the observed closed metadata entrypoint, including PUBLIC inheritance.
+revoke all on function public.submit_score_with_metadata(text,text,integer,text,jsonb) from public, anon, authenticated;

@@ -16,9 +16,20 @@ test('legacy receipt preserves rules, exact response, prior records and failure 
     await db.exec(fixture);
     const before=(await db.query('select pg_catalog.to_jsonb(s) as value from public.game_scores s')).rows;
     const original=(await db.query(`select pg_catalog.pg_get_functiondef('public.submit_score(text,text,integer,text)'::regprocedure) as value`)).rows;
+    const metadataSignature='public.submit_score_with_metadata(text,text,integer,text,jsonb)';
+    const metadataState=async()=> (await db.query(`select pg_get_functiondef('${metadataSignature}'::regprocedure) as definition,
+      proacl::text as acl from pg_proc where oid='${metadataSignature}'::regprocedure`)).rows;
+    const metadataBefore=await metadataState();
     await db.exec(migration);
     assert.deepEqual((await db.query('select pg_catalog.to_jsonb(s) as value from public.game_scores s')).rows,before);
     assert.deepEqual((await db.query(`select pg_catalog.pg_get_functiondef('public.submit_score(text,text,integer,text)'::regprocedure) as value`)).rows,original);
+    assert.deepEqual(await metadataState(),metadataBefore,'existing metadata definition and ACL must remain unchanged');
+    assert.equal((await db.query("select to_regprocedure('public.submit_score_with_metadata_once_shared_v1(uuid,text,text,integer,text,jsonb)') is null as absent")).rows[0].absent,true,'no new metadata entrypoint may be installed');
+    for(const role of ['anon','authenticated']){
+      await db.exec('set role '+role);
+      await assert.rejects(db.query("select * from public.submit_score_with_metadata('blocked','negative',1,'test','{}'::jsonb)"),e=>e.code==='42501');
+      await db.exec('reset role');
+    }
     await db.exec('set role anon');
     const id=randomUUID(), first=(await submit(id)).rows[0];
     assert.equal(first.result_best_score,-7);assert.equal(first.was_duplicate,false);
@@ -43,26 +54,37 @@ test('legacy receipt preserves rules, exact response, prior records and failure 
     // A later failure creating the receipt must also roll back the legacy score.
     await db.exec(`create function private.reject_receipt() returns trigger language plpgsql as $$begin raise exception 'fixture disk failure'; end$$;
       create trigger reject_receipt before insert on private.common_score_receipts_v1 for each row execute function private.reject_receipt();`);
-    await assert.rejects(submit(randomUUID(),'receipt-failure','negative',5),/fixture disk failure/);
+    const failedId=randomUUID();
+    await assert.rejects(submit(failedId,'receipt-failure','negative',5),/fixture disk failure/);
     assert.deepEqual(await counts(),{runs:4,receipts:4});
     await db.exec('drop trigger reject_receipt on private.common_score_receipts_v1');
     await db.exec(migration);assert.deepEqual(await counts(),{runs:4,receipts:4});
+    assert.equal((await submit(failedId,'receipt-failure','negative',5)).rows[0].was_duplicate,false);
+    assert.equal((await submit(failedId,'receipt-failure','negative',5)).rows[0].was_duplicate,true);
     const parallelId=randomUUID();
     const responses=await Promise.all(Array.from({length:12},()=>submit(parallelId,'one-play','negative',3)));
     assert.equal(responses.filter(x=>!x.rows[0].was_duplicate).length,1);
-    assert.deepEqual(await counts(),{runs:5,receipts:5});
-    const metadataId=randomUUID();
-    const metadataCall=(metadata, id=metadataId)=>db.query(
-      'select * from public.submit_score_with_metadata_once_shared_v1($1::uuid,$2,$3,$4::integer,$5,$6::jsonb)',
-      [id,'metadata-name','negative',83590,'fixture-v1',JSON.stringify(metadata)]);
-    const metadata={accuracy:83.7,seconds:11};
-    const metadataFirst=(await metadataCall(metadata)).rows[0];
-    assert.equal(metadataFirst.accepted,true);assert.equal(metadataFirst.was_duplicate,false);
-    assert.deepEqual((await metadataCall({seconds:11,accuracy:83.7})).rows[0],{...metadataFirst,was_duplicate:true});
-    await assert.rejects(metadataCall({accuracy:83.8,seconds:11}),e=>e.code==='PT409');
-    await assert.rejects(submit(metadataId,'metadata-name','negative',83590),e=>e.code==='PT409');
-    assert.deepEqual((await db.query("select metadata from public.score_runs where normalized_name='metadata-name'")).rows,[{metadata}]);
     assert.deepEqual(await counts(),{runs:6,receipts:6});
+    assert.deepEqual(await metadataState(),metadataBefore);
+    assert.deepEqual((await db.query("select pg_catalog.to_jsonb(s) as value from public.game_scores s where normalized_name='old'")).rows,before);
     t.diagnostic('PGlite uses a single PostgreSQL connection: 12 queued calls verified; separate-connection lock contention is not claimed. No hosted DB used.');
   } finally {await db.close();}
+});
+
+test('an already installed metadata wrapper stops migration without replacing or revoking it',async()=>{
+  const db=new PGlite();
+  try{
+    await db.exec(fixture);
+    await db.exec(`create function public.submit_score_with_metadata_once_shared_v1(uuid,text,text,integer,text,jsonb)
+      returns boolean language sql as $$select true$$;
+      revoke all on function public.submit_score_with_metadata_once_shared_v1(uuid,text,text,integer,text,jsonb) from public;
+      grant execute on function public.submit_score_with_metadata_once_shared_v1(uuid,text,text,integer,text,jsonb) to authenticated;`);
+    const snapshot=async()=> (await db.query(`select pg_get_functiondef(oid) as definition, proacl::text as acl
+      from pg_proc where oid='public.submit_score_with_metadata_once_shared_v1(uuid,text,text,integer,text,jsonb)'::regprocedure`)).rows;
+    const before=await snapshot();
+    await assert.rejects(db.exec(migration),/metadata receipt wrapper already exists/);
+    await db.exec('rollback');
+    assert.deepEqual(await snapshot(),before);
+    assert.equal((await db.query("select to_regclass('private.common_score_receipts_v1') is null as absent")).rows[0].absent,true);
+  }finally{await db.close();}
 });

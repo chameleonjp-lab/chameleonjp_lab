@@ -36,6 +36,8 @@ jobs:
         run: node scripts/test-iroate-links.mjs
       - name: Verify anonymous play counts in isolated PostgreSQL
         run: node scripts/test-ironarabe-guest-db.mjs
+      - name: Verify score receipt rules and metadata privilege boundary in isolated PostgreSQL
+        run: node scripts/test-common-score-receipt.mjs
       - name: Verify Pages artifact isolation
         run: node scripts/test-build-pages.mjs
       - name: Install test browsers
