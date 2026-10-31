@@ -40,7 +40,7 @@ Settings → Environments → github-pages の既存承認/branch policyを維�
 | PR検証/配備の分離 | 今回実装した | push main専用upload/deploy条件、PRはread権限のみ |
 | 成功したSHAの配信/競合防止 | 今回実装した | needs・同一artifact・concurrency・HEAD照合 |
 | 出力制限・古い成果物除去 | 今回実装した | build-pagesとfixtureテスト |
-| Pages Source設定 | 未確認・未完了 | PR準備後の設定切替/読戻し待ち |
+| Pages Source設定 | 設定や権限が必要 | PR #43作成後のPUT build_type=workflowはHTTP403。Source: GitHub Actionsを管理者がマージ前に設定 |
 | 実本番で新workflow配信 | 未確認・未完了 | 利用者のマージ後。今回公開はしない |
 | ゲームの言語/任意名/音/共有/30名 | このPRでは未完了 | ゲーム別PR・Codebergパッチへ分担。実験場PRだけで適用済みにしない |
 | 同名別人/改名と過去記録 | 未確認・未完了 | 名前をキーとする現行DB、本人確認方針と追加契約が必要 |
@@ -54,3 +54,5 @@ Settings → Environments → github-pages の既存承認/branch policyを維�
 - ローカルWebKitは不足するDebian標準ライブラリを作業ディレクトリのbrowser sys/libに展開して実行。システムの管理者権限は使っていない。インストール済みシステムライブラリだけを見る事前検査をローカルではskipし、実際のWebKit試験が通ることを確認。CIは公式の`--with-deps`を利用する。
 - 別担当レビューで「manual検証がproductionをcancelし得る」指摘を修正しevent/ref単位へ分離。
 - github-pagesの既存branch policyでmain許可をAPI確認。実機Safari・本番新版配備は未実施。
+
+2026-10-31: PR #43のGitHub Actions validate成功、deployはPR条件によりskipを確認。Source更新APIは `Resource not accessible by integration` (HTTP403) で失敗し設定未変更。マージ前に管理者による上記設定が必要。自動承認審査の拒否ではなくGitHub連携の権限制限。
