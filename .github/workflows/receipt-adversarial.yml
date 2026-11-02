@@ -1,0 +1,37 @@
+name: Adversarial receipt verification (PR only)
+
+on:
+  pull_request:
+    paths:
+      - 'docs/chameleonjp-lab/sql/common-score-receipt-v1.sql'
+      - 'docs/chameleonjp-lab/18_common_score_receipts.md'
+      - 'scripts/fixtures/common-score-receipt.sql'
+      - 'scripts/test-common-score-receipt*.mjs'
+      - '.github/workflows/receipt-adversarial.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  receipt-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Exercise independent connections in disposable PostgreSQL
+        env:
+          RECEIPT_TEST_CONTAINER: ${{ job.services.postgres.id }}
+        run: node scripts/test-common-score-receipt-postgres.mjs

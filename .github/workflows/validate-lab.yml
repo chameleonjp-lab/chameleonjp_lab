@@ -2,10 +2,16 @@ name: Validate experiment lab
 
 on:
   pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: lab-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
@@ -20,17 +26,39 @@ jobs:
           node-version: '24'
       - name: Install locked test dependency
         run: npm ci
-      - name: Validate catalog and inline JavaScript
-        run: node scripts/validate-lab.mjs
-      - name: Verify Takkeu abnormal ranking presentation
-        run: node scripts/test-takkeu-abnormal-ranking.mjs
-      - name: Verify Ironarabe URL-only change
-        run: node scripts/test-ironarabe-links.mjs
-      - name: Verify Iroate URL-only change
-        run: node scripts/test-iroate-links.mjs
-      - name: Verify anonymous play counts in isolated PostgreSQL
-        run: node scripts/test-ironarabe-guest-db.mjs
+      - name: Run complete Node regression suite including receipt privilege boundaries
+        run: npm test
       - name: Install test browsers
         run: npx playwright install --with-deps chromium webkit
       - name: Verify catalog and ranking links with mocked requests
         run: npm run test:browser
+      - name: Build the validated commit
+        run: npm run build
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Refuse a superseded commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')
+          test "$current_sha" = "$GITHUB_SHA"
+      - name: Deploy validated artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
