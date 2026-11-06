@@ -1,0 +1,37 @@
+name: Adversarial START verification (PR only)
+on:
+  pull_request:
+    paths:
+      - 'scripts/fixtures/common-start-ledger.sql'
+      - 'scripts/fixtures/common-start-wrappers.sql'
+      - 'scripts/test-common-start-postgres.mjs'
+      - '.github/workflows/start-adversarial.yml'
+permissions:
+  contents: read
+jobs:
+  start-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: start_fixture
+        options: >-
+          --health-cmd "pg_isready -U postgres -d start_fixture"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Exercise synthetic START in disposable PostgreSQL
+        env:
+          CI: 'true'
+          START_TEST_CONTAINER: ${{ job.services.postgres.id }}
+        run: node scripts/test-common-start-postgres.mjs
