@@ -170,7 +170,7 @@ function validateInlineScripts(relativePath) {
       }
     });
   } finally {
-    fs.rmSync(tempDirectory, { recursive: true, force: true });
+    console.log(`Retained inline-script syntax fixture: ${tempDirectory}`);
   }
 }
 
