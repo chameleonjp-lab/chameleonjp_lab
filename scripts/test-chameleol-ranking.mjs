@@ -69,7 +69,7 @@ test('reads official stats and all ties at rank 30 with pinned version', async (
   assert.equal(table.version,12);
   assert.equal(table.rows.length,32);
   assert.deepEqual(table.rows.slice(-3).map(x=>x.rank),[30,30,30]);
-  assert.equal(requests.filter(x=>x.pathname.endsWith('release.json')).length,1);
+  assert.equal(requests.filter(x=>x.pathname.endsWith('release.json')).length,2);
 });
 
 test('a standalone or verification release is retriable and supplies no data', async () => {
@@ -99,4 +99,52 @@ test('a retired version replaces old rows and a stuck cursor fails for retry', a
     ? release : { ok: true, ...pages.shift() }));
   assert.deepEqual((await reader.ranking()).rows.map(r => r.name), ['更新後', 'A2']);
   await assert.rejects(reader.ranking(), /続き位置/);
+});
+
+test('retry on the same page reads the new production address and never mixes rank pages from two sources',async()=>{
+  const {createReader}=await import('../chameleol-ranking.js');
+  let current='https://old.example.test', switched=false;
+  const calls=[];
+  const reader=createReader(async raw=>{
+    const u=new URL(raw);
+    if(u.href===gameUrl+'release.json')return Response.json({env:'production',rankingApi:current});
+    calls.push(u.origin);
+    if(switched && u.origin!==current)return new Response('',{status:503});
+    return Response.json({ok:true,totalPlays:switched?7:3,clearerCount:1});
+  });
+  assert.equal((await reader.stats()).totalPlayCount,3);
+  current='https://new.example.test';switched=true;
+  try {await reader.stats();}catch{}
+  assert.equal((await reader.stats()).totalPlayCount,7);
+  assert.equal(calls.at(-1),current);
+});
+
+test('an uninterrupted stream of retired ranking versions returns control to the retry button',async()=>{
+  const {createReader}=await import('../chameleol-ranking.js');
+  let calls=0;
+  const reader=createReader(async url=>{
+    if(String(url).endsWith('release.json'))return Response.json(release);
+    if(++calls===7) throw Error('test circuit breaker');
+    return Response.json({ok:true,version:calls,rows:[row(1)],restarted:calls>1,nextAfter:1});
+  });
+  await assert.rejects(reader.ranking(),/更新/);
+  assert.ok(calls<7);
+});
+
+test('one table keeps the first source for its continuation while the next refresh follows the new release',async()=>{
+  const {createReader}=await import('../chameleol-ranking.js');
+  const old='https://old.example.test', next='https://new.example.test';
+  let source=old;
+  const hits=[];
+  const reader=createReader(async raw=>{
+    const url=new URL(raw);
+    if(url.href===gameUrl+'release.json')return Response.json({env:'production',rankingApi:source});
+    hits.push(url.origin);
+    const more=url.searchParams.has('after');
+    if(url.origin===old && !more)source=next;
+    return Response.json({ok:true,version:2,rows:[row(more?2:1)],nextAfter:!more&&url.origin===old?1:null});
+  });
+  assert.equal((await reader.ranking()).rows.length,2);
+  assert.equal((await reader.ranking()).rows.length,1);
+  assert.deepEqual(hits,[old,old,next]);
 });
