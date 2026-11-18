@@ -4,7 +4,7 @@ const integer = (value, min, max = Number.MAX_SAFE_INTEGER) =>
   Number.isSafeInteger(value) && value >= min && value <= max;
 
 export function createReader(fetchImpl = (...args) => fetch(...args)) {
-  let basePromise;
+  let resolving;
   async function json(url) {
     const response = await fetchImpl(url, {
       cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(8000),
@@ -23,39 +23,44 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     return url.href.replace(/\/$/, '');
   }
 
-  async function read(path) {
-    basePromise ??= resolveBase().catch(error => { basePromise = undefined; throw error; });
-    const result = await json((await basePromise) + '/' + path);
+  function currentBase() {
+    // Coalesce simultaneous requests. Each new read checks the current release.
+    return resolving ??= resolveBase().finally(() => { resolving = undefined; });
+  }
+
+  async function read(base, path) {
+    const result = await json(base + '/' + path);
     if (result.ok !== true) throw new Error('集計元から応答がありません');
     return result;
   }
 
   async function stats() {
-    const {totalPlays, clearerCount} = await read('stats');
+    const {totalPlays, clearerCount} = await read(await currentBase(), 'stats');
     if (!integer(totalPlays, 0) || !integer(clearerCount, 0)) throw new Error('集計値が無効です');
     return {totalPlayCount: totalPlays, clearerCount};
   }
 
   async function ranking(maxRank = 30) {
+    const base = await currentBase();
     let version;
     let after = 0;
     const rows = new Map();
-    const seenVersions = new Set();
+    let restarted = false;
     do {
       const query = new URLSearchParams({limit: '30'});
       if (after) {
         query.set('version', String(version));
         query.set('after', String(after));
       }
-      const page = await read('ranking?' + query);
+      const page = await read(base, 'ranking?' + query);
       if (!integer(page.version, 0) || !Array.isArray(page.rows)) throw new Error('順位表の形式が無効です');
       if (after && (page.restarted || version !== page.version)) {
-        if (!page.restarted || seenVersions.has(page.version)) throw new Error('順位表が更新されています');
+        if (restarted || !page.restarted || page.version === version) throw new Error('順位表が更新されています');
+        restarted = true;
         rows.clear();
         after = 0;
       }
       version = page.version;
-      seenVersions.add(version);
       let finished = false;
       for (const row of page.rows) {
         if (!integer(row.position, 1) || !integer(row.rank, 1) || typeof row.name !== 'string' ||
@@ -66,7 +71,7 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
         else finished = true;
       }
       if (finished || page.nextAfter === null) break;
-      if (!integer(page.nextAfter, after + 1)) throw new Error('順位表の続き位置が無効です');
+      if (!page.rows.length || !integer(page.nextAfter, after + 1)) throw new Error('順位表の続き位置が無効です');
       after = page.nextAfter;
     } while (true);
     return {version, rows: [...rows.values()]};

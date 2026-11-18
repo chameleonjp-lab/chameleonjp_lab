@@ -99,6 +99,12 @@ for (const engine of [chromium, webkit]) {
     await page.waitForFunction(() => document.querySelector('#plays-chameleol')?.textContent === '4回');
     assert.equal(await page.locator('#players-chameleol').textContent(),'1人');
     await page.locator('#ranking-chameleol .rank-row').first().waitFor();
+    // A repeat open must reflect newly recorded games in the public overview.
+    await page.locator('[data-accordion=chameleol]').click();
+    totalPlays = 6;
+    await page.locator('[data-accordion=chameleol]').click();
+    await page.waitForFunction(() => document.querySelector('#plays-chameleol')?.textContent === '6回', null, {timeout:5000});
+    totalPlays = 4;
     assert.equal(await page.locator('#ranking-chameleol .rank-name').first().textContent(),'A<&>');
     await page.locator('#detail-chameleol').click();
     await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 2);

@@ -1870,16 +1870,13 @@
     async function fetchSingleGameStats(slug) {
       const normalizedSlug = cleanText(slug);
       if (!normalizedSlug) return { totalPlayCount: 0, playerCount: 0 };
-      if (singleStatsCache.has(normalizedSlug)) return singleStatsCache.get(normalizedSlug);
-
       if (normalizedSlug === "chameleol") {
         try {
           const { reader } = await import("./chameleol-ranking.js");
-          const stats = await reader.stats();
-          singleStatsCache.set(normalizedSlug, stats);
-          return stats;
+          return await reader.stats();
         } catch { return null; }
       }
+      if (singleStatsCache.has(normalizedSlug)) return singleStatsCache.get(normalizedSlug);
       await waitForSupabaseSetup();
 
       if (isKeyUnset || !supabaseClient) {
@@ -1910,13 +1907,8 @@
 
     async function fetchGameStats(game) {
       if (!game) return { totalPlayCount: 0, playerCount: 0 };
+      if (game.slug === "chameleol") return fetchSingleGameStats(game.slug);
       if (gameStatsCache.has(game.slug)) return gameStatsCache.get(game.slug);
-
-      if (game.slug === "chameleol") {
-        const stats = await fetchSingleGameStats(game.slug);
-        if (stats) gameStatsCache.set(game.slug, stats);
-        return stats;
-      }
       const slugs = getStatsSlugs(game);
       const statsList = await Promise.all(slugs.map((slug) => fetchSingleGameStats(slug)));
       if (statsList.some((item) => item === null)) return null;
@@ -2739,7 +2731,7 @@
         const stats = await loadStats(hydratedGame);
         const rankingReady = await loadTopRanking(hydratedGame, stats);
 
-        if (stats && rankingReady) loadedGameSlugs.add(game.slug);
+        if (stats && rankingReady && game.slug !== "chameleol") loadedGameSlugs.add(game.slug);
       } finally {
         loadingGameSlugs.delete(game.slug);
       }
