@@ -56,13 +56,14 @@ for (const engine of [chromium, webkit]) {
     let failNextStats = true;
     let rankingRows = acceptanceRows;
     let totalPlays = 4;
+    let listedGames = [chameleol, iroate, takkeu];
     page.on('pageerror', error => errors.push(error.message));
     await page.route('**/*', async route => {
       const url = new URL(route.request().url());
       assert.equal(route.request().method(), 'GET');
       calls.push(url.href);
       if (url.hostname === 'cdn.jsdelivr.net') {
-        const body = '(' + catalogSdk.toString() + ')(' + JSON.stringify([chameleol, iroate, takkeu]) + ');';
+        const body = '(' + catalogSdk.toString() + ')(' + JSON.stringify(listedGames) + ');';
         return route.fulfill({contentType: 'application/javascript', body});
       }
       if (url.pathname.startsWith('/chameleonjp_lab/')) {
@@ -127,6 +128,51 @@ for (const engine of [chromium, webkit]) {
       assert.equal(await page.locator('#totalPlayCount').textContent(), '5回');
       assert.equal(await page.getByRole('link', {name: 'ゲームで遊ぶ'}).getAttribute('href'), game.game_url);
       await page.waitForFunction(rpc => window.rpcCalls.some(call => call.name === rpc), abnormal);
+    }
+    await page.goto(base + '/chameleonjp_lab/index.html');
+    const pendingStats = Promise.withResolvers();
+    const finishStats = Promise.withResolvers();
+    const heldStats = async route => {
+      pendingStats.resolve();
+      await finishStats.promise;
+      return route.fallback();
+    };
+    await page.route(api + '/stats', heldStats);
+    try {
+      await page.locator('[data-accordion=chameleol]').click();
+      await pendingStats.promise;
+      await page.locator('[data-accordion=iroate]').click();
+      await page.locator('#ranking-iroate .rank-name').getByText('対照').waitFor();
+      assert.equal(await page.locator('#plays-iroate').textContent(), '5回');
+    } finally {
+      finishStats.resolve();
+      await page.unroute(api + '/stats', heldStats);
+    }
+    listedGames = [iroate, takkeu];
+    await page.reload();
+    await page.locator('[data-accordion=iroate]').waitFor();
+    assert.equal(await page.locator('[data-accordion=chameleol]').count(), 0);
+
+    // Keep a real script request pending. The direct detail link must work before DOMContentLoaded.
+    const sdkRequested = Promise.withResolvers();
+    const resumeSdk = Promise.withResolvers();
+    await page.route('https://cdn.jsdelivr.net/**', async route => {
+      sdkRequested.resolve();
+      await resumeSdk.promise;
+      return route.fallback();
+    });
+    try {
+      failNextStats = true;
+      await page.goto(base + '/chameleonjp_lab/ranking.html?game=chameleol', {waitUntil: 'commit'});
+      await sdkRequested.promise;
+      const play = page.getByRole('link', {name: 'ゲームで遊ぶ'});
+      assert.equal(await play.getAttribute('href', {timeout: 5000}), base + '/chameleol/');
+      await page.getByRole('button', {name: '再試行'}).click({timeout: 5000});
+      await page.waitForFunction(() => document.querySelector('#totalPlayCount')?.textContent === '0回');
+      await page.locator('#bestRanking').getByText('まだ記録がありません').waitFor();
+    } finally {
+      resumeSdk.resolve();
+      await page.waitForLoadState('load');
     }
     assert.deepEqual(errors,[]);
     assert.ok(!calls.some(url=>url.includes('/rest/v1/rpc/')));

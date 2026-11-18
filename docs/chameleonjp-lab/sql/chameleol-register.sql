@@ -1,5 +1,7 @@
--- Apply once release is authorized. Reapplying preserves existing order and scores.
-insert into public.games (
+-- Serialize order selection with other catalog writes during this short registration.
+begin;
+lock table public.games in share row exclusive mode;
+insert into public.games as existing (
   display_order, game_slug, title, game_url, description, share_text, release_date, top_ranking_type, score_order, score_unit, score_scale, score_decimals, score_label, first_score_label, best_score_label, is_active, submission_mode, score_min, score_max
 ) values (
   greatest(60, (select coalesce(max(display_order), 0) + 1 from public.games)),
@@ -22,6 +24,14 @@ insert into public.games (
   0,
   50
 ) on conflict (game_slug) do update set
+  display_order = case
+    when existing.display_order > 0 and not exists (
+      select 1 from public.games as occupied
+      where occupied.game_slug <> existing.game_slug
+        and occupied.is_active is true and occupied.display_order = existing.display_order
+    ) then existing.display_order
+    else excluded.display_order
+  end,
   title = excluded.title,
   game_url = excluded.game_url,
   description = excluded.description,
@@ -39,3 +49,4 @@ insert into public.games (
   submission_mode = excluded.submission_mode,
   score_min = excluded.score_min,
   score_max = excluded.score_max;
+commit;

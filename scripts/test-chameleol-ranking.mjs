@@ -16,10 +16,13 @@ test('public.games registration matches the catalog, is repeatable, and preserve
   try {
     await db.exec(`CREATE TABLE public.games (
       game_slug text primary key, title text, game_url text, description text, share_text text,
-      display_order integer unique, release_date date, top_ranking_type text, score_order text,
+      display_order integer, release_date date, top_ranking_type text, score_order text,
       score_unit text, score_scale int, score_decimals int, score_label text, first_score_label text,
       best_score_label text, is_active boolean, submission_mode text, score_min integer, score_max integer
-    ); INSERT INTO games(game_slug,title,display_order) VALUES ('other','既存',1)`);
+    );
+    CREATE UNIQUE INDEX games_active_display_order_uidx ON games(display_order)
+      WHERE is_active IS TRUE AND display_order IS NOT NULL;
+    INSERT INTO games(game_slug,title,display_order,is_active) VALUES ('other','既存',1,true)`);
     const sql = await file('docs/chameleonjp-lab/sql/chameleol-register.sql');
     for (let i=0; i<2; i++) await db.exec(sql);
     const {rows} = await db.query('select *, release_date::text as release_date from games order by display_order');
@@ -30,6 +33,13 @@ test('public.games registration matches the catalog, is repeatable, and preserve
     await db.exec(sql);
     const refreshed = await db.query("select display_order, title from public.games where game_slug = 'chameleol'");
     assert.deepEqual(refreshed.rows, [{display_order: 70, title: 'カメレオる'}]);
+    await db.exec(`UPDATE public.games SET display_order = 60, is_active = false WHERE game_slug = 'chameleol';
+      UPDATE public.games SET display_order = 60 WHERE game_slug = 'other'`);
+    await db.exec(sql);
+    assert.deepEqual((await db.query('select game_slug, display_order, is_active from games order by display_order')).rows, [
+      {game_slug: 'other', display_order: 60, is_active: true},
+      {game_slug: 'chameleol', display_order: 61, is_active: true},
+    ]);
   } finally { await db.close(); }
 });
 

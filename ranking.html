@@ -2368,11 +2368,15 @@
       const requestedSlug = normalizeGameSlug(params.get("game"));
       const requestedDifficulty = params.get("difficulty");
 
-      try {
-        const supabaseResolved = await resolveGameFromSupabase(requestedSlug, requestedDifficulty);
-        if (supabaseResolved) return supabaseResolved;
-      } catch (error) {
-        console.warn("Supabase game resolve failed:", requestedSlug, error);
+      // The direct Chameleol link has local metadata and its own verified ranking reader.
+      if (requestedSlug !== "chameleol") {
+        await waitForSupabaseSetup();
+        try {
+          const supabaseResolved = await resolveGameFromSupabase(requestedSlug, requestedDifficulty);
+          if (supabaseResolved) return supabaseResolved;
+        } catch (error) {
+          console.warn("Supabase game resolve failed:", requestedSlug, error);
+        }
       }
 
       const page = findPageBySlug(requestedSlug);
@@ -2976,8 +2980,6 @@
     async function init() {
       if (isKeyUnset) keyNoticeEl.style.display = "block";
 
-      await waitForSupabaseSetup();
-
       const resolved = await resolveGameFromUrl();
 
       if (!resolved || !resolved.page || !resolved.difficulty) {
@@ -2988,11 +2990,7 @@
       showGamePage(resolved.page, resolved.difficulty);
     }
 
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", init);
-    } else {
-      init();
-    }
+    init();
   </script>
 </body>
 </html>
