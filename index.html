@@ -1656,6 +1656,29 @@
         "statsSlugs": ["faitofuraito_normal", "faitofuraito_easy"],
         "difficultySummary": "モード別あり・トップはノーマル",
         "isActive": false
+      },
+      {
+        "displayOrder": 60,
+        "slug": "chameleol",
+        "title": "カメレオる",
+        "url": "https://chameleonjp-lab.github.io/chameleol/",
+        "description": "宝石を盗んだカメレオンが、壁と同じ色に変身して警察から逃げるゲームです。",
+        "shareText": "宝石を盗んだカメレオン、壁と同じ色に変身して警察から逃げ切ろう！ #カメレオる https://chameleonjp-lab.github.io/chameleol/",
+        "releaseDate": "2026-11-10",
+        "topRanking": "best",
+        "scoreOrder": "desc",
+        "scoreUnit": "棟",
+        "scoreScale": 1,
+        "scoreDecimals": 0,
+        "scoreLabel": "クリア棟数",
+        "firstScoreLabel": "初回クリア棟数",
+        "bestScoreLabel": "自己ベスト",
+        "isActive": true,
+        "rankingSlug": "chameleol",
+        "detailSlug": "chameleol",
+        "statsSlugs": [
+          "chameleol"
+        ]
       }
 ];
 
@@ -1849,6 +1872,14 @@
       if (!normalizedSlug) return { totalPlayCount: 0, playerCount: 0 };
       if (singleStatsCache.has(normalizedSlug)) return singleStatsCache.get(normalizedSlug);
 
+      if (normalizedSlug === "chameleol") {
+        try {
+          const { reader } = await import("./chameleol-ranking.js");
+          const stats = await reader.stats();
+          singleStatsCache.set(normalizedSlug, stats);
+          return stats;
+        } catch { return null; }
+      }
       await waitForSupabaseSetup();
 
       if (isKeyUnset || !supabaseClient) {
@@ -1881,6 +1912,11 @@
       if (!game) return { totalPlayCount: 0, playerCount: 0 };
       if (gameStatsCache.has(game.slug)) return gameStatsCache.get(game.slug);
 
+      if (game.slug === "chameleol") {
+        const stats = await fetchSingleGameStats(game.slug);
+        if (stats) gameStatsCache.set(game.slug, stats);
+        return stats;
+      }
       const slugs = getStatsSlugs(game);
       const statsList = await Promise.all(slugs.map((slug) => fetchSingleGameStats(slug)));
       if (statsList.some((item) => item === null)) return null;
@@ -1906,6 +1942,12 @@
       if (!playsEl || !playersEl) return false;
 
       const totalPlayCount = Number(stats?.totalPlayCount || 0);
+      if (game.slug === "chameleol") {
+        if (!stats) return false;
+        playsEl.textContent = formatNumber(totalPlayCount) + "回";
+        playersEl.textContent = formatNumber(stats.clearerCount) + "人";
+        return true;
+      }
       const playerCount = Number(stats?.playerCount || 0);
 
       if (totalPlayCount <= 0 && playerCount <= 0) {
@@ -2213,7 +2255,7 @@
         scoreDecimals: Number(game.scoreDecimals || 0)
       };
 
-      if (isKeyUnset) return fallback;
+      if (game.slug === "chameleol" || isKeyUnset) return fallback;
 
       await waitForSupabaseSetup();
 
@@ -2414,8 +2456,8 @@
 
     function statsHtml(game) {
       const grouped = isGroupedGame(game);
-      const playLabel = grouped ? "合計プレイ回数（合算）" : "合計プレイ回数";
-      const playerLabel = game.slug === "faitofuraito"
+      const playLabel = game.slug === "chameleol" ? "延べプレイ回数" : grouped ? "合計プレイ回数（合算）" : "合計プレイ回数";
+      const playerLabel = game.slug === "chameleol" ? "初クリア人数（登録名単位）" : game.slug === "faitofuraito"
         ? "登録名（モード別合計）"
         : grouped ? "参加人数（合算）" : "参加人数";
       return `
@@ -2561,6 +2603,12 @@
       if (!playsEl || !playersEl) return false;
 
       const stats = await fetchGameStats(game);
+      if (game.slug === "chameleol" && !stats) {
+        const { showRetry } = await import("./chameleol-ranking.js");
+        showRetry(playsEl, () => loadStats(game));
+        playersEl.textContent = "取得できませんでした";
+        return null;
+      }
       return stats && applyStatsToCard(game, stats) ? stats : null;
     }
 
@@ -2612,6 +2660,20 @@
     async function loadTopRanking(game, stats = null) {
       const rankingEl = document.getElementById(`ranking-${game.slug}`);
       if (!rankingEl) return false;
+
+      if (game.slug === "chameleol") {
+        const { reader, renderRanking, showRetry } = await import("./chameleol-ranking.js");
+        rankingEl.textContent = "読み込み中";
+        try {
+          const table = await reader.ranking(3);
+          renderRanking(rankingEl, table);
+          setRankingReady(game, table.rows.length > 0);
+          return true;
+        } catch {
+          showRetry(rankingEl, () => loadTopRanking(game));
+          return false;
+        }
+      }
 
       if (isKeyUnset) {
         setRankingComingSoon(game);
