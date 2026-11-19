@@ -136,7 +136,7 @@ for (const engine of [chromium, webkit]) {
     totalPlays = 42;
     await page.reload();
     await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 32);
-    assert.equal(await page.locator('.rank-no').last().textContent(),'30位');
+    assert.equal(await page.locator('#bestRanking .rank-no').last().textContent(),'30位');
     rankingRows = [];
     totalPlays = 0;
     await page.reload();
