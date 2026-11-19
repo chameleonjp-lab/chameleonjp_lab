@@ -76,7 +76,26 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     } while (true);
     return {version, rows: [...rows.values()]};
   }
-  return {stats, ranking};
+  async function hallOfFame(previous = null) {
+    const query = new URLSearchParams();
+    if (previous?.nextAfter != null) {
+      query.set('version', previous.version);
+      query.set('after', String(previous.nextAfter));
+    }
+    const page = await read(await currentBase(), 'hall-of-fame' + (query.size ? '?' + query : ''));
+    const {version, rows, nextAfter, restarted} = page;
+    const from = previous && !restarted ? previous.nextAfter : 0;
+    if (!/^[0-9a-f]{32}$/.test(version) || typeof restarted !== 'boolean' ||
+        (previous && restarted !== (version !== previous.version)) ||
+        !Array.isArray(rows) || rows.length > 50 ||
+        rows.some((row, i) => !integer(row?.ordinal, 1) || row.ordinal !== from + i + 1 || typeof row.name !== 'string') ||
+        (nextAfter !== null && (!rows.length || nextAfter !== rows.at(-1).ordinal))) {
+      throw new Error('殿堂入り一覧の形式が無効です');
+    }
+    return {version, rows, nextAfter, restarted};
+  }
+
+  return {stats, ranking, hallOfFame};
 }
 
 export const reader = createReader();
@@ -112,4 +131,24 @@ export function showRetry(container, retry) {
   button.textContent = '再試行';
   button.addEventListener('click', retry, {once:true});
   container.replaceChildren('取得できませんでした。', button);
+}
+
+export function renderHallOfFame(container, page, append = false) {
+  if (!append || page.restarted) container.replaceChildren();
+  if (!page.rows.length && !container.childElementCount) {
+    container.textContent = 'まだ殿堂入りした方はいません';
+    return;
+  }
+  for (const {ordinal, name} of page.rows) {
+    const line = document.createElement('div');
+    line.className = 'rank-row';
+    const number = document.createElement('span');
+    number.className = 'rank-no';
+    number.textContent = ordinal.toLocaleString('ja-JP') + '人目';
+    const player = document.createElement('bdi');
+    player.className = 'rank-name';
+    player.textContent = name;
+    line.append(number, player);
+    container.append(line);
+  }
 }

@@ -671,7 +671,7 @@
         transition-duration: 0.001ms !important;
       }
     }
-    #bestRanking .rank-row {
+    #bestRanking .rank-row, #hallRanking .rank-row {
       display: grid;
       grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
@@ -679,7 +679,9 @@
       padding: .65em 0;
       border-bottom: 1px solid var(--inactive-tab-border);
     }
-    #bestRanking .rank-name { overflow-wrap: anywhere; }
+    #bestRanking .rank-name, #hallRanking .rank-name { overflow-wrap: anywhere; }
+    #hallRanking .rank-row { grid-template-columns: auto minmax(0, 1fr); }
+    #hallMore { margin-top: .8em; }
   </style>
 </head>
 
@@ -2484,6 +2486,10 @@
               aria-controls="bestPanel"
               data-ranking-tab="best"
             >${escapeHtml(bestLabel)}</button>
+            ${chameleol ? `
+              <button class="ranking-tab" type="button" id="hallTab" role="tab"
+                aria-selected="false" aria-controls="hallPanel" data-ranking-tab="hall">殿堂入り</button>
+            ` : ''}
             <button
               class="ranking-tab"
               type="button"
@@ -2512,6 +2518,14 @@
               <div class="loading">${escapeHtml(bestLabel)}ランキングを読み込み中です</div>
             </div>
           </section>
+          ${chameleol ? `
+            <section class="ranking-card" id="hallPanel" role="tabpanel" aria-labelledby="hallTab" hidden>
+              <h2 class="ranking-title">殿堂入り一覧</h2>
+              <p class="ranking-sub">名前を登録して50棟をクリアした方を、初クリアの番号順に表示します。</p>
+              <div class="ranking-list" id="hallRanking" aria-live="polite">読み込み中</div>
+              <button class="button secondary" id="hallMore" type="button" hidden>次の50件</button>
+            </section>
+          ` : ''}
 
           <section class="ranking-card" id="playsPanel" role="tabpanel" aria-labelledby="playsTab" hidden>
             <h2 class="ranking-title">プレイ回数ランキング</h2>
@@ -2561,7 +2575,7 @@
     }
 
     function switchRankingTab(tabName) {
-      const tabs = ["first", "best", "plays"];
+      const tabs = ["first", "best", "plays", "hall"];
       const activeTab = tabs.includes(tabName) ? tabName : "first";
 
       tabs.forEach((name) => {
@@ -2865,14 +2879,40 @@
       const playsRankingEl = document.getElementById("playsRanking");
 
       if (game.slug === "chameleol") {
-        const { reader, renderRanking, showRetry } = await import("./chameleol-ranking.js");
-        bestRankingEl.textContent = "読み込み中";
-        try {
-          const table = await reader.ranking();
-          if (token === currentLoadToken) renderRanking(bestRankingEl, table);
-        } catch {
-          if (token === currentLoadToken) showRetry(bestRankingEl, () => loadRankings(game, token));
-        }
+        const { reader, renderRanking, renderHallOfFame, showRetry } = await import("./chameleol-ranking.js");
+        if (token !== currentLoadToken) return;
+        const hall = document.getElementById("hallRanking");
+        const more = document.getElementById("hallMore");
+        let hallPage = null;
+        const loadHall = async () => {
+          more.disabled = true;
+          try {
+            const next = await reader.hallOfFame(hallPage);
+            if (token !== currentLoadToken) return;
+            renderHallOfFame(hall, next, hallPage !== null);
+            hallPage = next;
+            more.hidden = next.nextAfter === null;
+            more.textContent = "次の50件";
+          } catch {
+            if (token !== currentLoadToken) return;
+            if (hallPage) more.textContent = "再試行";
+            else showRetry(hall, loadHall);
+          } finally {
+            more.disabled = false;
+          }
+        };
+        more.addEventListener("click", loadHall);
+        void loadHall();
+        const loadBest = async () => {
+          bestRankingEl.textContent = "読み込み中";
+          try {
+            const table = await reader.ranking();
+            if (token === currentLoadToken) renderRanking(bestRankingEl, table);
+          } catch {
+            if (token === currentLoadToken) showRetry(bestRankingEl, loadBest);
+          }
+        };
+        await loadBest();
         return;
       }
       if (isKeyUnset) {

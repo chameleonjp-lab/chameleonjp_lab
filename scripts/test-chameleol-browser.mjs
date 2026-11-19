@@ -91,6 +91,14 @@ for (const engine of [chromium, webkit]) {
         return route.fulfill({json:{ok:true,version:17,restarted:false,rows:selected,
           nextAfter:after+limit < rankingRows.length ? after+limit : null}});
       }
+      if (url.pathname.endsWith('/hall-of-fame')) {
+        const after = url.searchParams.get('after');
+        const version = '1'.repeat(32);
+        if (after) assert.equal(url.searchParams.get('version'), version);
+        const rows = !totalPlays ? [] : after
+          ? [{ordinal:2, name:'後からクリア'}] : [{ordinal:1, name:'最初の<クリア>'}];
+        return route.fulfill({json:{ok:true, version, rows, nextAfter:rows.length && !after ? 1 : null, restarted:false}});
+      }
       return route.fulfill({status:503,body:'Offline fixture'});
     });
     await page.goto(base+'/chameleonjp_lab/index.html');
@@ -114,7 +122,14 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('#totalPlayCount').textContent(),'4回');
     assert.equal(await page.locator('#playerCount').textContent(),'1人');
     assert.equal(await page.getByText('初クリア人数（登録名単位）',{exact:true}).count(),1);
-    assert.equal(await page.getByRole('tab').count(),1);
+    assert.equal(await page.getByRole('tab').count(),2);
+    await page.getByRole('tab', {name:'殿堂入り'}).click();
+    await page.locator('#hallRanking .rank-row').first().waitFor();
+    assert.deepEqual(await page.locator('#hallRanking .rank-name').allTextContents(), ['最初の<クリア>']);
+    await page.getByRole('button', {name:'次の50件'}).click();
+    await page.locator('#hallRanking .rank-row').nth(1).waitFor();
+    assert.deepEqual(await page.locator('#hallRanking .rank-no').allTextContents(), ['1人目','2人目']);
+    assert.equal(await page.locator('#bestPanel').isVisible(), false);
     assert.equal(await page.getByRole('link',{name:'ゲームで遊ぶ'}).getAttribute('href'),base+'/chameleol/');
     assert.deepEqual(await page.evaluate(() => window.rpcCalls), []);
     rankingRows = boundaryRows;
@@ -127,6 +142,8 @@ for (const engine of [chromium, webkit]) {
     await page.reload();
     await page.locator('#bestRanking').getByText('まだ記録がありません').waitFor();
     assert.equal(await page.locator('#totalPlayCount').textContent(),'0回');
+    await page.getByRole('tab', {name:'殿堂入り'}).click();
+    await page.getByText('まだ殿堂入りした方はいません').waitFor();
     for (const [game, abnormal] of [[takkeu, 'get_takkeu_abnormal_entries_v1'], [iroate, 'get_disqualified_score_entries']]) {
       await page.goto(base + '/chameleonjp_lab/ranking.html?game=' + game.game_slug);
       await page.locator('#bestRanking .player-name').first().waitFor();
