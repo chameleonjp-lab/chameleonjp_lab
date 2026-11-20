@@ -1,0 +1,49 @@
+/* A compact language switcher above the page header on narrow phones and desktop. */
+.lab-language-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  margin: 0 0 10px;
+  position: relative;
+  z-index: 20;
+}
+.lab-language-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-sub, #d8eee3);
+  white-space: nowrap;
+}
+.lab-language-select {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main, #f6fff9);
+  background: var(--card-bg, #14382b);
+  border: 1px solid var(--sub-button-border, #6fbf93);
+  border-radius: 10px;
+  min-height: 38px;
+  padding: 7px 26px 7px 8px;
+  max-width: min(72vw, 190px);
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.lab-language-select:focus-visible {
+  outline: 3px solid var(--button-bg, #e6ff9f);
+  outline-offset: 2px;
+}
+html[lang="de"] .hero,
+html[lang="ru"] .hero,
+html[lang="th"] .hero {
+  overflow-wrap: anywhere;
+}
+html:not([lang="ja"]) .stat-label,
+html:not([lang="ja"]) .ranking-title,
+html:not([lang="ja"]) .button,
+html:not([lang="ja"]) .rank-score,
+html:not([lang="ja"]) .rank-name,
+html:not([lang="ja"]) .hof-title-tag {
+  overflow-wrap: anywhere;
+}

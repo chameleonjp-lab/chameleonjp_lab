@@ -67,6 +67,20 @@ for (const engine of [chromium, webkit]) {
         const body = '(' + catalogSdk.toString() + ')(' + JSON.stringify(listedGames) + ');';
         return route.fulfill({contentType: 'application/javascript', body});
       }
+      if (url.pathname.startsWith('/chameleonjp_lab/i18n/')) {
+        const asset = url.pathname.slice('/chameleonjp_lab/i18n/'.length);
+        const allowed = new Set([
+          'common.js', 'ranking.js', 'games-1.js', 'games-2.js', 'games-3.js',
+          'extras.js', 'hall.js', 'terms-1.js', 'terms-2.js', 'terms-3.js',
+          'runtime.js', 'language.css'
+        ]);
+        if (allowed.has(asset)) {
+          return route.fulfill({
+            contentType: asset.endsWith('.css') ? 'text/css' : 'application/javascript',
+            body: await readFile(new URL('i18n/' + asset, output))
+          });
+        }
+      }
       if (url.pathname.startsWith('/chameleonjp_lab/')) {
         const file = url.pathname.split('/').pop() || 'index.html';
         const types = {'index.html':'text/html','ranking.html':'text/html','chameleol-ranking.js':'text/javascript','chameleol-hof.js':'text/javascript','chameleol-hof.css':'text/css','banner':'image/jpeg','IMG_7589.JPG':'image/jpeg'};
@@ -109,6 +123,14 @@ for (const engine of [chromium, webkit]) {
       return route.fulfill({status:503,body:'Offline fixture'});
     });
     await page.goto(base+'/chameleonjp_lab/index.html');
+    // The language picker changes only presentation and restores Japanese exactly.
+    assert.equal(await page.locator('#labLanguageSelect').count(), 1);
+    await page.locator('#labLanguageSelect').selectOption('en');
+    await page.getByRole('heading', {name:'Available Games'}).waitFor();
+    assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+    await page.locator('#labLanguageSelect').selectOption('ja');
+    await page.getByRole('heading', {name:'公開中ゲーム'}).waitFor();
+    assert.equal(await page.locator('html').getAttribute('lang'), 'ja');
     await page.locator('[data-accordion=chameleol]').click();
     await page.locator('#game-chameleol').getByRole('button',{name:'再試行'}).click();
     await page.waitForFunction(() => document.querySelector('#plays-chameleol')?.textContent === '4回');
@@ -124,6 +146,13 @@ for (const engine of [chromium, webkit]) {
     await page.locator('#detail-chameleol').click();
     await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 2);
     assert.deepEqual(await page.locator('#bestRanking .rank-name').allTextContents(), ['A<&>', 'B']);
+    await page.locator('#labLanguageSelect').selectOption('en');
+    await page.waitForFunction(() => document.querySelector('#pageLead')?.textContent.includes('jewel-stealing'));
+    assert.equal(await page.locator('#bestRanking .rank-name').first().textContent(), 'A<&>',
+      'Language switching must never translate player names');
+    assert.equal(await page.locator('#totalPlayCount').textContent(), '4 plays');
+    await page.locator('#labLanguageSelect').selectOption('ja');
+    await page.waitForFunction(() => document.querySelector('#totalPlayCount')?.textContent === '4回');
     assert.equal(await page.locator('#bestRanking .rank-score').first().textContent(), '50棟 · 99.99%');
     assert.equal(await page.locator('#bestRanking').getAttribute('data-version'),'17');
     assert.equal(await page.locator('#totalPlayCount').textContent(),'4回');
