@@ -96,7 +96,7 @@ for (const engine of [chromium, webkit]) {
         const version = '1'.repeat(32);
         if (after) assert.equal(url.searchParams.get('version'), version);
         const rows = !totalPlays ? [] : after
-          ? [{ordinal:2, name:'後からクリア'}] : [{ordinal:1, name:'最初の<クリア>'}];
+          ? [{ordinal:2, name:'後からクリア', average:9876}] : [{ordinal:1, name:'最初の<クリア>', average:9543}];
         return route.fulfill({json:{ok:true, version, rows, nextAfter:rows.length && !after ? 1 : null, restarted:false}});
       }
       return route.fulfill({status:503,body:'Offline fixture'});
@@ -126,9 +126,11 @@ for (const engine of [chromium, webkit]) {
     await page.getByRole('tab', {name:'殿堂入り'}).click();
     await page.locator('#hallRanking .rank-row').first().waitFor();
     assert.deepEqual(await page.locator('#hallRanking .rank-name').allTextContents(), ['最初の<クリア>']);
+    assert.deepEqual(await page.locator('#hallRanking .rank-score').allTextContents(), ['一致率 95.43%']);
     await page.getByRole('button', {name:'次の50件'}).click();
     await page.locator('#hallRanking .rank-row').nth(1).waitFor();
     assert.deepEqual(await page.locator('#hallRanking .rank-no').allTextContents(), ['1人目','2人目']);
+    assert.deepEqual(await page.locator('#hallRanking .rank-score').allTextContents(), ['一致率 95.43%','一致率 98.76%']);
     assert.equal(await page.locator('#bestPanel').isVisible(), false);
     assert.equal(await page.getByRole('link',{name:'ゲームで遊ぶ'}).getAttribute('href'),base+'/chameleol/');
     assert.deepEqual(await page.evaluate(() => window.rpcCalls), []);
