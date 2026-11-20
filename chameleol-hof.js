@@ -228,7 +228,7 @@ export function createHallOfFameView({ panel, container }) {
   }
 
   function queueCenterCheck() {
-    if (disposed || celebrated || centerFrame !== null) return;
+    if (!active || disposed || celebrated || document.hidden || reducedMotion() || centerFrame !== null) return;
     centerFrame = requestAnimationFrame(() => {
       centerFrame = null;
       checkCenter();
