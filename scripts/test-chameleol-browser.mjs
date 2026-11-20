@@ -55,6 +55,7 @@ for (const engine of [chromium, webkit]) {
     const errors = [];
     let failNextStats = true;
     let rankingRows = acceptanceRows;
+    let hallRows = null;
     let totalPlays = 4;
     let listedGames = [chameleol, iroate, takkeu];
     page.on('pageerror', error => errors.push(error.message));
@@ -68,7 +69,7 @@ for (const engine of [chromium, webkit]) {
       }
       if (url.pathname.startsWith('/chameleonjp_lab/')) {
         const file = url.pathname.split('/').pop() || 'index.html';
-        const types = {'index.html':'text/html','ranking.html':'text/html','chameleol-ranking.js':'text/javascript','banner':'image/jpeg','IMG_7589.JPG':'image/jpeg'};
+        const types = {'index.html':'text/html','ranking.html':'text/html','chameleol-ranking.js':'text/javascript','chameleol-hof.js':'text/javascript','chameleol-hof.css':'text/css','banner':'image/jpeg','IMG_7589.JPG':'image/jpeg'};
         if (Object.hasOwn(types,file)) {
           return route.fulfill({contentType:types[file],body:await readFile(new URL(file,output))});
         }
@@ -95,6 +96,12 @@ for (const engine of [chromium, webkit]) {
         const after = url.searchParams.get('after');
         const version = '1'.repeat(32);
         if (after) assert.equal(url.searchParams.get('version'), version);
+        if (hallRows) {
+          const offset = Number(after || 0);
+          const selected = hallRows.slice(offset, offset + 50);
+          const nextAfter = offset + selected.length < hallRows.length ? offset + selected.length : null;
+          return route.fulfill({json:{ok:true,version,rows:selected,nextAfter,restarted:false}});
+        }
         const rows = !totalPlays ? [] : after
           ? [{ordinal:2, name:'後からクリア', average:9876}] : [{ordinal:1, name:'最初の<クリア>', average:9543}];
         return route.fulfill({json:{ok:true, version, rows, nextAfter:rows.length && !after ? 1 : null, restarted:false}});
@@ -125,6 +132,23 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.getByRole('tab').count(),2);
     await page.getByRole('tab', {name:'殿堂入り'}).click();
     await page.locator('#hallRanking .rank-row').first().waitFor();
+    assert.equal(await page.getByRole('heading', {name:'殿堂入り-50棟完全クリア者一覧-'}).count(), 1);
+    assert.equal(await page.locator('#hallRanking .hof-founder').count(), 0);
+    assert.equal(await page.locator('#hallRanking .hof-plate').count(), 1);
+    assert.equal(await page.locator('body.theme-chameleol-hof.hof-active').count(), 1);
+    await page.locator('#hofSearch').fill('最初の');
+    await page.waitForFunction(() => document.querySelector('#hallRanking .hof-spotlight') != null);
+    assert.match(await page.locator('#hofSearchStatus').textContent(), /1件/);
+    await page.locator('#hallRanking .hof-plate').first().click();
+    assert.equal(await page.locator('.hof-dialog[role="dialog"][aria-modal="true"]').count(), 1);
+    assert.equal(await page.locator('.hof-dialog-number').textContent(), '第1号 殿堂入り');
+    assert.equal(await page.locator('.hof-dialog-name').textContent(), '最初の<クリア>');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('.hof-modal-backdrop').isVisible(), false);
+    await page.locator('#hofEmblem').click();
+    assert.equal(await page.locator('#hallPanel').evaluate(el => el.style.getPropertyValue('--spotlight-tint')), 'rgba(224,49,90,.22)');
+    await page.getByRole('button',{name:'祝砲を放つ'}).click();
+    assert.equal(await page.locator('canvas.hof-particles').count(), 1);
     assert.deepEqual(await page.locator('#hallRanking .rank-name').allTextContents(), ['最初の<クリア>']);
     assert.deepEqual(await page.locator('#hallRanking .rank-score').allTextContents(), ['一致率 95.43%']);
     await page.getByRole('button', {name:'次の50件'}).click();
@@ -132,8 +156,48 @@ for (const engine of [chromium, webkit]) {
     assert.deepEqual(await page.locator('#hallRanking .rank-no').allTextContents(), ['1人目','2人目']);
     assert.deepEqual(await page.locator('#hallRanking .rank-score').allTextContents(), ['一致率 95.43%','一致率 98.76%']);
     assert.equal(await page.locator('#bestPanel').isVisible(), false);
+    assert.equal(await page.locator('#hallRanking .hof-plate').count(), 2);
+    assert.deepEqual(await page.locator('#hallRanking .hof-title-tag').allTextContents(),
+      ['50棟完全踏破・殿堂入り怪盗','50棟完全踏破・殿堂入り怪盗']);
+    await page.locator('#hallRanking .hof-plate').nth(1).click();
+    await page.locator('.hof-dialog').getByRole('button',{name:'閉じる'}).click();
+    assert.equal(await page.locator('.hof-modal-backdrop').isVisible(),false);
     assert.equal(await page.getByRole('link',{name:'ゲームで遊ぶ'}).getAttribute('href'),base+'/chameleol/');
     assert.deepEqual(await page.evaluate(() => window.rpcCalls), []);
+    // All hall members have the same plate. Only milestone numbers gain a small badge.
+    // The 50-item cursor must keep working with 105 entrants and long hostile names.
+    hallRows = Array.from({length:105}, (_,i) => ({
+      ordinal:i+1,
+      name: i===3 ? '極端に長い名前'.repeat(28) + '<img src=x onerror=alert(1)>' : '完走者' + (i+1),
+      average: 8000 + i,
+    }));
+    await page.reload();
+    await page.getByRole('tab',{name:'殿堂入り'}).click();
+    await page.waitForFunction(() => document.querySelectorAll('#hallRanking .hof-plate').length === 50);
+    assert.equal(await page.locator('#hallRanking .hof-founder').count(),0);
+    assert.equal(await page.locator('#hallRanking img').count(),0,'untrusted names must never become HTML');
+    assert.equal(await page.locator('#hallRanking .hof-medal').count(),3,'10, 25 and 50 are milestone plates');
+    await page.getByRole('button',{name:'次の50件'}).click();
+    await page.waitForFunction(() => document.querySelectorAll('#hallRanking .hof-plate').length === 100);
+    assert.equal(await page.locator('#hallRanking .hof-medal').count(),4,'100 is also a milestone');
+    await page.getByRole('button',{name:'次の50件'}).click();
+    await page.waitForFunction(() => document.querySelectorAll('#hallRanking .hof-plate').length === 105);
+    assert.equal(await page.locator('#hallRanking .hof-medal').count(),4);
+    assert.equal(await page.locator('#hallRanking .hof-plate').last().getAttribute('data-ordinal'),'105');
+    assert.equal(await page.locator('#hallMore').isVisible(),false);
+    await page.setViewportSize({width:360,height:750});
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
+      'Hall content must not overflow a 360px viewport');
+    await page.locator('#hofSearch').fill('完走者101');
+    await page.waitForFunction(() => document.querySelector('.hof-spotlight')?.dataset.ordinal === '101');
+    assert.match(await page.locator('#hofSearchStatus').textContent(), /1件/);
+    await page.getByRole('tab',{name:'自己ベスト'}).click().catch(async () => {
+      await page.locator('#bestTab').click();
+    });
+    assert.equal(await page.locator('.hof-firework').isVisible(), false);
+    await page.setViewportSize({width:1280,height:800});
+    hallRows = null;
+
     rankingRows = boundaryRows;
     totalPlays = 42;
     await page.reload();
