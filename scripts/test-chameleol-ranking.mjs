@@ -86,30 +86,40 @@ test('reads official stats and all ties at rank 30 with pinned version', async (
   assert.equal(requests.filter(x=>x.pathname.endsWith('release.json')).length,2);
 });
 
-test('detail ranking pages reach every player past rank 30; game preview stays limited', async () => {
+test('detail ranking retrieves all 205 players in 100-name pages; game preview stays top 30', async () => {
   const {createReader} = await import('../chameleol-ranking.js');
   const requests = [];
-  const names = Array.from({length:65}, (_,i)=>row(i+1));
+  const names = Array.from({length:205}, (_,i)=>row(i+1));
   const reader = createReader(async raw => {
     const url = new URL(raw);
     if (url.href === gameUrl+'release.json') return Response.json(release);
     assert.equal(url.pathname, '/functions/v1/kamereoru/ranking');
     requests.push(url.searchParams.toString());
     const after = Number(url.searchParams.get('after') || 0);
-    const selected = names.slice(after, after+30);
+    const limit = Number(url.searchParams.get('limit'));
+    assert.ok(limit === 30 || limit === 100);
+    const selected = names.slice(after, after+limit);
     return Response.json({ok:true,version:21,restarted:false,rows:selected,
-      nextAfter:after+30 < names.length ? after+30 : null});
+      nextAfter:after+limit < names.length ? after+limit : null});
   });
   const first = await reader.rankingPage();
   const second = await reader.rankingPage(first);
   const third = await reader.rankingPage(second);
-  assert.deepEqual([first.rows.length,second.rows.length,third.rows.length], [30,30,5]);
-  assert.deepEqual([first.rows[0].rank,second.rows[0].rank,third.rows.at(-1).rank],[1,31,65]);
+  assert.deepEqual([first.rows.length,second.rows.length,third.rows.length], [100,100,5]);
+  assert.deepEqual([first.rows[0].rank,second.rows[0].rank,third.rows.at(-1).rank],[1,101,205]);
   assert.equal(third.nextAfter, null);
   assert.deepEqual(requests, [
-    'limit=30', 'limit=30&version=21&after=30', 'limit=30&version=21&after=60',
+    'limit=100', 'limit=100&version=21&after=100', 'limit=100&version=21&after=200',
   ]);
   assert.equal((await reader.ranking()).rows.length,30);
+  assert.equal(requests.at(-1), 'limit=30');
+});
+
+test('detail ranking rejects oversized pages beyond the 100-name server contract', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  const reader = createReader(async raw => Response.json(String(raw).endsWith('release.json') ? release :
+    {ok:true,version:11,restarted:false,rows:Array.from({length:101},(_,i)=>row(i+1)),nextAfter:null}));
+  await assert.rejects(reader.rankingPage(), /形式/);
 });
 
 test('detail ranking refreshes when the pinned version expires', async () => {
