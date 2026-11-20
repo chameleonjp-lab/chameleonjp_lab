@@ -288,6 +288,7 @@ body.theme-chameleol-hof #hallRanking .hof-title-tag {
   color: var(--gold-light);
   font-size: 12px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 body.theme-chameleol-hof #hallRanking .rank-score {
   display: block;
@@ -382,7 +383,7 @@ body.theme-chameleol-hof .hof-dialog-title {
 }
 body.theme-chameleol-hof .hof-dialog-number { margin: 7px 0; font-size: 17px; color: var(--gold-light); font-weight: 900; }
 body.theme-chameleol-hof .hof-dialog-name { margin: 14px auto; font-size: clamp(20px, 6vw, 28px); font-weight: 900; overflow-wrap: anywhere; }
-body.theme-chameleol-hof .hof-dialog-caption { margin: 7px 0 14px; font-size: 13px; color: var(--hof-text-sub); }
+body.theme-chameleol-hof .hof-dialog-caption { margin: 7px 0 14px; font-size: 13px; color: var(--hof-text-sub); overflow-wrap: anywhere; }
 body.theme-chameleol-hof .hof-dialog-actions { display: grid; gap: 9px; max-width: 350px; margin: 18px auto 0; }
 body.theme-chameleol-hof .hof-dialog-actions button {
   min-height: 46px;

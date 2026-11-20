@@ -8,16 +8,24 @@ const gameUrl = 'https://chameleonjp-lab.github.io/chameleol/';
 const release = {env: 'production', rankingApi: 'https://verified.example.test/functions/v1/kamereoru'};
 const row = (i, rank = i) => ({position:i, rank, buildings:50, average:8000, name:'A' + i});
 
-test('Hall of Fame decoration treats first three entrants identically', async () => {
-  const {getHofRankMeta} = await import('../chameleol-hof.js');
-  for (const ordinal of [1,2,3,4,9,11,26,99,101]) {
-    assert.deepEqual(getHofRankMeta(ordinal), {
-      title:'50棟完全踏破・殿堂入り怪盗', gem:'emerald', tier:'standard', badge:'',
+test('Hall of Fame titles are unique 1–300 and have identical visual ranks', async () => {
+  const {getHofRankMeta, HOF_TITLES} = await import('../chameleol-hof.js');
+  const source = await file('docs/chameleol-hof-1-300-title-proposals.md');
+  const rows = [...source.matchAll(/^\|\s*(\d+)号\s*\|\s*([^|]+?)\s*\|/gm)]
+    .map(match => [Number(match[1]), match[2].trim()]);
+  assert.equal(rows.length, 300);
+  assert.equal(HOF_TITLES.length, 300);
+  assert.equal(new Set(HOF_TITLES).size, 300);
+  for (let i = 0; i < rows.length; i++) {
+    assert.equal(rows[i][0], i + 1);
+    assert.equal(HOF_TITLES[i], rows[i][1], 'Title must match the adopted source document');
+    assert.deepEqual(getHofRankMeta(i + 1), {
+      title: rows[i][1], gem:'emerald', tier:'standard', badge:'',
     });
   }
-  for (const ordinal of [10,25,50,100,200]) {
+  for (const ordinal of [0,301,302]) {
     assert.deepEqual(getHofRankMeta(ordinal), {
-      title:'50棟完全踏破・殿堂入り怪盗', gem:'sapphire', tier:'standard', badge:'記念キリ番',
+      title:'50棟完全踏破・殿堂入り怪盗', gem:'emerald', tier:'standard', badge:'',
     });
   }
 });
