@@ -351,7 +351,7 @@ export function createHallOfFameView({ panel, container }) {
       plate.type = 'button';
       plate.dataset.ordinal = String(entry.ordinal);
       plate.setAttribute('aria-label', '第' + entry.ordinal + '号 ' + entry.name +
-        ' 最高一致率' + percent(entry.average) + 'の認定証を見る');
+        ' 称号 ' + meta.title + ' 最高一致率' + percent(entry.average) + 'の認定証を見る');
       const index = node('span', 'rank-no hof-ordinal', entry.ordinal.toLocaleString('ja-JP') + '人目');
       const body = node('span', 'hof-card-body');
       const player = node('bdi', 'rank-name', entry.name);
