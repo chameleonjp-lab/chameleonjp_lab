@@ -252,6 +252,10 @@
       margin-top: 16px;
     }
 
+    .stats.stats-chameleol {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .stat-box {
       min-width: 0;
       padding: 12px;
@@ -611,7 +615,8 @@
         border-radius: 20px;
       }
 
-      .stats {
+      .stats,
+      .stats.stats-chameleol {
         grid-template-columns: 1fr;
       }
 
@@ -2467,13 +2472,17 @@
             <span class="badge ready">ランキング自動確認</span>
           </div>
 
-          <div class="stats" aria-label="${escapeHtml(page.title)}の集計">
+          <div class="stats${chameleol ? " stats-chameleol" : ""}" aria-label="${escapeHtml(page.title)}の集計">
             <div class="stat-box">
-              <span class="stat-label">${chameleol ? "延べプレイ回数" : "合計プレイ回数"}</span>
+              <span class="stat-label">${chameleol ? "プレイ回数" : "合計プレイ回数"}</span>
               <span class="stat-value" id="totalPlayCount">読み込み中</span>
             </div>
+            ${chameleol ? `<div class="stat-box">
+              <span class="stat-label">ランキング参加者</span>
+              <span class="stat-value" id="rankingParticipantCount">読み込み中</span>
+            </div>` : ""}
             <div class="stat-box">
-              <span class="stat-label">${chameleol ? "初クリア人数（登録名単位）" : "参加人数"}</span>
+              <span class="stat-label">${chameleol ? "50棟クリア人数（殿堂入り）" : "参加人数"}</span>
               <span class="stat-value" id="playerCount">読み込み中</span>
             </div>
           </div>
@@ -2664,23 +2673,43 @@
       if (unregisteredEl) unregisteredEl.textContent = "名前未登録のプレイ回数を取得できませんでした。";
     }
 
+    async function loadRankingParticipantCount(reader, showRetry, clearerCount, token) {
+      const element = document.getElementById("rankingParticipantCount");
+      if (!element || token !== currentLoadToken) return;
+      element.textContent = "読み込み中";
+      try {
+        const count = await reader.rankingParticipantCount(clearerCount);
+        if (token === currentLoadToken && element.isConnected) {
+          element.textContent = formatNumber(count) + "人";
+        }
+      } catch {
+        if (token === currentLoadToken && element.isConnected) {
+          showRetry(element, () => loadRankingParticipantCount(reader, showRetry, clearerCount, token));
+        }
+      }
+    }
+
     async function loadStats(game, token) {
       const totalPlayCountEl = document.getElementById("totalPlayCount");
       const playerCountEl = document.getElementById("playerCount");
 
       if (game.slug === "chameleol") {
         const { reader, showRetry } = await import("./chameleol-ranking.js?v=20261120-best100-hofmotion");
-        totalPlayCountEl.textContent = playerCountEl.textContent = "読み込み中";
+        const participantsEl = document.getElementById("rankingParticipantCount");
+        totalPlayCountEl.textContent = playerCountEl.textContent = participantsEl.textContent = "読み込み中";
         try {
           const stats = await reader.stats();
           if (token !== currentLoadToken) return;
           totalPlayCountEl.textContent = formatNumber(stats.totalPlayCount) + "回";
           playerCountEl.textContent = formatNumber(stats.clearerCount) + "人";
+          // Keep the other two metrics visible if the ranking metadata request fails.
+          void loadRankingParticipantCount(reader, showRetry, stats.clearerCount, token);
           return stats;
         } catch {
           if (token === currentLoadToken) {
             showRetry(totalPlayCountEl, () => loadStats(game, token));
             playerCountEl.textContent = "取得できませんでした";
+            participantsEl.textContent = "取得できませんでした";
           }
           return null;
         }

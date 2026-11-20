@@ -54,6 +54,7 @@ for (const engine of [chromium, webkit]) {
     const calls = [];
     const errors = [];
     let failNextStats = true;
+    let failNextParticipantCount = true;
     let rankingRows = acceptanceRows;
     let hallRows = null;
     let totalPlays = 4;
@@ -99,6 +100,14 @@ for (const engine of [chromium, webkit]) {
         return route.fulfill({json:{ok:true,totalPlays,clearerCount:rankingRows === acceptanceRows ? 1 : rankingRows.length}});
       }
       if (url.href.startsWith(api+'/ranking?')) {
+        if (url.searchParams.get('limit') === '1') {
+          if (failNextParticipantCount) {
+            failNextParticipantCount = false;
+            return route.fulfill({status:503});
+          }
+          // The normal ranking excludes Hall members in the deployed database.
+          return route.fulfill({json:{ok:true,nameCount:rankingRows === acceptanceRows ? 1 : rankingRows.length}});
+        }
         const after = Number(url.searchParams.get('after') || 0);
         const limit = Number(url.searchParams.get('limit'));
         if (after) assert.equal(url.searchParams.get('version'),'17');
@@ -151,13 +160,19 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('#bestRanking .rank-name').first().textContent(), 'A<&>',
       'Language switching must never translate player names');
     assert.equal(await page.locator('#totalPlayCount').textContent(), '4 plays');
+    assert.equal(await page.getByText('Leaderboard participants',{exact:true}).count(), 1);
     await page.locator('#labLanguageSelect').selectOption('ja');
     await page.waitForFunction(() => document.querySelector('#totalPlayCount')?.textContent === '4回');
     assert.equal(await page.locator('#bestRanking .rank-score').first().textContent(), '50棟 · 99.99%');
     assert.equal(await page.locator('#bestRanking').getAttribute('data-version'),'17');
     assert.equal(await page.locator('#totalPlayCount').textContent(),'4回');
     assert.equal(await page.locator('#playerCount').textContent(),'1人');
-    assert.equal(await page.getByText('初クリア人数（登録名単位）',{exact:true}).count(),1);
+    assert.deepEqual(await page.locator('.stats .stat-label').allTextContents(),
+      ['プレイ回数','ランキング参加者','50棟クリア人数（殿堂入り）']);
+    await page.locator('#rankingParticipantCount').getByRole('button',{name:'再試行'}).click();
+    await page.waitForFunction(() => document.querySelector('#rankingParticipantCount')?.textContent === '2人');
+    assert.equal(await page.locator('#totalPlayCount').textContent(),'4回');
+    assert.equal(await page.locator('#playerCount').textContent(),'1人');
     assert.equal(await page.getByRole('tab').count(),2);
     assert.equal(await page.locator('#hallTab .hall-tab-crown[aria-hidden="true"]').count(), 1);
     assert.equal(await page.locator('#hallTab').evaluate(el => getComputedStyle(el).borderTopWidth), '2px');
@@ -298,6 +313,8 @@ for (const engine of [chromium, webkit]) {
     await page.reload();
     await page.locator('#bestRanking').getByText('まだ記録がありません').waitFor();
     assert.equal(await page.locator('#totalPlayCount').textContent(),'0回');
+    await page.waitForFunction(() => document.querySelector('#rankingParticipantCount')?.textContent === '0人');
+    assert.equal(await page.locator('#playerCount').textContent(),'0人');
     await page.getByRole('tab', {name:'殿堂入り'}).click();
     await page.getByText('まだ殿堂入りした方はいません').waitFor();
     await page.locator('#hallRanking').evaluate(el => el.scrollIntoView({block:'center'}));
