@@ -192,6 +192,18 @@ body.theme-chameleol-hof #hallRanking .hof-plate:focus-visible {
   border-color: var(--gold-light);
   box-shadow: inset 0 1px 0 rgba(255,243,176,.16), 0 9px 24px rgba(229,184,75,.16);
 }
+/* Always-visible fallback for Safari's canvas resource limits. */
+body.theme-chameleol-hof #hallPanel.hof-celebrating {
+  border-color: var(--gold-light);
+  box-shadow: inset 0 0 0 1px rgba(255,243,176,.22), 0 0 30px rgba(229,184,75,.20);
+}
+body.theme-chameleol-hof #hallRanking .hof-plate.hof-salute {
+  position: relative;
+  z-index: 1;
+  animation: hof-card-salute 2.7s ease-out 1;
+  border-color: var(--gold-light);
+}
+
 body.theme-chameleol-hof #hallRanking .hof-plate:focus-visible,
 body.theme-chameleol-hof .hof-emblem:focus-visible,
 body.theme-chameleol-hof .hof-dialog button:focus-visible {
@@ -362,6 +374,11 @@ body.theme-chameleol-hof .hof-toast {
   from { transform: scale(.65); opacity:.12; }
   to { transform: scale(1.2); opacity:.75; }
 }
+@keyframes hof-card-salute {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255,243,176,.13), 0 7px 18px rgba(0,0,0,.2); }
+  18%, 46% { box-shadow: inset 0 0 0 2px var(--gold-light), 0 0 28px rgba(255,243,176,.58); }
+  74% { box-shadow: inset 0 0 0 1px var(--gold-mid), 0 0 14px rgba(229,184,75,.28); }
+}
 @media (max-width: 390px) {
   body.theme-chameleol-hof #hallPanel { padding: 14px; border-radius:16px; }
   body.theme-chameleol-hof #hallRanking .hof-plate { grid-template-columns: 1fr; gap:4px; }
@@ -369,7 +386,8 @@ body.theme-chameleol-hof .hof-toast {
 }
 @media (prefers-reduced-motion: reduce) {
   body.theme-chameleol-hof .hof-sparkle,
-  body.theme-chameleol-hof .hof-shimmer::after { animation: none !important; }
+  body.theme-chameleol-hof .hof-shimmer::after,
+  body.theme-chameleol-hof #hallRanking .hof-plate.hof-salute { animation: none !important; }
   body.theme-chameleol-hof #hallRanking .hof-pending { opacity:1 !important; transform:none !important; }
   body.theme-chameleol-hof #hallRanking .hof-plate,
   body.theme-chameleol-hof #hallMore,

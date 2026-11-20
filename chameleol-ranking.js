@@ -76,22 +76,23 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     } while (true);
     return {version, rows: [...rows.values()]};
   }
-  // Detail rankings continue through all positions. Retain the same API source
-  // and ranking version while reading the next page.
+  // The game preview stays at top 30; the experiment lab detail reads 100 at a time.
+  const detailPageSize = 100;
+  // Retain the same API source and ranking version while reading the next page.
   async function rankingPage(previous = null) {
     if (previous && (!integer(previous.version, 0) ||
         !integer(previous.nextAfter, 1) || typeof previous.base !== 'string')) {
       throw new Error('順位表の続き位置が無効です');
     }
     const base = previous ? previous.base : await currentBase();
-    const query = new URLSearchParams({limit: '30'});
+    const query = new URLSearchParams({limit: String(detailPageSize)});
     if (previous) {
       query.set('version', String(previous.version));
       query.set('after', String(previous.nextAfter));
     }
     const page = await read(base, 'ranking?' + query);
     const {version, rows, nextAfter, restarted} = page;
-    if (!integer(version, 0) || !Array.isArray(rows) || rows.length > 30 ||
+    if (!integer(version, 0) || !Array.isArray(rows) || rows.length > detailPageSize ||
         typeof restarted !== 'boolean' ||
         (previous && restarted !== (version !== previous.version))) {
       throw new Error('順位表の形式が無効です');

@@ -9,7 +9,7 @@
   />
   <link rel="icon" href="IMG_7589.JPG" type="image/jpeg" />
   <link rel="apple-touch-icon" href="IMG_7589.JPG" />
-  <link rel="stylesheet" href="./chameleol-hof.css?v=20261120-hof-center" />
+  <link rel="stylesheet" href="./chameleol-hof.css?v=20261120-best100-hofmotion" />
   <title>詳細ランキング｜カメレオンJPの実験場</title>
 
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2527,7 +2527,7 @@
             <div class="ranking-list" id="bestRanking" aria-live="polite">
               <div class="loading">${escapeHtml(bestLabel)}ランキングを読み込み中です</div>
             </div>
-            ${chameleol ? '<button class="button secondary" id="bestMore" type="button" hidden>次の30名を表示</button>' : ""}
+            ${chameleol ? '<button class="button secondary" id="bestMore" type="button" hidden>次の100名を表示</button>' : ""}
           </section>
           ${chameleol ? `
             <section class="ranking-card" id="hallPanel" role="tabpanel" aria-labelledby="hallTab" hidden>
@@ -2595,7 +2595,7 @@
         for (const id of ["firstTab", "firstPanel", "playsTab", "playsPanel", "disqualifiedSection"]) {
           document.getElementById(id).remove();
         }
-        document.querySelector("#bestPanel .ranking-sub").textContent = "殿堂入りしていない登録名の自己ベストを、クリア棟数・平均一致度の順で表示します。31位以降も30名ずつ追加して閲覧できます。";
+        document.querySelector("#bestPanel .ranking-sub").textContent = "殿堂入りしていない登録名の自己ベストを、クリア棟数・平均一致度の順で表示します。101位以降も100名ずつ追加して閲覧できます。";
       }
 
       document.getElementById("shareButton").addEventListener("click", () => {
@@ -2659,7 +2659,7 @@
       const playerCountEl = document.getElementById("playerCount");
 
       if (game.slug === "chameleol") {
-        const { reader, showRetry } = await import("./chameleol-ranking.js?v=20261120-hall-best");
+        const { reader, showRetry } = await import("./chameleol-ranking.js?v=20261120-best100-hofmotion");
         totalPlayCountEl.textContent = playerCountEl.textContent = "読み込み中";
         try {
           const stats = await reader.stats();
@@ -2930,8 +2930,8 @@
           { reader, renderRanking, showRetry },
           { createHallOfFameView }
         ] = await Promise.all([
-          import("./chameleol-ranking.js?v=20261120-hall-best"),
-          import("./chameleol-hof.js?v=20261120-hof-center")
+          import("./chameleol-ranking.js?v=20261120-best100-hofmotion"),
+          import("./chameleol-hof.js?v=20261120-best100-hofmotion")
         ]);
         if (token !== currentLoadToken) return;
         const hall = document.getElementById("hallRanking");
@@ -2970,7 +2970,7 @@
             renderRanking(bestRankingEl, next, bestPage !== null);
             bestPage = next;
             bestMore.hidden = next.nextAfter === null;
-            bestMore.textContent = "次の30名を表示";
+            bestMore.textContent = "次の100名を表示";
           } catch {
             if (token !== currentLoadToken) return;
             if (bestPage) bestMore.textContent = "再試行";

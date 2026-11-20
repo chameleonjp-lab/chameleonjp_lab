@@ -141,9 +141,18 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('#hofSearch').count(), 0, 'Hall should not ask for a name');
     assert.equal(await page.locator('.hof-firework').count(), 0, 'there is no manual fireworks button');
     // A confirmed Hall entry, not the header or tab switch, triggers the one-off salute.
-    await page.locator('#hallRanking').evaluate(el => el.scrollIntoView({block:'center'}));
+    await page.locator('#hallRanking .hof-plate').first().evaluate(el => el.scrollIntoView({block:'center'}));
     await page.waitForFunction(() => document.querySelector('#hallPanel')?.dataset.hofCelebrated === 'true');
     assert.equal(await page.locator('canvas.hof-particles').count(), 1);
+    assert.equal(await page.locator('#hallPanel').getAttribute('data-hof-particles'),'playing');
+    await page.waitForFunction(() => {
+      const canvas = document.querySelector('canvas.hof-particles');
+      if (!canvas) return false;
+      const pixels = canvas.getContext('2d')?.getImageData(0, 0, canvas.width, canvas.height).data;
+      if (!pixels) return false;
+      for (let i = 3; i < pixels.length; i += 4) if (pixels[i] > 0) return true;
+      return false;
+    }, null, {timeout:2500});
     await page.locator('#hallRanking .hof-plate').first().click();
     assert.equal(await page.locator('.hof-dialog[role="dialog"][aria-modal="true"]').count(), 1);
     assert.equal(await page.locator('.hof-dialog-number').textContent(), '第1号 殿堂入り');
@@ -210,29 +219,43 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('.hof-firework').count(), 0);
     assert.equal(await page.locator('#hallPanel').getAttribute('data-hof-celebrated'), 'true',
       'tab changes must not repeat the celebration');
+    // iPhone-size viewport: honour reduced motion, but resume on a motion setting change.
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await page.reload();
+    await page.getByRole('tab',{name:'殿堂入り'}).click();
+    await page.waitForFunction(() => document.querySelectorAll('#hallRanking .hof-plate').length === 50);
+    await page.locator('#hallRanking .hof-plate').first().evaluate(el => el.scrollIntoView({block:'center'}));
+    await page.waitForTimeout(100);
+    assert.equal(await page.locator('#hallPanel').getAttribute('data-hof-celebrated'),null);
+    assert.equal(await page.locator('canvas.hof-particles').count(),0);
+    await page.emulateMedia({reducedMotion:'no-preference'});
+    await page.evaluate(() => window.dispatchEvent(new Event('scroll')));
+    await page.waitForFunction(() => document.querySelector('#hallPanel')?.dataset.hofCelebrated === 'true');
+    assert.equal(await page.locator('canvas.hof-particles').count(),1);
+    assert.equal(await page.locator('#hallPanel').getAttribute('data-hof-particles'),'playing');
     await page.setViewportSize({width:1280,height:800});
     hallRows = null;
 
     rankingRows = boundaryRows;
     totalPlays = 42;
     await page.reload();
-    await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 30);
-    await page.getByRole('button', {name:'次の30名を表示'}).click();
     await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 32);
     assert.equal(await page.locator('#bestRanking .rank-no').last().textContent(),'30位');
+    assert.equal(await page.locator('#bestMore').isVisible(), false);
 
-    // Detail view must expose all positions, while the game overview remains top 30.
-    rankingRows = Array.from({length:65}, (_,i) => ({
+    // The experiment lab shows 100 at a time; the game overview still stops at rank 30.
+    rankingRows = Array.from({length:205}, (_,i) => ({
       position:i+1, rank:i+1, name:'全件' + (i+1), buildings:50, average:10000-i,
     }));
     await page.reload();
-    await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 30);
-    await page.getByRole('button', {name:'次の30名を表示'}).click();
-    await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 60);
-    await page.getByRole('button', {name:'次の30名を表示'}).click();
-    await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 65);
-    assert.equal(await page.locator('#bestRanking .rank-no').last().textContent(),'65位');
-    assert.equal(await page.locator('#bestRanking .rank-name').nth(30).textContent(),'全件31');
+    await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 100);
+    assert.equal(await page.locator('#bestRanking .rank-name').nth(99).textContent(),'全件100');
+    await page.getByRole('button', {name:'次の100名を表示'}).click();
+    await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 200);
+    await page.getByRole('button', {name:'次の100名を表示'}).click();
+    await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 205);
+    assert.equal(await page.locator('#bestRanking .rank-no').last().textContent(),'205位');
+    assert.equal(await page.locator('#bestRanking .rank-name').nth(100).textContent(),'全件101');
     assert.equal(await page.locator('#bestMore').isVisible(),false);
 
     rankingRows = [];
