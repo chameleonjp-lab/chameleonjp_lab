@@ -72,6 +72,57 @@ test('reads official stats and all ties at rank 30 with pinned version', async (
   assert.equal(requests.filter(x=>x.pathname.endsWith('release.json')).length,2);
 });
 
+test('detail ranking pages reach every player past rank 30; game preview stays limited', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  const requests = [];
+  const names = Array.from({length:65}, (_,i)=>row(i+1));
+  const reader = createReader(async raw => {
+    const url = new URL(raw);
+    if (url.href === gameUrl+'release.json') return Response.json(release);
+    assert.equal(url.pathname, '/functions/v1/kamereoru/ranking');
+    requests.push(url.searchParams.toString());
+    const after = Number(url.searchParams.get('after') || 0);
+    const selected = names.slice(after, after+30);
+    return Response.json({ok:true,version:21,restarted:false,rows:selected,
+      nextAfter:after+30 < names.length ? after+30 : null});
+  });
+  const first = await reader.rankingPage();
+  const second = await reader.rankingPage(first);
+  const third = await reader.rankingPage(second);
+  assert.deepEqual([first.rows.length,second.rows.length,third.rows.length], [30,30,5]);
+  assert.deepEqual([first.rows[0].rank,second.rows[0].rank,third.rows.at(-1).rank],[1,31,65]);
+  assert.equal(third.nextAfter, null);
+  assert.deepEqual(requests, [
+    'limit=30', 'limit=30&version=21&after=30', 'limit=30&version=21&after=60',
+  ]);
+  assert.equal((await reader.ranking()).rows.length,30);
+});
+
+test('detail ranking refreshes when the pinned version expires', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  const pages = [
+    {version:4,restarted:false,rows:[row(1)],nextAfter:1},
+    {version:5,restarted:true,rows:[{...row(1),name:'新しい順位表'}],nextAfter:1},
+    {version:5,restarted:false,rows:[row(2)],nextAfter:null},
+  ];
+  const reader = createReader(async raw => Response.json(String(raw).endsWith('release.json')
+    ? release : {ok:true,...pages.shift()}));
+  const first = await reader.rankingPage();
+  const restarted = await reader.rankingPage(first);
+  assert.equal(restarted.restarted,true);
+  assert.equal(restarted.rows[0].name,'新しい順位表');
+  const next = await reader.rankingPage(restarted);
+  assert.equal(next.rows[0].position,2);
+  assert.equal(next.nextAfter,null);
+});
+
+test('detail ranking rejects cursor inconsistencies to prevent duplicate players', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  const reader = createReader(async raw => Response.json(String(raw).endsWith('release.json')
+    ? release : {ok:true,version:1,restarted:false,rows:[row(1)],nextAfter:2}));
+  await assert.rejects(reader.rankingPage(), /続き位置/);
+});
+
 test('a standalone or verification release is retriable and supplies no data', async () => {
   const {createReader} = await import('../chameleol-ranking.js');
   let attempts = 0;
