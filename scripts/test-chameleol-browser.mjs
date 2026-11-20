@@ -219,6 +219,20 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('.hof-firework').count(), 0);
     assert.equal(await page.locator('#hallPanel').getAttribute('data-hof-celebrated'), 'true',
       'tab changes must not repeat the celebration');
+    // iPhone-size viewport: honour reduced motion, but resume on a motion setting change.
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await page.reload();
+    await page.getByRole('tab',{name:'殿堂入り'}).click();
+    await page.waitForFunction(() => document.querySelectorAll('#hallRanking .hof-plate').length === 50);
+    await page.locator('#hallRanking .hof-plate').first().evaluate(el => el.scrollIntoView({block:'center'}));
+    await page.waitForTimeout(100);
+    assert.equal(await page.locator('#hallPanel').getAttribute('data-hof-celebrated'),null);
+    assert.equal(await page.locator('canvas.hof-particles').count(),0);
+    await page.emulateMedia({reducedMotion:'no-preference'});
+    await page.evaluate(() => window.dispatchEvent(new Event('scroll')));
+    await page.waitForFunction(() => document.querySelector('#hallPanel')?.dataset.hofCelebrated === 'true');
+    assert.equal(await page.locator('canvas.hof-particles').count(),1);
+    assert.equal(await page.locator('#hallPanel').getAttribute('data-hof-particles'),'playing');
     await page.setViewportSize({width:1280,height:800});
     hallRows = null;
 
