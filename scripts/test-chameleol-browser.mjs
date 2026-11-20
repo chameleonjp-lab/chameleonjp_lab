@@ -130,7 +130,11 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('#playerCount').textContent(),'1人');
     assert.equal(await page.getByText('初クリア人数（登録名単位）',{exact:true}).count(),1);
     assert.equal(await page.getByRole('tab').count(),2);
+    assert.equal(await page.locator('#hallTab .hall-tab-crown[aria-hidden="true"]').count(), 1);
+    assert.equal(await page.locator('#hallTab').evaluate(el => getComputedStyle(el).borderTopWidth), '2px');
+    assert.equal(await page.locator('#hallTab').evaluate(el => getComputedStyle(el).borderTopColor), 'rgb(229, 184, 75)');
     await page.getByRole('tab', {name:'殿堂入り'}).click();
+    assert.equal(await page.locator('#hallTab').getAttribute('aria-selected'),'true');
     await page.locator('#hallRanking .rank-row').first().waitFor();
     assert.equal(await page.getByRole('heading', {name:'殿堂入り-50棟完全クリア者一覧-'}).count(), 1);
     assert.equal(await page.locator('.hof-title-main').textContent(), '殿堂入り');
