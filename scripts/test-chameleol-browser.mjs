@@ -143,6 +143,15 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('.hof-dialog[role="dialog"][aria-modal="true"]').count(), 1);
     assert.equal(await page.locator('.hof-dialog-number').textContent(), '第1号 殿堂入り');
     assert.equal(await page.locator('.hof-dialog-name').textContent(), '最初の<クリア>');
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable:true, value:{writeText: async value => { window.__hofCopiedShare = value; }},
+      });
+    });
+    await page.locator('.hof-dialog').getByRole('button',{name:'SNSシェア文をコピー'}).click();
+    await page.waitForFunction(() => typeof window.__hofCopiedShare === 'string');
+    assert.match(await page.evaluate(() => window.__hofCopiedShare), /第1号として殿堂入り/);
+    assert.match(await page.evaluate(() => window.__hofCopiedShare), /ranking\.html\?game=chameleol/);
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('.hof-modal-backdrop').isVisible(), false);
     await page.locator('#hofEmblem').click();
@@ -191,9 +200,7 @@ for (const engine of [chromium, webkit]) {
     await page.locator('#hofSearch').fill('完走者101');
     await page.waitForFunction(() => document.querySelector('.hof-spotlight')?.dataset.ordinal === '101');
     assert.match(await page.locator('#hofSearchStatus').textContent(), /1件/);
-    await page.getByRole('tab',{name:'自己ベスト'}).click().catch(async () => {
-      await page.locator('#bestTab').click();
-    });
+    await page.locator('#bestTab').click();
     assert.equal(await page.locator('.hof-firework').isVisible(), false);
     await page.setViewportSize({width:1280,height:800});
     hallRows = null;
