@@ -41,11 +41,7 @@
     const urlLang = new URLSearchParams(location.search).get('lang');
     const explicitlyChosen = canonicalLocale(urlLang) || canonicalLocale(savedLocale());
     if (explicitlyChosen) return explicitlyChosen;
-    const browserLanguages = navigator.languages || [navigator.language];
-    for (const language of browserLanguages) {
-      const supported = canonicalLocale(language);
-      if (supported) return supported;
-    }
+    // Japanese remains the default; visitors choose their language explicitly.
     return 'ja';
   }
   let locale = firstLocale();
