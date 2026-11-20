@@ -2526,7 +2526,7 @@
           ${chameleol ? `
             <section class="ranking-card" id="hallPanel" role="tabpanel" aria-labelledby="hallTab" hidden>
               <h2 class="ranking-title">殿堂入り一覧</h2>
-              <p class="ranking-sub">名前を登録して50棟をクリアした方を、初クリアの番号順に表示します。</p>
+              <p class="ranking-sub">名前を登録して50棟をクリアした方を、初クリアの番号順に表示します。一致率は、その後の正式な50棟クリアの最高記録へ更新されます。</p>
               <div class="ranking-list" id="hallRanking" aria-live="polite">読み込み中</div>
               <button class="button secondary" id="hallMore" type="button" hidden>次の50件</button>
             </section>
@@ -2556,7 +2556,7 @@
         for (const id of ["firstTab", "firstPanel", "playsTab", "playsPanel", "disqualifiedSection"]) {
           document.getElementById(id).remove();
         }
-        document.querySelector("#bestPanel .ranking-sub").textContent = "登録名ごとの自己ベストを、クリア棟数・平均一致度の順で表示します。31位以降も30名ずつ追加して閲覧できます。";
+        document.querySelector("#bestPanel .ranking-sub").textContent = "殿堂入りしていない登録名の自己ベストを、クリア棟数・平均一致度の順で表示します。31位以降も30名ずつ追加して閲覧できます。";
       }
 
       document.getElementById("shareButton").addEventListener("click", () => {
@@ -2617,7 +2617,7 @@
       const playerCountEl = document.getElementById("playerCount");
 
       if (game.slug === "chameleol") {
-        const { reader, showRetry } = await import("./chameleol-ranking.js?v=20261120-detail-all");
+        const { reader, showRetry } = await import("./chameleol-ranking.js?v=20261120-hall-best");
         totalPlayCountEl.textContent = playerCountEl.textContent = "読み込み中";
         try {
           const stats = await reader.stats();
@@ -2884,7 +2884,7 @@
       const playsRankingEl = document.getElementById("playsRanking");
 
       if (game.slug === "chameleol") {
-        const { reader, renderRanking, renderHallOfFame, showRetry } = await import("./chameleol-ranking.js?v=20261120-detail-all");
+        const { reader, renderRanking, renderHallOfFame, showRetry } = await import("./chameleol-ranking.js?v=20261120-hall-best");
         if (token !== currentLoadToken) return;
         const hall = document.getElementById("hallRanking");
         const more = document.getElementById("hallMore");
