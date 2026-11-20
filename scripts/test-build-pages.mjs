@@ -7,11 +7,18 @@ import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 
 const script = fileURLToPath(new URL('./build-pages.mjs', import.meta.url));
-const files = ['index.html', 'ranking.html', 'terms.html', 'chameleol-ranking.js', 'chameleol-hof.css', 'chameleol-hof.js', 'IMG_7589.JPG', 'banner'];
+const rootFiles = ['index.html', 'ranking.html', 'terms.html', 'chameleol-ranking.js', 'chameleol-hof.css', 'chameleol-hof.js', 'IMG_7589.JPG', 'banner'];
+const translations = [
+  'common.js', 'ranking.js', 'games-1.js', 'games-2.js', 'games-3.js',
+  'extras.js', 'hall.js', 'terms-1.js', 'terms-2.js', 'terms-3.js',
+  'runtime.js', 'language.css'
+];
+const files = [...rootFiles, ...translations.map(file => 'i18n/' + file)];
 const sha = 'a'.repeat(40);
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'lab-pages-'));
   t.diagnostic(`Retained synthetic fixture: ${root}`);
+  await mkdir(join(root, 'i18n'));
   for (const file of files) await writeFile(join(root, file), `fixture:${file}`, { flag: 'wx' });
   return root;
 }
@@ -23,7 +30,7 @@ async function oldOutput(root) {
   await writeFile(join(root, 'dist/stale.js'), 'old build', { flag: 'wx' });
 }
 async function verify(root, commit = sha) {
-  assert.deepEqual((await readdir(join(root, 'dist'))).sort(), [...files, '.nojekyll', 'release.json'].sort());
+  assert.deepEqual((await readdir(join(root, 'dist'))).sort(), [...rootFiles, 'i18n', '.nojekyll', 'release.json'].sort());
   for (const file of files) assert.equal(await readFile(join(root, 'dist', file), 'utf8'), `fixture:${file}`);
   assert.deepEqual(JSON.parse(await readFile(join(root, 'dist/release.json'), 'utf8')), { commit });
 }
@@ -142,5 +149,5 @@ syncBuiltinESMExports();`, { flag: 'wx' });
   assert.equal(await readFile(join(root, backups[0], 'dist/stale.js'), 'utf8'), 'old build');
   const stages = (await readdir(root)).filter(n => n.startsWith('.lab-pages-build-'));
   assert.equal(stages.length, 1);
-  assert.deepEqual((await readdir(join(root, stages[0]))).sort(), [...files, '.nojekyll', 'release.json'].sort());
+  assert.deepEqual((await readdir(join(root, stages[0]))).sort(), [...rootFiles, 'i18n', '.nojekyll', 'release.json'].sort());
 });
