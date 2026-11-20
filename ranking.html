@@ -2931,7 +2931,7 @@
           { createHallOfFameView }
         ] = await Promise.all([
           import("./chameleol-ranking.js?v=20261120-best100-hofmotion"),
-          import("./chameleol-hof.js?v=20261120-best100-hofmotion")
+          import("./chameleol-hof.js?v=20261120-hof-titles-300")
         ]);
         if (token !== currentLoadToken) return;
         const hall = document.getElementById("hallRanking");
