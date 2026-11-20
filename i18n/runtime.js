@@ -99,6 +99,9 @@
     if ((m = source.match(/^(最高一致率|一致率)\s*([\d,.]+%)$/))) {
       return templatePart(m[1]) + ' ' + m[2];
     }
+    if ((m = source.match(/^([\d,.]+)棟\s*·\s*([\d,.]+%)$/))) {
+      return m[1] + ' ' + templatePart('棟') + ' · ' + m[2];
+    }
     if ((m = source.match(/^宝石の光：(.+)$/))) {
       return templatePart('宝石の光') + ': ' + templatePart(m[1]);
     }
