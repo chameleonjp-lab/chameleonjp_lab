@@ -135,8 +135,25 @@ for (const engine of [chromium, webkit]) {
     rankingRows = boundaryRows;
     totalPlays = 42;
     await page.reload();
+    await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 30);
+    await page.getByRole('button', {name:'次の30名を表示'}).click();
     await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 32);
     assert.equal(await page.locator('#bestRanking .rank-no').last().textContent(),'30位');
+
+    // Detail view must expose all positions, while the game overview remains top 30.
+    rankingRows = Array.from({length:65}, (_,i) => ({
+      position:i+1, rank:i+1, name:'全件' + (i+1), buildings:50, average:10000-i,
+    }));
+    await page.reload();
+    await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 30);
+    await page.getByRole('button', {name:'次の30名を表示'}).click();
+    await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 60);
+    await page.getByRole('button', {name:'次の30名を表示'}).click();
+    await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 65);
+    assert.equal(await page.locator('#bestRanking .rank-no').last().textContent(),'65位');
+    assert.equal(await page.locator('#bestRanking .rank-name').nth(30).textContent(),'全件31');
+    assert.equal(await page.locator('#bestMore').isVisible(),false);
+
     rankingRows = [];
     totalPlays = 0;
     await page.reload();
