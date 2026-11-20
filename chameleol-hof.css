@@ -1,0 +1,434 @@
+/* カメレオる専用：怪盗の秘宝殿堂。共通ランキングには適用しない。 */
+body.theme-chameleol-hof {
+  --hof-bg-deep: #07160e;
+  --hof-bg-glow: #123624;
+  --hof-card-bg: rgba(14, 40, 27, .90);
+  --gold-light: #fff3b0;
+  --gold-mid: #e5b84b;
+  --gold-dark: #9c6d14;
+  --hof-text-main: #f7f3e3;
+  --hof-text-sub: #c7d7ce;
+  --gem-diamond: #dff6ff;
+  --gem-ruby: #e0315a;
+  --gem-emerald: #2fd17a;
+  --gem-sapphire: #3b9eff;
+}
+body.theme-chameleol-hof.hof-active {
+  background:
+    radial-gradient(ellipse 80% 37% at 50% 0%, rgba(229,184,75,.12), transparent 75%),
+    radial-gradient(ellipse 90% 46% at 50% 10%, var(--hof-bg-glow), var(--hof-bg-deep) 80%);
+  color: var(--hof-text-main);
+}
+body.theme-chameleol-hof .hof-ceremony,
+body.theme-chameleol-hof #hallPanel {
+  min-width: 0;
+}
+body.theme-chameleol-hof #hallPanel {
+  --spotlight-tint: rgba(229,184,75,.18);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(229,184,75,.46);
+  border-radius: 22px;
+  padding: clamp(17px, 4vw, 34px);
+  background:
+    radial-gradient(ellipse 90% 45% at 50% 0%, var(--spotlight-tint), transparent 85%),
+    radial-gradient(ellipse 105% 65% at 50% 10%, var(--hof-bg-glow), var(--hof-bg-deep) 78%);
+  box-shadow: inset 0 0 0 1px rgba(255,243,176,.09), 0 20px 50px rgba(0,0,0,.24);
+}
+body.theme-chameleol-hof #hallPanel.hof-prism {
+  background:
+    radial-gradient(circle at 10% 8%, rgba(224,49,90,.16), transparent 34%),
+    radial-gradient(circle at 85% 20%, rgba(59,158,255,.14), transparent 32%),
+    radial-gradient(circle at 56% 2%, rgba(229,184,75,.19), transparent 38%),
+    radial-gradient(circle at 70% 50%, rgba(47,209,122,.12), transparent 40%),
+    var(--hof-bg-deep);
+}
+body.theme-chameleol-hof #hallPanel[hidden],
+body.theme-chameleol-hof .hof-modal-backdrop[hidden],
+body.theme-chameleol-hof .hof-toast[hidden],
+body.theme-chameleol-hof .hof-firework[hidden] {
+  display: none !important;
+}
+body.theme-chameleol-hof .hof-ceremony {
+  position: relative;
+  text-align: center;
+  margin: 0 auto 24px;
+  padding: 6px 0 20px;
+}
+body.theme-chameleol-hof .hof-title {
+  display: block;
+  margin: 12px 0 8px;
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro", serif;
+  font-size: clamp(29px, 6.3vw, 48px);
+  font-weight: 800;
+  line-height: 1.45;
+  letter-spacing: .075em;
+}
+body.theme-chameleol-hof .hof-gold-text,
+body.theme-chameleol-hof .hof-ordinal {
+  background: linear-gradient(175deg, #fffbe2 2%, var(--gold-light) 32%, var(--gold-mid) 56%, var(--gold-dark) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+body.theme-chameleol-hof .hof-emblem {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 100px;
+  height: 90px;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--gold-mid);
+  cursor: pointer;
+  filter: drop-shadow(0 4px 13px rgba(229,184,75,.32));
+  transition: transform .24s ease, filter .24s ease;
+}
+body.theme-chameleol-hof .hof-emblem svg { display: block; width: 100%; height: 100%; overflow: visible; }
+body.theme-chameleol-hof .hof-emblem:hover,
+body.theme-chameleol-hof .hof-emblem:focus-visible { transform: scale(1.055); filter: drop-shadow(0 5px 19px rgba(255,243,176,.55)); }
+body.theme-chameleol-hof .hof-ribbon {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  padding: 7px 21px;
+  border: 1px solid rgba(255,243,176,.5);
+  border-radius: 4px 4px 12px 12px;
+  background: linear-gradient(115deg, #9c6d14 0%, #e5b84b 36%, #fff3b0 52%, #d6a436 71%, #9c6d14 100%);
+  color: #162b1d;
+  font-size: 12px;
+  letter-spacing: .16em;
+  font-weight: 900;
+  box-shadow: 0 4px 16px rgba(229,184,75,.16), inset 0 1px 0 rgba(255,255,255,.5);
+}
+body.theme-chameleol-hof .hof-intro {
+  max-width: 36rem;
+  margin: 0 auto 6px;
+  color: var(--hof-text-main);
+  font-size: 14px;
+  line-height: 1.85;
+}
+body.theme-chameleol-hof .hof-subnote {
+  max-width: 36rem;
+  margin: 0 auto;
+  color: var(--hof-text-sub);
+  font-size: 12px;
+  line-height: 1.7;
+}
+body.theme-chameleol-hof .hof-sparkle {
+  position: absolute;
+  z-index: -1;
+  color: var(--gold-light);
+  opacity: .32;
+  pointer-events: none;
+  font-size: 16px;
+  animation: hof-twinkle 5s ease-in-out infinite alternate;
+}
+body.theme-chameleol-hof .hof-shimmer { position: relative; overflow: hidden; }
+body.theme-chameleol-hof .hof-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: -60% -100%;
+  background: linear-gradient(115deg, transparent 41%, rgba(255,248,210,.25) 50%, transparent 59%);
+  pointer-events: none;
+  transform: translateX(-100%);
+  animation: hof-shimmer 5.5s ease-in-out infinite;
+}
+body.theme-chameleol-hof .hof-search {
+  display: grid;
+  gap: 7px;
+  margin: 16px 0 23px;
+  padding: 14px;
+  border: 1px solid rgba(229,184,75,.32);
+  background: rgba(6,23,15,.64);
+  border-radius: 14px;
+}
+body.theme-chameleol-hof .hof-search label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--gold-light);
+  letter-spacing: .035em;
+}
+body.theme-chameleol-hof .hof-search input {
+  width: 100%;
+  max-width: 100%;
+  min-height: 46px;
+  border-radius: 11px;
+  border: 1px solid rgba(255,243,176,.45);
+  padding: 11px 13px;
+  background: rgba(10,36,24,.94);
+  color: var(--hof-text-main);
+  font-size: 16px;
+  -webkit-user-select: text;
+  user-select: text;
+  touch-action: auto;
+}
+body.theme-chameleol-hof .hof-search input::placeholder { color: #aabfb0; }
+body.theme-chameleol-hof .hof-search-status {
+  margin: 0;
+  min-height: 17px;
+  color: var(--hof-text-sub);
+  font-size: 12px;
+}
+body.theme-chameleol-hof #hallRanking {
+  display: grid;
+  gap: 17px;
+  min-width: 0;
+  font-size: 14px;
+}
+
+
+body.theme-chameleol-hof #hallRanking .hof-plate {
+  --hof-accent: var(--gold-mid);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(74px, auto) minmax(0,1fr);
+  align-items: center;
+  align-content: center;
+  gap: 13px;
+  width: 100%;
+  min-width: 0;
+  min-height: 106px;
+  margin: 0;
+  padding: 15px 17px;
+  border: 1px solid rgba(229,184,75,.47);
+  border-radius: 14px;
+  background:
+    linear-gradient(125deg, rgba(255,243,176,.09), transparent 45%),
+    var(--hof-card-bg);
+  color: var(--hof-text-main);
+  box-shadow: inset 0 1px 0 rgba(255,243,176,.13), 0 7px 18px rgba(0,0,0,.20);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  touch-action: manipulation;
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, opacity .4s ease;
+}
+body.theme-chameleol-hof #hallRanking .hof-plate:hover,
+body.theme-chameleol-hof #hallRanking .hof-plate:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--gold-light);
+  box-shadow: inset 0 1px 0 rgba(255,243,176,.16), 0 9px 24px rgba(229,184,75,.16);
+}
+body.theme-chameleol-hof #hallRanking .hof-plate:focus-visible,
+body.theme-chameleol-hof .hof-emblem:focus-visible,
+body.theme-chameleol-hof .hof-firework:focus-visible,
+body.theme-chameleol-hof .hof-dialog button:focus-visible {
+  outline: 3px solid var(--gold-light);
+  outline-offset: 3px;
+}
+
+
+
+
+
+body.theme-chameleol-hof #hallRanking .hof-ordinal { font-size: 15px; font-weight: 900; white-space: nowrap; }
+
+
+body.theme-chameleol-hof #hallRanking .hof-card-body {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  width: 100%;
+}
+body.theme-chameleol-hof #hallRanking .hof-plate .rank-name {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  font-size: clamp(16px, 2.9vw, 20px);
+  font-weight: 850;
+  color: var(--hof-text-main);
+  overflow-wrap: anywhere;
+  line-break: anywhere;
+  white-space: normal;
+  unicode-bidi: isolate;
+}
+
+body.theme-chameleol-hof #hallRanking .hof-title-tag {
+  display: block;
+  color: var(--gold-light);
+  font-size: 12px;
+  line-height: 1.5;
+}
+body.theme-chameleol-hof #hallRanking .rank-score {
+  display: block;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  color: var(--gold-light);
+  font-size: 14px;
+  white-space: normal;
+}
+body.theme-chameleol-hof #hallRanking .hof-medal {
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  background: rgba(47,209,122,.12);
+  border: 1px solid rgba(47,209,122,.5);
+  color: #d9ffe8;
+  overflow-wrap: anywhere;
+}
+body.theme-chameleol-hof #hallRanking .hof-medal.hof-milestone {
+  color: #e4f0ff;
+  border-color: rgba(59,158,255,.8);
+  background: rgba(59,158,255,.19);
+}
+
+
+body.theme-chameleol-hof #hallMore {
+  display: flex;
+  margin: 20px auto 0;
+  max-width: 350px;
+  width: 100%;
+  background: linear-gradient(140deg, #0c2519, #255a3b, #0a2317);
+  border: 1px solid var(--gold-mid);
+  color: var(--gold-light);
+  box-shadow: inset 0 1px 0 rgba(255,243,176,.15), 0 5px 16px rgba(0,0,0,.22);
+  position: relative;
+  overflow: hidden;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+body.theme-chameleol-hof #hallMore:hover,
+body.theme-chameleol-hof #hallMore:focus-visible {
+  border-color: var(--gold-light);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 19px rgba(229,184,75,.18);
+}
+body.theme-chameleol-hof #hallMore[hidden] { display:none !important; }
+body.theme-chameleol-hof #hallRanking .hof-pending { opacity: 0; transform: translateY(12px); }
+body.theme-chameleol-hof #hallRanking .hof-pending.is-visible { opacity:1; transform: translateY(0); }
+body.theme-chameleol-hof #hallRanking .hof-plate.hof-spotlight {
+  animation: hof-spotlight 3s ease-in-out 1;
+  border-color: var(--gold-light);
+}
+body.theme-chameleol-hof .hof-firework {
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 32;
+  display: inline-grid;
+  place-items: center;
+  min-height: 54px;
+  min-width: 112px;
+  padding: 10px 16px;
+  border: 2px solid var(--gold-mid);
+  border-radius: 999px;
+  background: linear-gradient(145deg, #153825, #255b3e 52%, #0b2619);
+  color: var(--gold-light);
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,243,176,.2);
+  transition: transform .18s ease;
+}
+body.theme-chameleol-hof .hof-firework:hover { transform: translateY(-2px); }
+body.theme-chameleol-hof .hof-particles {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: block;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+body.theme-chameleol-hof .hof-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 66;
+  background: rgba(1,9,5,.82);
+  display: grid;
+  place-items: center;
+  padding: 20px 13px;
+}
+body.theme-chameleol-hof.hof-modal-open { overflow: hidden; }
+body.theme-chameleol-hof .hof-dialog {
+  position: relative;
+  width: min(100%, 480px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  padding: clamp(22px, 6vw, 36px) 20px;
+  text-align: center;
+  border: 3px double var(--gold-light);
+  outline: 2px solid rgba(229,184,75,.6);
+  outline-offset: -9px;
+  border-radius: 17px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(229,184,75,.23), transparent 64%), linear-gradient(140deg,#133c29,#071b10);
+  color: var(--hof-text-main);
+  box-shadow: 0 12px 48px rgba(0,0,0,.58);
+}
+body.theme-chameleol-hof .hof-dialog-icon { font-size: 34px; display:block; }
+body.theme-chameleol-hof .hof-dialog-title {
+  margin: 5px 0 13px;
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+  font-size: clamp(20px, 5vw, 28px);
+  color: var(--gold-light);
+}
+body.theme-chameleol-hof .hof-dialog-number { margin: 7px 0; font-size: 17px; color: var(--gold-light); font-weight: 900; }
+body.theme-chameleol-hof .hof-dialog-name { margin: 14px auto; font-size: clamp(20px, 6vw, 28px); font-weight: 900; overflow-wrap: anywhere; }
+body.theme-chameleol-hof .hof-dialog-caption { margin: 7px 0 14px; font-size: 13px; color: var(--hof-text-sub); }
+body.theme-chameleol-hof .hof-dialog-actions { display: grid; gap: 9px; max-width: 350px; margin: 18px auto 0; }
+body.theme-chameleol-hof .hof-dialog-actions button {
+  min-height: 46px;
+  border-radius: 30px;
+  border: 1px solid var(--gold-mid);
+  background: linear-gradient(145deg,#13432c,#0b271a);
+  color: var(--gold-light);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+}
+body.theme-chameleol-hof .hof-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(86px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 78;
+  max-width: calc(100vw - 24px);
+  width: max-content;
+  padding: 9px 16px;
+  border: 1px solid var(--gold-mid);
+  border-radius: 12px;
+  background: #0b2518;
+  color: var(--hof-text-main);
+  font-size: 13px;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,.3);
+  overflow-wrap: anywhere;
+}
+@keyframes hof-shimmer {
+  0%, 64% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@keyframes hof-twinkle {
+  from { transform: scale(.65); opacity:.12; }
+  to { transform: scale(1.2); opacity:.75; }
+}
+@keyframes hof-spotlight {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255,243,176,.13), 0 7px 18px rgba(0,0,0,.2); }
+  25%, 65% { box-shadow: inset 0 0 0 2px var(--gold-light), 0 0 24px rgba(255,243,176,.5); }
+}
+
+@media (max-width: 390px) {
+  body.theme-chameleol-hof #hallPanel { padding: 14px; border-radius:16px; }
+  body.theme-chameleol-hof #hallRanking .hof-plate { grid-template-columns: 1fr; gap:4px; }
+  body.theme-chameleol-hof .hof-title { letter-spacing:.04em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.theme-chameleol-hof .hof-sparkle,
+  body.theme-chameleol-hof .hof-shimmer::after,
+  body.theme-chameleol-hof #hallRanking .hof-plate.hof-spotlight { animation: none !important; }
+  body.theme-chameleol-hof #hallRanking .hof-pending { opacity:1 !important; transform:none !important; }
+  body.theme-chameleol-hof #hallRanking .hof-plate,
+  body.theme-chameleol-hof #hallMore,
+  body.theme-chameleol-hof .hof-firework,
+  body.theme-chameleol-hof .hof-emblem { transition:none !important; }
+}

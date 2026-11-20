@@ -8,6 +8,20 @@ const gameUrl = 'https://chameleonjp-lab.github.io/chameleol/';
 const release = {env: 'production', rankingApi: 'https://verified.example.test/functions/v1/kamereoru'};
 const row = (i, rank = i) => ({position:i, rank, buildings:50, average:8000, name:'A' + i});
 
+test('Hall of Fame decoration treats first three entrants identically', async () => {
+  const {getHofRankMeta} = await import('../chameleol-hof.js');
+  for (const ordinal of [1,2,3,4,9,11,26,99,101]) {
+    assert.deepEqual(getHofRankMeta(ordinal), {
+      title:'50棟完全踏破・殿堂入り怪盗', gem:'emerald', tier:'standard', badge:'',
+    });
+  }
+  for (const ordinal of [10,25,50,100,200]) {
+    assert.deepEqual(getHofRankMeta(ordinal), {
+      title:'50棟完全踏破・殿堂入り怪盗', gem:'sapphire', tier:'standard', badge:'記念キリ番',
+    });
+  }
+});
+
 test('public.games registration matches the catalog, is repeatable, and preserves other rows', async () => {
   const catalog = JSON.parse(await file('catalog/games.json')).games;
   const entry = catalog.find(x => x.game_slug === 'chameleol');
@@ -70,6 +84,92 @@ test('reads official stats and all ties at rank 30 with pinned version', async (
   assert.equal(table.rows.length,32);
   assert.deepEqual(table.rows.slice(-3).map(x=>x.rank),[30,30,30]);
   assert.equal(requests.filter(x=>x.pathname.endsWith('release.json')).length,2);
+});
+
+test('detail ranking pages reach every player past rank 30; game preview stays limited', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  const requests = [];
+  const names = Array.from({length:65}, (_,i)=>row(i+1));
+  const reader = createReader(async raw => {
+    const url = new URL(raw);
+    if (url.href === gameUrl+'release.json') return Response.json(release);
+    assert.equal(url.pathname, '/functions/v1/kamereoru/ranking');
+    requests.push(url.searchParams.toString());
+    const after = Number(url.searchParams.get('after') || 0);
+    const selected = names.slice(after, after+30);
+    return Response.json({ok:true,version:21,restarted:false,rows:selected,
+      nextAfter:after+30 < names.length ? after+30 : null});
+  });
+  const first = await reader.rankingPage();
+  const second = await reader.rankingPage(first);
+  const third = await reader.rankingPage(second);
+  assert.deepEqual([first.rows.length,second.rows.length,third.rows.length], [30,30,5]);
+  assert.deepEqual([first.rows[0].rank,second.rows[0].rank,third.rows.at(-1).rank],[1,31,65]);
+  assert.equal(third.nextAfter, null);
+  assert.deepEqual(requests, [
+    'limit=30', 'limit=30&version=21&after=30', 'limit=30&version=21&after=60',
+  ]);
+  assert.equal((await reader.ranking()).rows.length,30);
+});
+
+test('detail ranking refreshes when the pinned version expires', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  const pages = [
+    {version:4,restarted:false,rows:[row(1)],nextAfter:1},
+    {version:5,restarted:true,rows:[{...row(1),name:'新しい順位表'}],nextAfter:1},
+    {version:5,restarted:false,rows:[row(2)],nextAfter:null},
+  ];
+  const reader = createReader(async raw => Response.json(String(raw).endsWith('release.json')
+    ? release : {ok:true,...pages.shift()}));
+  const first = await reader.rankingPage();
+  const restarted = await reader.rankingPage(first);
+  assert.equal(restarted.restarted,true);
+  assert.equal(restarted.rows[0].name,'新しい順位表');
+  const next = await reader.rankingPage(restarted);
+  assert.equal(next.rows[0].position,2);
+  assert.equal(next.nextAfter,null);
+});
+
+test('detail ranking rejects cursor inconsistencies to prevent duplicate players', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  const reader = createReader(async raw => Response.json(String(raw).endsWith('release.json')
+    ? release : {ok:true,version:1,restarted:false,rows:[row(1)],nextAfter:2}));
+  await assert.rejects(reader.rankingPage(), /続き位置/);
+});
+
+test('Hall of Fame validates best percentage, retained ordinal and refreshed version', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  let percent = 9235;
+  let version = 'a'.repeat(32);
+  const hits = [];
+  const reader = createReader(async raw => {
+    const url = new URL(raw);
+    if (url.href === gameUrl+'release.json') return Response.json(release);
+    assert.equal(url.pathname, '/functions/v1/kamereoru/hall-of-fame');
+    hits.push(url.searchParams.toString());
+    const requestOldVersion = url.searchParams.has('version') &&
+      url.searchParams.get('version') !== version;
+    return Response.json({ok:true,version,restarted:requestOldVersion,
+      rows: requestOldVersion || !url.searchParams.has('after')
+        ? [{ordinal:1,name:'完走者',average:percent}]
+        : [],
+      nextAfter:requestOldVersion || !url.searchParams.has('after') ? 1 : null});
+  });
+  const first = await reader.hallOfFame();
+  assert.deepEqual(first.rows,[{ordinal:1,name:'完走者',average:9235}]);
+  percent = 9655;
+  version = 'b'.repeat(32);
+  const updated = await reader.hallOfFame(first);
+  assert.equal(updated.restarted,true);
+  assert.deepEqual(updated.rows,[{ordinal:1,name:'完走者',average:9655}]);
+  assert.deepEqual(hits,['','version='+ 'a'.repeat(32) +'&after=1']);
+});
+
+test('Hall of Fame rejects missing and malformed matching percentages', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  const reader = createReader(async raw => Response.json(String(raw).endsWith('release.json')
+    ? release : {ok:true,version:'a'.repeat(32),rows:[{ordinal:1,name:'A'}],nextAfter:null,restarted:false}));
+  await assert.rejects(reader.hallOfFame(),/形式/);
 });
 
 test('a standalone or verification release is retriable and supplies no data', async () => {

@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 // Explicit allowlist: never publish repository metadata, tests, SQL or secrets.
-const files = ['index.html', 'ranking.html', 'terms.html', 'chameleol-ranking.js', 'IMG_7589.JPG', 'banner'];
+const files = ['index.html', 'ranking.html', 'terms.html', 'chameleol-ranking.js', 'chameleol-hof.css', 'chameleol-hof.js', 'IMG_7589.JPG', 'banner'];
 const commit = process.env.GITHUB_SHA || execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 if (!/^[a-f0-9]{40}$/.test(commit)) throw new Error('A full commit SHA is required');
 const root = process.cwd();

@@ -9,6 +9,7 @@
   />
   <link rel="icon" href="IMG_7589.JPG" type="image/jpeg" />
   <link rel="apple-touch-icon" href="IMG_7589.JPG" />
+  <link rel="stylesheet" href="./chameleol-hof.css?v=20261120-hof-equal" />
   <title>詳細ランキング｜カメレオンJPの実験場</title>
 
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -299,6 +300,10 @@
       color: var(--text-main);
       border: 1px solid var(--sub-button-border);
       box-shadow: none;
+    }
+
+    .button[hidden] {
+      display: none;
     }
 
     .button.disabled,
@@ -1932,6 +1937,7 @@
     const isKeyUnset = !hasSupabasePublishableKey();
     let supabaseClient = null;
     let currentLoadToken = 0;
+    let hofController = null;
 
     const pageTitleEl = document.getElementById("pageTitle");
     const pageLeadEl = document.getElementById("pageLead");
@@ -2429,6 +2435,10 @@
     }
 
     function renderBase(page, game) {
+      hofController?.dispose();
+      hofController = null;
+      document.body.classList.toggle("theme-chameleol-hof", game.slug === "chameleol");
+      document.body.classList.remove("hof-active");
       pageTitleEl.textContent = `${page.title} 詳細ランキング`;
       pageLeadEl.textContent = cleanText(game.description) || cleanText(page.description) || "ランキングを表示します。";
 
@@ -2514,16 +2524,55 @@
           <section class="ranking-card" id="bestPanel" role="tabpanel" aria-labelledby="bestTab" hidden>
             <h2 class="ranking-title">${escapeHtml(bestLabel)}ランキング</h2>
             <p class="ranking-sub">これまでに出した一番良い記録だけを表示します。</p>
-            <div class="ranking-list" id="bestRanking">
+            <div class="ranking-list" id="bestRanking" aria-live="polite">
               <div class="loading">${escapeHtml(bestLabel)}ランキングを読み込み中です</div>
             </div>
+            ${chameleol ? '<button class="button secondary" id="bestMore" type="button" hidden>次の30名を表示</button>' : ""}
           </section>
           ${chameleol ? `
             <section class="ranking-card" id="hallPanel" role="tabpanel" aria-labelledby="hallTab" hidden>
-              <h2 class="ranking-title">殿堂入り一覧</h2>
-              <p class="ranking-sub">名前を登録して50棟をクリアした方を、初クリアの番号順に表示します。</p>
+              <header class="hof-ceremony">
+                <button type="button" class="hof-emblem" id="hofEmblem" aria-label="宝石の光とカメレオンの色を切り替える">
+                  <svg viewBox="0 0 140 120" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <linearGradient id="hofMetal" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#fff3b0"/>
+                        <stop offset=".45" stop-color="#e5b84b"/>
+                        <stop offset="1" stop-color="#9c6d14"/>
+                      </linearGradient>
+                      <linearGradient id="hofEmerald" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#bbffda"/><stop offset="1" stop-color="#2fd17a"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M37 92C9 74 13 45 37 27M103 92c28-18 24-47 0-65" fill="none" stroke="url(#hofMetal)" stroke-width="3" stroke-linecap="round"/>
+                    <path d="M27 68l-14-5m17-6-14-8m18-4-9-10m12 39-11 1m87-7 14-5m-17-6 14-8m-18-4 9-10m-12 39 11 1" stroke="#e5b84b" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M45 27 53 39 70 20 87 39 95 27 93 52H47Z" fill="url(#hofMetal)" stroke="#fff3b0" stroke-width="1.5"/>
+                    <path d="M58 46h24M53 58h34" stroke="#fff3b0" stroke-width="2" opacity=".6"/>
+                    <path d="M70 50 88 70 70 90 52 70Z" fill="url(#hofEmerald)" stroke="#fff3b0" stroke-width="2"/>
+                    <path d="m70 52 7 18-7 18-7-18z" fill="#dff6ff" opacity=".43"/>
+                    <path d="M82 78c18 0 18-20 8-23-13-5-22 8-11 15 8 5 13-2 8-6" fill="none" stroke="#dff6ff" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="82" cy="60" r="2.5" fill="#07160e"/>
+                  </svg>
+                </button>
+                <div class="hof-ribbon hof-shimmer">祝・50棟完全制覇</div>
+                <h2 class="ranking-title hof-title hof-gold-text">殿堂入り-50棟完全クリア者一覧-</h2>
+                <p class="hof-intro">名前を登録して50棟をクリアした方を、初クリアの番号順に表示します。</p>
+                <p class="hof-subnote">一致率は、正式な50棟クリアの最高記録に更新されます。殿堂入りの番号は変わりません。</p>
+                <span class="hof-sparkle" aria-hidden="true" style="left:4%;top:16%;animation-delay:-1s">✦</span>
+                <span class="hof-sparkle" aria-hidden="true" style="left:18%;top:69%;animation-delay:-3s">✦</span>
+                <span class="hof-sparkle" aria-hidden="true" style="left:83%;top:13%;animation-delay:-2s">✦</span>
+                <span class="hof-sparkle" aria-hidden="true" style="left:95%;top:57%;animation-delay:-4s">✦</span>
+                <span class="hof-sparkle" aria-hidden="true" style="left:36%;top:5%;animation-delay:-2.6s">✦</span>
+                <span class="hof-sparkle" aria-hidden="true" style="left:73%;top:78%;animation-delay:-.5s">✦</span>
+                <span class="hof-sparkle" aria-hidden="true" style="left:8%;top:91%;animation-delay:-3.7s">✦</span>
+              </header>
+              <div class="hof-search">
+                <label for="hofSearch">自分の名前を探す（現在読み込んだ一覧から検索）</label>
+                <input id="hofSearch" type="search" placeholder="名前の一部を入力" autocomplete="off" maxlength="200" />
+                <p id="hofSearchStatus" class="hof-search-status" role="status" aria-live="polite"></p>
+              </div>
               <div class="ranking-list" id="hallRanking" aria-live="polite">読み込み中</div>
-              <button class="button secondary" id="hallMore" type="button" hidden>次の50件</button>
+              <button class="button secondary hof-shimmer" id="hallMore" type="button" hidden>次の50件</button>
             </section>
           ` : ''}
 
@@ -2551,7 +2600,7 @@
         for (const id of ["firstTab", "firstPanel", "playsTab", "playsPanel", "disqualifiedSection"]) {
           document.getElementById(id).remove();
         }
-        document.querySelector("#bestPanel .ranking-sub").textContent = "登録名ごとの自己ベスト。クリア棟数・平均一致度の順で、同率を含む30位まで表示します。";
+        document.querySelector("#bestPanel .ranking-sub").textContent = "殿堂入りしていない登録名の自己ベストを、クリア棟数・平均一致度の順で表示します。31位以降も30名ずつ追加して閲覧できます。";
       }
 
       document.getElementById("shareButton").addEventListener("click", () => {
@@ -2588,6 +2637,9 @@
         }
         if (panel) panel.hidden = !isActive;
       });
+      const hofSelected = activeTab === "hall" && document.body.classList.contains("theme-chameleol-hof");
+      document.body.classList.toggle("hof-active", hofSelected);
+      hofController?.onTabChange(hofSelected);
     }
 
     function setDetailStatsComingSoon(token) {
@@ -2612,7 +2664,7 @@
       const playerCountEl = document.getElementById("playerCount");
 
       if (game.slug === "chameleol") {
-        const { reader, showRetry } = await import("./chameleol-ranking.js");
+        const { reader, showRetry } = await import("./chameleol-ranking.js?v=20261120-hall-best");
         totalPlayCountEl.textContent = playerCountEl.textContent = "読み込み中";
         try {
           const stats = await reader.stats();
@@ -2879,17 +2931,25 @@
       const playsRankingEl = document.getElementById("playsRanking");
 
       if (game.slug === "chameleol") {
-        const { reader, renderRanking, renderHallOfFame, showRetry } = await import("./chameleol-ranking.js");
+        const [
+          { reader, renderRanking, showRetry },
+          { createHallOfFameView }
+        ] = await Promise.all([
+          import("./chameleol-ranking.js?v=20261120-hall-best"),
+          import("./chameleol-hof.js?v=20261120-hof-equal")
+        ]);
         if (token !== currentLoadToken) return;
         const hall = document.getElementById("hallRanking");
         const more = document.getElementById("hallMore");
+        hofController = createHallOfFameView({ panel: document.getElementById("hallPanel"), container: hall });
+        hofController.onTabChange(document.getElementById("hallTab")?.getAttribute("aria-selected") === "true");
         let hallPage = null;
         const loadHall = async () => {
           more.disabled = true;
           try {
             const next = await reader.hallOfFame(hallPage);
             if (token !== currentLoadToken) return;
-            renderHallOfFame(hall, next, hallPage !== null);
+            hofController.renderPage(next, hallPage !== null);
             hallPage = next;
             more.hidden = next.nextAfter === null;
             more.textContent = "次の50件";
@@ -2903,15 +2963,28 @@
         };
         more.addEventListener("click", loadHall);
         void loadHall();
+        const bestMore = document.getElementById("bestMore");
+        let bestPage = null;
         const loadBest = async () => {
-          bestRankingEl.textContent = "読み込み中";
+          if (bestMore.disabled) return;
+          bestMore.disabled = true;
+          if (!bestPage) bestRankingEl.textContent = "読み込み中";
           try {
-            const table = await reader.ranking();
-            if (token === currentLoadToken) renderRanking(bestRankingEl, table);
+            const next = await reader.rankingPage(bestPage);
+            if (token !== currentLoadToken) return;
+            renderRanking(bestRankingEl, next, bestPage !== null);
+            bestPage = next;
+            bestMore.hidden = next.nextAfter === null;
+            bestMore.textContent = "次の30名を表示";
           } catch {
-            if (token === currentLoadToken) showRetry(bestRankingEl, loadBest);
+            if (token !== currentLoadToken) return;
+            if (bestPage) bestMore.textContent = "再試行";
+            else showRetry(bestRankingEl, loadBest);
+          } finally {
+            bestMore.disabled = false;
           }
         };
+        bestMore.addEventListener("click", loadBest);
         await loadBest();
         return;
       }
