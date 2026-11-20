@@ -39,7 +39,10 @@ class CelebrationCanvas {
   constructor() {
     this.canvas = node('canvas', 'hof-particles');
     this.canvas.setAttribute('aria-hidden', 'true');
-    this.ctx = this.canvas.getContext('2d', { alpha: true });
+    // On some browsers Canvas may be unavailable under memory pressure.
+    // Keep the card-level CSS salute usable even when no 2D context is supplied.
+    try { this.ctx = this.canvas.getContext('2d', { alpha: true }); }
+    catch { this.ctx = null; }
     this.particles = [];
     this.maxParticles = 120;
     this.frame = null;
@@ -65,7 +68,7 @@ class CelebrationCanvas {
   }
 
   burst({ x = this.width / 2, y = this.height * .72, count = 30 } = {}) {
-    if (!this.ctx || this.destroyed || reducedMotion() || document.hidden) return;
+    if (!this.ctx || this.destroyed || reducedMotion() || document.hidden) return false;
     const actual = Math.max(0, Math.min(40, count));
     for (let i = 0; i < actual; i++) {
       const angle = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.35;
@@ -91,6 +94,7 @@ class CelebrationCanvas {
       this.lastTime = 0;
       this.frame = requestAnimationFrame(this.tick);
     }
+    return this.frame !== null;
   }
 
   tick(now) {
@@ -189,6 +193,7 @@ export function createHallOfFameView({ panel, container }) {
   let centerObserver = null;
   let centerFrame = null;
   let celebrated = false;
+  let celebrationTimer = null;
   let toastTimer = null;
   let lastFocused = null;
   let currentEntry = null;
@@ -209,22 +214,46 @@ export function createHallOfFameView({ panel, container }) {
     return celebration;
   }
 
-  // Fire once per page visit, only after a verified Hall entry occupies the
-  // vertical centre of the visible screen. No button or automatic tab-open burst.
+  // Use the real displayed player plates, not the potentially thousands-of-pixels
+  // tall ranking container. The visual viewport accounts for Safari's moving bars.
+  // Both observation and scroll/resize checks are kept for iPhone compatibility.
   function checkCenter() {
-    if (!active || disposed || celebrated || document.hidden || reducedMotion()) return;
-    if (panel.hidden || !container.querySelector('.hof-plate')) return;
-    const rect = container.getBoundingClientRect();
-    const middle = window.innerHeight / 2;
-    if (!(rect.top <= middle && rect.bottom >= middle)) return;
+    if (!active || disposed || celebrated || document.hidden || reducedMotion() || panel.hidden) return;
+    const viewport = window.visualViewport;
+    const middle = viewport ? viewport.offsetTop + viewport.height / 2 : window.innerHeight / 2;
+    const tolerance = Math.min(66, (viewport?.height ?? window.innerHeight) * .14);
+    let selected = null;
+    for (const plate of container.querySelectorAll('.hof-plate')) {
+      const bounds = plate.getBoundingClientRect();
+      if (bounds.width > 0 && bounds.height > 0 &&
+          bounds.top <= middle + tolerance && bounds.bottom >= middle - tolerance) {
+        selected = plate;
+        break;
+      }
+    }
+    if (!selected) return;
+
+    // Begin only after a player card actually becomes visible in the screen centre.
+    // The plate glow is a low-cost fallback if Safari cannot allocate a canvas.
     celebrated = true;
     panel.dataset.hofCelebrated = 'true';
+    panel.classList.add('hof-celebrating');
+    selected.classList.add('hof-salute');
+    const bounds = selected.getBoundingClientRect();
+    const launchY = Math.min(window.innerHeight - 35, Math.max(middle + 55, bounds.bottom + 22));
+    const canvas = getCanvas();
+    const first = canvas?.burst({ x: window.innerWidth * .23, y: launchY, count: 32 });
+    const second = canvas?.burst({ x: window.innerWidth * .77, y: launchY, count: 32 });
+    panel.dataset.hofParticles = first || second ? 'playing' : 'css-only';
+    celebrationTimer = setTimeout(() => {
+      panel.classList.remove('hof-celebrating');
+      selected.classList.remove('hof-salute');
+    }, 2700);
     centerObserver?.disconnect();
     window.removeEventListener('scroll', queueCenterCheck);
     window.removeEventListener('resize', queueCenterCheck);
-    const canvas = getCanvas();
-    canvas?.burst({ x: window.innerWidth * .3, y: window.innerHeight * .74, count: 24 });
-    canvas?.burst({ x: window.innerWidth * .7, y: window.innerHeight * .74, count: 24 });
+    window.visualViewport?.removeEventListener('resize', queueCenterCheck);
+    window.visualViewport?.removeEventListener('scroll', queueCenterCheck);
   }
 
   function queueCenterCheck() {
@@ -307,6 +336,7 @@ export function createHallOfFameView({ panel, container }) {
     if (disposed) return;
     if (!append || page.restarted) {
       observer?.disconnect();
+      centerObserver?.disconnect();
       tracked.clear();
       container.replaceChildren();
     }
@@ -336,11 +366,9 @@ export function createHallOfFameView({ panel, container }) {
       tracked.set(entry.ordinal, { entry, element: plate });
       container.append(plate);
       markVisible(plate);
+      if (active && !celebrated) centerObserver?.observe(plate);
     }
-    if (!celebrated && tracked.size) {
-      if (centerObserver) centerObserver.observe(container);
-      queueCenterCheck();
-    }
+    if (!celebrated && tracked.size) queueCenterCheck();
   }
 
   function changeTint() {
@@ -372,27 +400,29 @@ export function createHallOfFameView({ panel, container }) {
     }, { threshold: .04, rootMargin: '0px 0px 30px 0px' });
   }
 
-  // The observer watches the *list*, not the header or the whole tall page.
-  // The central viewport band also handles the case where the list was already
-  // centred before the asynchronous API response arrived.
+  // Observe the individual player plates near the centre band. A scroll check
+  // remains as fallback if IntersectionObserver is delayed on iOS Safari.
   if ('IntersectionObserver' in window) {
     centerObserver = new IntersectionObserver(entries => {
       if (entries.some(item => item.isIntersecting)) queueCenterCheck();
-    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+    }, { rootMargin: '-37% 0px -37% 0px', threshold: 0 });
   }
   window.addEventListener('scroll', queueCenterCheck, { passive: true });
   window.addEventListener('resize', queueCenterCheck, { passive: true });
+  window.visualViewport?.addEventListener('resize', queueCenterCheck, { passive: true });
+  window.visualViewport?.addEventListener('scroll', queueCenterCheck, { passive: true });
 
   function onTabChange(selected) {
     if (disposed) return;
     active = selected;
     if (!selected) {
       closeCertificate();
+      centerObserver?.disconnect();
       celebration?.stop();
       return;
     }
-    if (!celebrated && container.querySelector('.hof-plate')) {
-      centerObserver?.observe(container);
+    if (!celebrated) {
+      for (const plate of container.querySelectorAll('.hof-plate')) centerObserver?.observe(plate);
       queueCenterCheck();
     }
   }
@@ -406,6 +436,9 @@ export function createHallOfFameView({ panel, container }) {
     if (centerFrame !== null) cancelAnimationFrame(centerFrame);
     window.removeEventListener('scroll', queueCenterCheck);
     window.removeEventListener('resize', queueCenterCheck);
+    window.visualViewport?.removeEventListener('resize', queueCenterCheck);
+    window.visualViewport?.removeEventListener('scroll', queueCenterCheck);
+    clearTimeout(celebrationTimer);
     clearTimeout(toastTimer);
     emblem.removeEventListener('click', changeTint);
     backdrop.removeEventListener('click', onBackdrop);
