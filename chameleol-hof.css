@@ -194,7 +194,6 @@ body.theme-chameleol-hof #hallRanking .hof-plate:focus-visible {
 }
 body.theme-chameleol-hof #hallRanking .hof-plate:focus-visible,
 body.theme-chameleol-hof .hof-emblem:focus-visible,
-body.theme-chameleol-hof .hof-firework:focus-visible,
 body.theme-chameleol-hof .hof-dialog button:focus-visible {
   outline: 3px solid var(--gold-light);
   outline-offset: 3px;
