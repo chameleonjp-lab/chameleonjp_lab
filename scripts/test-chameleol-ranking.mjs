@@ -94,6 +94,36 @@ test('reads official stats and all ties at rank 30 with pinned version', async (
   assert.equal(requests.filter(x=>x.pathname.endsWith('release.json')).length,2);
 });
 
+
+test('ranking participant count adds regular participants and Hall of Fame members without pagination', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  const requests = [];
+  const reader = createReader(async raw => {
+    const url = new URL(raw);
+    requests.push(url.href);
+    if (url.href === gameUrl + 'release.json') return Response.json(release);
+    assert.equal(url.href, release.rankingApi + '/ranking?limit=1');
+    return Response.json({ok:true, version:24, nameCount:3630, restarted:false, rows:[], nextAfter:null});
+  });
+  assert.equal(await reader.rankingParticipantCount(13), 3643);
+  assert.deepEqual(requests, [gameUrl + 'release.json', release.rankingApi + '/ranking?limit=1']);
+});
+
+test('ranking participant count rejects absent or invalid metadata and oversized totals', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  for (const nameCount of [undefined, null, '7', -1, 0.5, Number.MAX_SAFE_INTEGER]) {
+    const reader = createReader(async raw => Response.json(String(raw).endsWith('release.json')
+      ? release : {ok:true,nameCount}));
+    await assert.rejects(reader.rankingParticipantCount(1), /無効/);
+  }
+  const reader = createReader(async raw => Response.json(String(raw).endsWith('release.json')
+    ? release : {ok:true,nameCount:3}));
+  await assert.rejects(reader.rankingParticipantCount(-1), /無効/);
+  await assert.rejects(reader.rankingParticipantCount('1'), /無効/);
+  assert.equal(await reader.rankingParticipantCount(0), 3);
+  assert.equal(await reader.rankingParticipantCount(2), 5);
+});
+
 test('detail ranking retrieves all 205 players in 100-name pages; game preview stays top 30', async () => {
   const {createReader} = await import('../chameleol-ranking.js');
   const requests = [];
