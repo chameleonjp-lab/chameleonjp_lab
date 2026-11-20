@@ -15,7 +15,7 @@ function rowsFor(file) {
   if (loaded.has(file)) return loaded.get(file);
   const source = read('i18n/' + file);
   new Script(source, { filename: file });
-  const match = source.match(/\\.concat\\((\\[[\\s\\S]*\\])\\);/);
+  const match = source.match(/\.concat\((\[[\s\S]*\])\);/);
   assert.ok(match, file + ' must contain a JSON data table');
   const rows = JSON.parse(match[1]);
   for (const row of rows) {
@@ -31,8 +31,8 @@ function rowsFor(file) {
 }
 for (const [page, assets] of Object.entries(group)) {
   const html = read(page);
-  assert.match(html, /i18n\\/language\\.css/);
-  assert.match(html, /i18n\\/runtime\\.js/);
+  assert.match(html, /i18n\/language\.css/);
+  assert.match(html, /i18n\/runtime\.js/);
   let pos = -1;
   const seen = new Set();
   for (const asset of assets) {
@@ -54,10 +54,10 @@ for (const game of catalog.games) {
   assert.ok(available.has(game.title), 'missing game title: ' + game.game_slug);
   assert.ok(available.has(game.description), 'missing game description: ' + game.game_slug);
 }
-const termsHtml = read('terms.html').replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/g, '').replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/g,'');
+const termsHtml = read('terms.html').replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '').replace(/<style\b[^>]*>[\s\S]*?<\/style>/g,'');
 const termsAvailable = new Set(group['terms.html'].flatMap(file => rowsFor(file).map(row => row[0])));
-const staticTexts = [...termsHtml.matchAll(/>([^<>]*[\\u3040-\\u30ff\\u3400-\\u9fff][^<>]*)</g)]
-  .map(match => match[1].replace(/\\s+/g,' ').trim()).filter(Boolean);
+const staticTexts = [...termsHtml.matchAll(/>([^<>]*[\u3040-\u30ff\u3400-\u9fff][^<>]*)</g)]
+  .map(match => match[1].replace(/\s+/g,' ').trim()).filter(Boolean);
 for (const phrase of staticTexts) {
   if (phrase.includes('｜')) continue;
   assert.ok(termsAvailable.has(phrase), 'missing terms paragraph: ' + phrase);
