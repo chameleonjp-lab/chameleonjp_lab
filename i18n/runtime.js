@@ -171,7 +171,7 @@
         if (target.origin === location.origin && target.pathname.startsWith('/chameleonjp_lab/')) {
           if (locale === 'ja') target.searchParams.delete('lang');
           else target.searchParams.set('lang', locale);
-          const rendered = target.pathname + target.search + target.hash;
+          const rendered = locale === 'ja' ? originalHref : target.pathname + target.search + target.hash;
           if (rawHref !== rendered) element.setAttribute('href', rendered);
           linkSource.set(element, { original: originalHref, rendered: rendered });
         }
