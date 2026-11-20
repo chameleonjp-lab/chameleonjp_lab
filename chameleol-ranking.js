@@ -118,7 +118,8 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     if (!/^[0-9a-f]{32}$/.test(version) || typeof restarted !== 'boolean' ||
         (previous && restarted !== (version !== previous.version)) ||
         !Array.isArray(rows) || rows.length > 50 ||
-        rows.some((row, i) => !integer(row?.ordinal, 1) || row.ordinal !== from + i + 1 || typeof row.name !== 'string') ||
+        rows.some((row, i) => !integer(row?.ordinal, 1) || row.ordinal !== from + i + 1 ||
+          typeof row.name !== 'string' || !integer(row.average, 0, 10000)) ||
         (nextAfter !== null && (!rows.length || nextAfter !== rows.at(-1).ordinal))) {
       throw new Error('殿堂入り一覧の形式が無効です');
     }
@@ -169,7 +170,7 @@ export function renderHallOfFame(container, page, append = false) {
     container.textContent = 'まだ殿堂入りした方はいません';
     return;
   }
-  for (const {ordinal, name} of page.rows) {
+  for (const {ordinal, name, average} of page.rows) {
     const line = document.createElement('div');
     line.className = 'rank-row';
     const number = document.createElement('span');
@@ -178,7 +179,10 @@ export function renderHallOfFame(container, page, append = false) {
     const player = document.createElement('bdi');
     player.className = 'rank-name';
     player.textContent = name;
-    line.append(number, player);
+    const percent = document.createElement('span');
+    percent.className = 'rank-score';
+    percent.textContent = '一致率 ' + (average / 100).toFixed(2) + '%';
+    line.append(number, player, percent);
     container.append(line);
   }
 }
