@@ -1872,7 +1872,7 @@
       if (!normalizedSlug) return { totalPlayCount: 0, playerCount: 0 };
       if (normalizedSlug === "chameleol") {
         try {
-          const { reader } = await import("./chameleol-ranking.js?v=20261120-detail-all");
+          const { reader } = await import("./chameleol-ranking.js?v=20261120-hall-best");
           return await reader.stats();
         } catch { return null; }
       }
@@ -2596,7 +2596,7 @@
 
       const stats = await fetchGameStats(game);
       if (game.slug === "chameleol" && !stats) {
-        const { showRetry } = await import("./chameleol-ranking.js?v=20261120-detail-all");
+        const { showRetry } = await import("./chameleol-ranking.js?v=20261120-hall-best");
         showRetry(playsEl, () => loadStats(game));
         playersEl.textContent = "取得できませんでした";
         return null;
@@ -2654,7 +2654,7 @@
       if (!rankingEl) return false;
 
       if (game.slug === "chameleol") {
-        const { reader, renderRanking, showRetry } = await import("./chameleol-ranking.js?v=20261120-detail-all");
+        const { reader, renderRanking, showRetry } = await import("./chameleol-ranking.js?v=20261120-hall-best");
         rankingEl.textContent = "読み込み中";
         try {
           const table = await reader.ranking(3);
