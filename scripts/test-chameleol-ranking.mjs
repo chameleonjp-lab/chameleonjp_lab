@@ -8,6 +8,20 @@ const gameUrl = 'https://chameleonjp-lab.github.io/chameleol/';
 const release = {env: 'production', rankingApi: 'https://verified.example.test/functions/v1/kamereoru'};
 const row = (i, rank = i) => ({position:i, rank, buildings:50, average:8000, name:'A' + i});
 
+test('Hall of Fame decoration treats first three entrants identically', async () => {
+  const {getHofRankMeta} = await import('../chameleol-hof.js');
+  for (const ordinal of [1,2,3,4,9,11,26,99,101]) {
+    assert.deepEqual(getHofRankMeta(ordinal), {
+      title:'50棟完全踏破・殿堂入り怪盗', gem:'emerald', tier:'standard', badge:'',
+    });
+  }
+  for (const ordinal of [10,25,50,100,200]) {
+    assert.deepEqual(getHofRankMeta(ordinal), {
+      title:'50棟完全踏破・殿堂入り怪盗', gem:'sapphire', tier:'standard', badge:'記念キリ番',
+    });
+  }
+});
+
 test('public.games registration matches the catalog, is repeatable, and preserves other rows', async () => {
   const catalog = JSON.parse(await file('catalog/games.json')).games;
   const entry = catalog.find(x => x.game_slug === 'chameleol');
