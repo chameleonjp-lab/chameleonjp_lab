@@ -12,7 +12,6 @@ const TINTS = [
 ];
 
 const percent = average => (average / 100).toFixed(2) + '%';
-const normalise = text => String(text).normalize('NFKC').toLocaleLowerCase().trim();
 const reducedMotion = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
 
 function node(tag, className, text) {
@@ -65,18 +64,18 @@ class CelebrationCanvas {
     this.ctx.setTransform(scale, 0, 0, scale, 0, 0);
   }
 
-  burst({ x = this.width / 2, y = this.height * .78, count = 30, rain = false } = {}) {
+  burst({ x = this.width / 2, y = this.height * .72, count = 30 } = {}) {
     if (!this.ctx || this.destroyed || reducedMotion() || document.hidden) return;
     const actual = Math.max(0, Math.min(40, count));
     for (let i = 0; i < actual; i++) {
       const angle = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.35;
       const speed = 3 + Math.random() * 4;
-      const life = rain ? 160 + Math.random() * 20 : 75 + Math.random() * 65;
+      const life = 105 + Math.random() * 65;
       const p = {
-        x: rain ? Math.random() * this.width : x,
-        y: rain ? -30 + Math.random() * 50 : y,
-        vx: rain ? (Math.random() - .5) * 1.9 : Math.cos(angle) * speed,
-        vy: rain ? 1.8 + Math.random() * 1.3 : Math.sin(angle) * speed,
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
         rotation: Math.random() * Math.PI * 2,
         spin: (Math.random() - .5) * .15,
         size: 3 + Math.random() * 4,
@@ -154,15 +153,8 @@ class CelebrationCanvas {
 
 export function createHallOfFameView({ panel, container }) {
   if (!panel || !container) throw Error('missing Hall of Fame elements');
-  const search = panel.querySelector('#hofSearch');
-  const searchStatus = panel.querySelector('#hofSearchStatus');
   const emblem = panel.querySelector('#hofEmblem');
-  if (!search || !searchStatus || !emblem) throw Error('missing Hall of Fame controls');
-
-  const confetti = node('button', 'hof-firework', '🎉 祝砲');
-  confetti.type = 'button';
-  confetti.hidden = true;
-  confetti.setAttribute('aria-label', '祝砲を放つ');
+  if (!emblem) throw Error('missing Hall of Fame emblem');
   const backdrop = node('div', 'hof-modal-backdrop');
   backdrop.hidden = true;
   const dialog = node('section', 'hof-dialog');
@@ -190,19 +182,19 @@ export function createHallOfFameView({ panel, container }) {
   toast.setAttribute('role', 'status');
   toast.setAttribute('aria-live', 'polite');
   toast.hidden = true;
-  document.body.append(confetti, backdrop, toast);
+  document.body.append(backdrop, toast);
 
   let celebration = null;
   let observer = null;
-  let spotlightTimer = null;
+  let centerObserver = null;
+  let centerFrame = null;
+  let celebrated = false;
   let toastTimer = null;
   let lastFocused = null;
   let currentEntry = null;
   let active = false;
-  let entered = false;
   let tint = 0;
   let disposed = false;
-  const timers = new Set();
   const tracked = new Map();
 
   function notice(message) {
@@ -217,12 +209,30 @@ export function createHallOfFameView({ panel, container }) {
     return celebration;
   }
 
-  function celebrate({ x, y, count = 30, rain = false } = {}) {
-    if (reducedMotion()) {
-      notice('動きを減らす設定のため祝砲の演出を省略しました');
-      return;
-    }
-    getCanvas()?.burst({ x, y, count, rain });
+  // Fire once per page visit, only after a verified Hall entry occupies the
+  // vertical centre of the visible screen. No button or automatic tab-open burst.
+  function checkCenter() {
+    if (!active || disposed || celebrated || document.hidden || reducedMotion()) return;
+    if (panel.hidden || !container.querySelector('.hof-plate')) return;
+    const rect = container.getBoundingClientRect();
+    const middle = window.innerHeight / 2;
+    if (!(rect.top <= middle && rect.bottom >= middle)) return;
+    celebrated = true;
+    panel.dataset.hofCelebrated = 'true';
+    centerObserver?.disconnect();
+    window.removeEventListener('scroll', queueCenterCheck);
+    window.removeEventListener('resize', queueCenterCheck);
+    const canvas = getCanvas();
+    canvas?.burst({ x: window.innerWidth * .3, y: window.innerHeight * .74, count: 24 });
+    canvas?.burst({ x: window.innerWidth * .7, y: window.innerHeight * .74, count: 24 });
+  }
+
+  function queueCenterCheck() {
+    if (disposed || celebrated || centerFrame !== null) return;
+    centerFrame = requestAnimationFrame(() => {
+      centerFrame = null;
+      checkCenter();
+    });
   }
 
   function closeCertificate() {
@@ -293,47 +303,15 @@ export function createHallOfFameView({ panel, container }) {
     }
   }
 
-  function clearSpotlight() {
-    clearTimeout(spotlightTimer);
-    spotlightTimer = null;
-    container.querySelectorAll('.hof-spotlight').forEach(item => item.classList.remove('hof-spotlight'));
-  }
-
-  function searchLoaded({ scroll = true } = {}) {
-    clearSpotlight();
-    const query = normalise(search.value);
-    if (!query) {
-      searchStatus.textContent = '現在読み込んだ殿堂入りの名前から検索できます。';
-      return;
-    }
-    const matches = [...tracked.values()].filter(({ entry }) => normalise(entry.name).includes(query));
-    if (!matches.length) {
-      searchStatus.textContent = '現在読み込んだ一覧には見つかりません。必要に応じて「次の50件」を読み込んでください。';
-      return;
-    }
-    searchStatus.textContent = matches.length + '件見つかりました（読み込み済みの範囲）。';
-    const plate = matches[0].element;
-    plate.classList.remove('hof-spotlight');
-    // アニメーションを繰り返し再生できるよう強制的に一度リセット。
-    void plate.offsetWidth;
-    plate.classList.add('hof-spotlight');
-    if (scroll && active && plate.isConnected) {
-      plate.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'center' });
-    }
-    spotlightTimer = setTimeout(() => plate.classList.remove('hof-spotlight'), 3000);
-  }
-
   function renderPage(page, append = false) {
     if (disposed) return;
     if (!append || page.restarted) {
       observer?.disconnect();
       tracked.clear();
-      clearSpotlight();
       container.replaceChildren();
     }
     if (!page.rows.length && !tracked.size) {
       container.textContent = 'まだ殿堂入りした方はいません';
-      searchLoaded({ scroll: false });
       return;
     }
     // 「読み込み中」と初回の再試行表示を成功時に取り除く。
@@ -359,30 +337,25 @@ export function createHallOfFameView({ panel, container }) {
       container.append(plate);
       markVisible(plate);
     }
-    searchLoaded({ scroll: false });
+    if (!celebrated && tracked.size) {
+      if (centerObserver) centerObserver.observe(container);
+      queueCenterCheck();
+    }
   }
 
   function changeTint() {
     tint = (tint + 1) % TINTS.length;
     panel.style.setProperty('--spotlight-tint', TINTS[tint][1]);
     panel.classList.toggle('hof-prism', tint === TINTS.length - 1);
-    const bounds = emblem.getBoundingClientRect();
-    celebrate({ x: bounds.left + bounds.width / 2, y: bounds.bottom, count: 12 });
     notice('宝石の光：' + TINTS[tint][0]);
   }
 
-  function onSearch() { searchLoaded(); }
-  function onFirework() {
-    const rect = confetti.getBoundingClientRect();
-    celebrate({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
-  }
   function visibilityChanged() {
     if (document.hidden) celebration?.stop();
+    else queueCenterCheck();
   }
 
-  search.addEventListener('input', onSearch);
   emblem.addEventListener('click', changeTint);
-  confetti.addEventListener('click', onFirework);
   backdrop.addEventListener('click', onBackdrop);
   close.addEventListener('click', closeCertificate);
   copy.addEventListener('click', onCopy);
@@ -399,21 +372,28 @@ export function createHallOfFameView({ panel, container }) {
     }, { threshold: .04, rootMargin: '0px 0px 30px 0px' });
   }
 
+  // The observer watches the *list*, not the header or the whole tall page.
+  // The central viewport band also handles the case where the list was already
+  // centred before the asynchronous API response arrived.
+  if ('IntersectionObserver' in window) {
+    centerObserver = new IntersectionObserver(entries => {
+      if (entries.some(item => item.isIntersecting)) queueCenterCheck();
+    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+  }
+  window.addEventListener('scroll', queueCenterCheck, { passive: true });
+  window.addEventListener('resize', queueCenterCheck, { passive: true });
+
   function onTabChange(selected) {
     if (disposed) return;
     active = selected;
-    confetti.hidden = !selected;
     if (!selected) {
       closeCertificate();
       celebration?.stop();
       return;
     }
-    if (!entered) {
-      entered = true;
-      if (!reducedMotion()) {
-        const canvas = getCanvas();
-        canvas?.burst({ count: 30, rain: true });
-      }
+    if (!celebrated && container.querySelector('.hof-plate')) {
+      centerObserver?.observe(container);
+      queueCenterCheck();
     }
   }
 
@@ -422,23 +402,21 @@ export function createHallOfFameView({ panel, container }) {
     onTabChange(false);
     disposed = true;
     observer?.disconnect();
-    clearSpotlight();
+    centerObserver?.disconnect();
+    if (centerFrame !== null) cancelAnimationFrame(centerFrame);
+    window.removeEventListener('scroll', queueCenterCheck);
+    window.removeEventListener('resize', queueCenterCheck);
     clearTimeout(toastTimer);
-    for (const timer of timers) clearTimeout(timer);
-    search.removeEventListener('input', onSearch);
     emblem.removeEventListener('click', changeTint);
-    confetti.removeEventListener('click', onFirework);
     backdrop.removeEventListener('click', onBackdrop);
     close.removeEventListener('click', closeCertificate);
     copy.removeEventListener('click', onCopy);
     document.removeEventListener('keydown', onDialogKey);
     document.removeEventListener('visibilitychange', visibilityChanged);
     celebration?.dispose();
-    confetti.remove();
     backdrop.remove();
     toast.remove();
   }
 
-  searchLoaded({ scroll: false });
   return { renderPage, onTabChange, dispose };
 }
