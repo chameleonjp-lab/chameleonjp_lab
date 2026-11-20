@@ -1937,6 +1937,7 @@
     const isKeyUnset = !hasSupabasePublishableKey();
     let supabaseClient = null;
     let currentLoadToken = 0;
+    let hofController = null;
 
     const pageTitleEl = document.getElementById("pageTitle");
     const pageLeadEl = document.getElementById("pageLead");
@@ -2434,6 +2435,10 @@
     }
 
     function renderBase(page, game) {
+      hofController?.dispose();
+      hofController = null;
+      document.body.classList.toggle("theme-chameleol-hof", game.slug === "chameleol");
+      document.body.classList.remove("hof-active");
       pageTitleEl.textContent = `${page.title} 詳細ランキング`;
       pageLeadEl.textContent = cleanText(game.description) || cleanText(page.description) || "ランキングを表示します。";
 
@@ -2632,6 +2637,9 @@
         }
         if (panel) panel.hidden = !isActive;
       });
+      const hofSelected = activeTab === "hall" && document.body.classList.contains("theme-chameleol-hof");
+      document.body.classList.toggle("hof-active", hofSelected);
+      hofController?.onTabChange(hofSelected);
     }
 
     function setDetailStatsComingSoon(token) {
@@ -2923,17 +2931,25 @@
       const playsRankingEl = document.getElementById("playsRanking");
 
       if (game.slug === "chameleol") {
-        const { reader, renderRanking, renderHallOfFame, showRetry } = await import("./chameleol-ranking.js?v=20261120-hall-best");
+        const [
+          { reader, renderRanking, showRetry },
+          { createHallOfFameView }
+        ] = await Promise.all([
+          import("./chameleol-ranking.js?v=20261120-hall-best"),
+          import("./chameleol-hof.js?v=20261120-hof-equal")
+        ]);
         if (token !== currentLoadToken) return;
         const hall = document.getElementById("hallRanking");
         const more = document.getElementById("hallMore");
+        hofController = createHallOfFameView({ panel: document.getElementById("hallPanel"), container: hall });
+        hofController.onTabChange(document.getElementById("hallTab")?.getAttribute("aria-selected") === "true");
         let hallPage = null;
         const loadHall = async () => {
           more.disabled = true;
           try {
             const next = await reader.hallOfFame(hallPage);
             if (token !== currentLoadToken) return;
-            renderHallOfFame(hall, next, hallPage !== null);
+            hofController.renderPage(next, hallPage !== null);
             hallPage = next;
             more.hidden = next.nextAfter === null;
             more.textContent = "次の50件";
