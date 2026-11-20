@@ -8,16 +8,16 @@ const gameUrl = 'https://chameleonjp-lab.github.io/chameleol/';
 const release = {env: 'production', rankingApi: 'https://verified.example.test/functions/v1/kamereoru'};
 const row = (i, rank = i) => ({position:i, rank, buildings:50, average:8000, name:'A' + i});
 
-test('Hall of Fame decoration treats first three entrants identically', async () => {
-  const {getHofRankMeta} = await import('../chameleol-hof.js');
-  for (const ordinal of [1,2,3,4,9,11,26,99,101]) {
+test('Hall of Fame entrants have distinct titles but identical visual ranks', async () => {
+  const {getHofRankMeta, HOF_TITLES} = await import('../chameleol-hof.js');
+  for (const ordinal of [1,2,3,4,9,10,11,25,26,50,99,100,101,200,300]) {
     assert.deepEqual(getHofRankMeta(ordinal), {
-      title:'50棟完全踏破・殿堂入り怪盗', gem:'emerald', tier:'standard', badge:'',
+      title: HOF_TITLES[ordinal - 1], gem:'emerald', tier:'standard', badge:'',
     });
   }
-  for (const ordinal of [10,25,50,100,200]) {
+  for (const ordinal of [301,302]) {
     assert.deepEqual(getHofRankMeta(ordinal), {
-      title:'50棟完全踏破・殿堂入り怪盗', gem:'sapphire', tier:'standard', badge:'記念キリ番',
+      title:'50棟完全踏破・殿堂入り怪盗', gem:'emerald', tier:'standard', badge:'',
     });
   }
 });
