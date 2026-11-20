@@ -53,6 +53,9 @@ const catalog = JSON.parse(read('catalog/games.json'));
 for (const game of catalog.games) {
   assert.ok(available.has(game.title), 'missing game title: ' + game.game_slug);
   assert.ok(available.has(game.description), 'missing game description: ' + game.game_slug);
+  for (const field of ['score_unit','score_label','first_score_label','best_score_label']) {
+    if (game[field]) assert.ok(available.has(game[field]), 'missing ' + field + ': ' + game.game_slug + ' / ' + game[field]);
+  }
 }
 const termsHtml = read('terms.html').replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '').replace(/<style\b[^>]*>[\s\S]*?<\/style>/g,'');
 const termsAvailable = new Set(group['terms.html'].flatMap(file => rowsFor(file).map(row => row[0])));
