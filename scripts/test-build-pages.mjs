@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 
 const script = fileURLToPath(new URL('./build-pages.mjs', import.meta.url));
-const files = ['index.html', 'ranking.html', 'terms.html', 'chameleol-ranking.js', 'IMG_7589.JPG', 'banner'];
+const files = ['index.html', 'ranking.html', 'terms.html', 'chameleol-ranking.js', 'chameleol-hof.css', 'chameleol-hof.js', 'IMG_7589.JPG', 'banner'];
 const sha = 'a'.repeat(40);
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'lab-pages-'));
