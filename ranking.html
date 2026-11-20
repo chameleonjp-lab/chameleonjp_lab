@@ -2514,9 +2514,10 @@
           <section class="ranking-card" id="bestPanel" role="tabpanel" aria-labelledby="bestTab" hidden>
             <h2 class="ranking-title">${escapeHtml(bestLabel)}ランキング</h2>
             <p class="ranking-sub">これまでに出した一番良い記録だけを表示します。</p>
-            <div class="ranking-list" id="bestRanking">
+            <div class="ranking-list" id="bestRanking" aria-live="polite">
               <div class="loading">${escapeHtml(bestLabel)}ランキングを読み込み中です</div>
             </div>
+            ${chameleol ? '<button class="button secondary" id="bestMore" type="button" hidden>次の30名を表示</button>' : ""}
           </section>
           ${chameleol ? `
             <section class="ranking-card" id="hallPanel" role="tabpanel" aria-labelledby="hallTab" hidden>
@@ -2551,7 +2552,7 @@
         for (const id of ["firstTab", "firstPanel", "playsTab", "playsPanel", "disqualifiedSection"]) {
           document.getElementById(id).remove();
         }
-        document.querySelector("#bestPanel .ranking-sub").textContent = "登録名ごとの自己ベスト。クリア棟数・平均一致度の順で、同率を含む30位まで表示します。";
+        document.querySelector("#bestPanel .ranking-sub").textContent = "登録名ごとの自己ベストを、クリア棟数・平均一致度の順で表示します。31位以降も30名ずつ追加して閲覧できます。";
       }
 
       document.getElementById("shareButton").addEventListener("click", () => {
@@ -2903,15 +2904,28 @@
         };
         more.addEventListener("click", loadHall);
         void loadHall();
+        const bestMore = document.getElementById("bestMore");
+        let bestPage = null;
         const loadBest = async () => {
-          bestRankingEl.textContent = "読み込み中";
+          if (bestMore.disabled) return;
+          bestMore.disabled = true;
+          if (!bestPage) bestRankingEl.textContent = "読み込み中";
           try {
-            const table = await reader.ranking();
-            if (token === currentLoadToken) renderRanking(bestRankingEl, table);
+            const next = await reader.rankingPage(bestPage);
+            if (token !== currentLoadToken) return;
+            renderRanking(bestRankingEl, next, bestPage !== null);
+            bestPage = next;
+            bestMore.hidden = next.nextAfter === null;
+            bestMore.textContent = "次の30名を表示";
           } catch {
-            if (token === currentLoadToken) showRetry(bestRankingEl, loadBest);
+            if (token !== currentLoadToken) return;
+            if (bestPage) bestMore.textContent = "再試行";
+            else showRetry(bestRankingEl, loadBest);
+          } finally {
+            bestMore.disabled = false;
           }
         };
+        bestMore.addEventListener("click", loadBest);
         await loadBest();
         return;
       }
