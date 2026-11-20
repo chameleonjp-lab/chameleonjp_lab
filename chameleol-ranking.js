@@ -40,6 +40,17 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     return {totalPlayCount: totalPlays, clearerCount};
   }
 
+  // The public ranking nameCount excludes Hall of Fame names. The Hall total
+  // comes from the verified stats endpoint, so no participant is counted twice.
+  async function rankingParticipantCount(clearerCount) {
+    if (!integer(clearerCount, 0)) throw new Error('殿堂入り人数が無効です');
+    const {nameCount} = await read(await currentBase(), 'ranking?limit=1');
+    if (!integer(nameCount, 0) || !integer(nameCount + clearerCount, 0)) {
+      throw new Error('ランキング参加者数が無効です');
+    }
+    return nameCount + clearerCount;
+  }
+
   async function ranking(maxRank = 30) {
     const base = await currentBase();
     let version;
@@ -127,7 +138,7 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     return {version, rows, nextAfter, restarted};
   }
 
-  return {stats, ranking, rankingPage, hallOfFame};
+  return {stats, rankingParticipantCount, ranking, rankingPage, hallOfFame};
 }
 
 export const reader = createReader();
