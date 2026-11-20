@@ -200,7 +200,7 @@
     }
     walk(document.body);
     if (select) select.value = locale;
-    if (label) label.textContent = locale === 'ja' ? '言語' : translate('言語');
+    if (label) { const nextLabel = locale === 'ja' ? '言語' : translate('言語'); if (label.textContent !== nextLabel) label.textContent = nextLabel; }
   }
   function scheduleApply() {
     if (queued) return;
