@@ -2613,7 +2613,7 @@
       const playerCountEl = document.getElementById("playerCount");
 
       if (game.slug === "chameleol") {
-        const { reader, showRetry } = await import("./chameleol-ranking.js");
+        const { reader, showRetry } = await import("./chameleol-ranking.js?v=20261120-detail-all");
         totalPlayCountEl.textContent = playerCountEl.textContent = "読み込み中";
         try {
           const stats = await reader.stats();
@@ -2880,7 +2880,7 @@
       const playsRankingEl = document.getElementById("playsRanking");
 
       if (game.slug === "chameleol") {
-        const { reader, renderRanking, renderHallOfFame, showRetry } = await import("./chameleol-ranking.js");
+        const { reader, renderRanking, renderHallOfFame, showRetry } = await import("./chameleol-ranking.js?v=20261120-detail-all");
         if (token !== currentLoadToken) return;
         const hall = document.getElementById("hallRanking");
         const more = document.getElementById("hallMore");
