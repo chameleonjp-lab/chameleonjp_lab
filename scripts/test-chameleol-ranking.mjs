@@ -123,6 +123,41 @@ test('detail ranking rejects cursor inconsistencies to prevent duplicate players
   await assert.rejects(reader.rankingPage(), /続き位置/);
 });
 
+test('Hall of Fame validates best percentage, retained ordinal and refreshed version', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  let percent = 9235;
+  let version = 'a'.repeat(32);
+  const hits = [];
+  const reader = createReader(async raw => {
+    const url = new URL(raw);
+    if (url.href === gameUrl+'release.json') return Response.json(release);
+    assert.equal(url.pathname, '/functions/v1/kamereoru/hall-of-fame');
+    hits.push(url.searchParams.toString());
+    const requestOldVersion = url.searchParams.has('version') &&
+      url.searchParams.get('version') !== version;
+    return Response.json({ok:true,version,restarted:requestOldVersion,
+      rows: requestOldVersion || !url.searchParams.has('after')
+        ? [{ordinal:1,name:'完走者',average:percent}]
+        : [],
+      nextAfter:requestOldVersion || !url.searchParams.has('after') ? 1 : null});
+  });
+  const first = await reader.hallOfFame();
+  assert.deepEqual(first.rows,[{ordinal:1,name:'完走者',average:9235}]);
+  percent = 9655;
+  version = 'b'.repeat(32);
+  const updated = await reader.hallOfFame(first);
+  assert.equal(updated.restarted,true);
+  assert.deepEqual(updated.rows,[{ordinal:1,name:'完走者',average:9655}]);
+  assert.deepEqual(hits,['','version='+ 'a'.repeat(32) +'&after=1']);
+});
+
+test('Hall of Fame rejects missing and malformed matching percentages', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  const reader = createReader(async raw => Response.json(String(raw).endsWith('release.json')
+    ? release : {ok:true,version:'a'.repeat(32),rows:[{ordinal:1,name:'A'}],nextAfter:null,restarted:false}));
+  await assert.rejects(reader.hallOfFame(),/形式/);
+});
+
 test('a standalone or verification release is retriable and supplies no data', async () => {
   const {createReader} = await import('../chameleol-ranking.js');
   let attempts = 0;
