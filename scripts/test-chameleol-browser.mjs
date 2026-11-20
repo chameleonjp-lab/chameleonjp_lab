@@ -133,12 +133,17 @@ for (const engine of [chromium, webkit]) {
     await page.getByRole('tab', {name:'殿堂入り'}).click();
     await page.locator('#hallRanking .rank-row').first().waitFor();
     assert.equal(await page.getByRole('heading', {name:'殿堂入り-50棟完全クリア者一覧-'}).count(), 1);
+    assert.equal(await page.locator('.hof-title-main').textContent(), '殿堂入り');
+    assert.equal(await page.locator('.hof-title-sub').textContent(), '-50棟完全クリア者一覧-');
     assert.equal(await page.locator('#hallRanking .hof-founder').count(), 0);
     assert.equal(await page.locator('#hallRanking .hof-plate').count(), 1);
     assert.equal(await page.locator('body.theme-chameleol-hof.hof-active').count(), 1);
-    await page.locator('#hofSearch').fill('最初の');
-    await page.waitForFunction(() => document.querySelector('#hallRanking .hof-spotlight') != null);
-    assert.match(await page.locator('#hofSearchStatus').textContent(), /1件/);
+    assert.equal(await page.locator('#hofSearch').count(), 0, 'Hall should not ask for a name');
+    assert.equal(await page.locator('.hof-firework').count(), 0, 'there is no manual fireworks button');
+    // A confirmed Hall entry, not the header or tab switch, triggers the one-off salute.
+    await page.locator('#hallRanking').evaluate(el => el.scrollIntoView({block:'center'}));
+    await page.waitForFunction(() => document.querySelector('#hallPanel')?.dataset.hofCelebrated === 'true');
+    assert.equal(await page.locator('canvas.hof-particles').count(), 1);
     await page.locator('#hallRanking .hof-plate').first().click();
     assert.equal(await page.locator('.hof-dialog[role="dialog"][aria-modal="true"]').count(), 1);
     assert.equal(await page.locator('.hof-dialog-number').textContent(), '第1号 殿堂入り');
@@ -156,8 +161,8 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('.hof-modal-backdrop').isVisible(), false);
     await page.locator('#hofEmblem').click();
     assert.equal(await page.locator('#hallPanel').evaluate(el => el.style.getPropertyValue('--spotlight-tint')), 'rgba(224,49,90,.22)');
-    await page.getByRole('button',{name:'祝砲を放つ'}).click();
     assert.equal(await page.locator('canvas.hof-particles').count(), 1);
+    assert.equal(await page.locator('#hallPanel').getAttribute('data-hof-celebrated'), 'true');
     assert.deepEqual(await page.locator('#hallRanking .rank-name').allTextContents(), ['最初の<クリア>']);
     assert.deepEqual(await page.locator('#hallRanking .rank-score').allTextContents(), ['一致率 95.43%']);
     await page.getByRole('button', {name:'次の50件'}).click();
@@ -197,11 +202,14 @@ for (const engine of [chromium, webkit]) {
     await page.setViewportSize({width:360,height:750});
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
       'Hall content must not overflow a 360px viewport');
-    await page.locator('#hofSearch').fill('完走者101');
-    await page.waitForFunction(() => document.querySelector('.hof-spotlight')?.dataset.ordinal === '101');
-    assert.match(await page.locator('#hofSearchStatus').textContent(), /1件/);
+    assert.equal(await page.locator('#hofSearch').count(), 0);
+    await page.locator('#hallRanking').evaluate(el => el.scrollIntoView({block:'center'}));
+    await page.waitForFunction(() => document.querySelector('#hallPanel')?.dataset.hofCelebrated === 'true');
     await page.locator('#bestTab').click();
-    assert.equal(await page.locator('.hof-firework').isVisible(), false);
+    await page.locator('#hallTab').click();
+    assert.equal(await page.locator('.hof-firework').count(), 0);
+    assert.equal(await page.locator('#hallPanel').getAttribute('data-hof-celebrated'), 'true',
+      'tab changes must not repeat the celebration');
     await page.setViewportSize({width:1280,height:800});
     hallRows = null;
 
@@ -234,6 +242,10 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('#totalPlayCount').textContent(),'0回');
     await page.getByRole('tab', {name:'殿堂入り'}).click();
     await page.getByText('まだ殿堂入りした方はいません').waitFor();
+    await page.locator('#hallRanking').evaluate(el => el.scrollIntoView({block:'center'}));
+    assert.equal(await page.locator('#hallPanel').getAttribute('data-hof-celebrated'), null,
+      'an empty Hall must not fire fireworks');
+    assert.equal(await page.locator('canvas.hof-particles').count(), 0);
     for (const [game, abnormal] of [[takkeu, 'get_takkeu_abnormal_entries_v1'], [iroate, 'get_disqualified_score_entries']]) {
       await page.goto(base + '/chameleonjp_lab/ranking.html?game=' + game.game_slug);
       await page.locator('#bestRanking .player-name').first().waitFor();
