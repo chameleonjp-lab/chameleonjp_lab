@@ -161,6 +161,7 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('.hof-dialog[role="dialog"][aria-modal="true"]').count(), 1);
     assert.equal(await page.locator('.hof-dialog-number').textContent(), '第1号 殿堂入り');
     assert.equal(await page.locator('.hof-dialog-name').textContent(), '最初の<クリア>');
+    assert.equal(await page.locator('.hof-dialog-caption').first().textContent(), '夜明けを盗むカメレオン');
     await page.evaluate(() => {
       Object.defineProperty(navigator, 'clipboard', {
         configurable:true, value:{writeText: async value => { window.__hofCopiedShare = value; }},
@@ -169,6 +170,7 @@ for (const engine of [chromium, webkit]) {
     await page.locator('.hof-dialog').getByRole('button',{name:'SNSシェア文をコピー'}).click();
     await page.waitForFunction(() => typeof window.__hofCopiedShare === 'string');
     assert.match(await page.evaluate(() => window.__hofCopiedShare), /第1号として殿堂入り/);
+    assert.match(await page.evaluate(() => window.__hofCopiedShare), /夜明けを盗むカメレオン/);
     assert.match(await page.evaluate(() => window.__hofCopiedShare), /ranking\.html\?game=chameleol/);
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('.hof-modal-backdrop').isVisible(), false);
@@ -185,13 +187,13 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('#bestPanel').isVisible(), false);
     assert.equal(await page.locator('#hallRanking .hof-plate').count(), 2);
     assert.deepEqual(await page.locator('#hallRanking .hof-title-tag').allTextContents(),
-      ['50棟完全踏破・殿堂入り怪盗','50棟完全踏破・殿堂入り怪盗']);
+      ['夜明けを盗むカメレオン','月影の宝石怪盗']);
     await page.locator('#hallRanking .hof-plate').nth(1).click();
     await page.locator('.hof-dialog').getByRole('button',{name:'閉じる'}).click();
     assert.equal(await page.locator('.hof-modal-backdrop').isVisible(),false);
     assert.equal(await page.getByRole('link',{name:'ゲームで遊ぶ'}).getAttribute('href'),base+'/chameleol/');
     assert.deepEqual(await page.evaluate(() => window.rpcCalls), []);
-    // All hall members have the same plate. Only milestone numbers gain a small badge.
+    // All hall members keep the same visual rank; their titles are unique by ordinal.
     // The 50-item cursor must keep working with 105 entrants and long hostile names.
     hallRows = Array.from({length:105}, (_,i) => ({
       ordinal:i+1,
@@ -203,13 +205,13 @@ for (const engine of [chromium, webkit]) {
     await page.waitForFunction(() => document.querySelectorAll('#hallRanking .hof-plate').length === 50);
     assert.equal(await page.locator('#hallRanking .hof-founder').count(),0);
     assert.equal(await page.locator('#hallRanking img').count(),0,'untrusted names must never become HTML');
-    assert.equal(await page.locator('#hallRanking .hof-medal').count(),3,'10, 25 and 50 are milestone plates');
+    assert.equal(await page.locator('#hallRanking .hof-medal').count(),0,'old milestone badges must be removed');
     await page.getByRole('button',{name:'次の50件'}).click();
     await page.waitForFunction(() => document.querySelectorAll('#hallRanking .hof-plate').length === 100);
-    assert.equal(await page.locator('#hallRanking .hof-medal').count(),4,'100 is also a milestone');
+    assert.equal(await page.locator('#hallRanking .hof-medal').count(),0,'no milestone badge for any ordinal');
     await page.getByRole('button',{name:'次の50件'}).click();
     await page.waitForFunction(() => document.querySelectorAll('#hallRanking .hof-plate').length === 105);
-    assert.equal(await page.locator('#hallRanking .hof-medal').count(),4);
+    assert.equal(await page.locator('#hallRanking .hof-medal').count(),0);
     assert.equal(await page.locator('#hallRanking .hof-plate').last().getAttribute('data-ordinal'),'105');
     assert.equal(await page.locator('#hallMore').isVisible(),false);
     await page.setViewportSize({width:360,height:750});
