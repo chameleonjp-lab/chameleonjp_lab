@@ -69,6 +69,7 @@
     if (!source || locale === 'ja') return source;
     const found = exact(source);
     if (found !== null) return found;
+    if (source.includes('｜')) return source.split('｜').map(templatePart).join(' | ');
     let m;
     if ((m = source.match(/^(.+?) 詳細ランキング$/))) {
       return templatePart(m[1]) + ' · ' + templatePart('詳細ランキング');
