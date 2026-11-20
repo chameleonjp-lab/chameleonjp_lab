@@ -76,6 +76,36 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     } while (true);
     return {version, rows: [...rows.values()]};
   }
+  // Detail rankings continue through all positions. Retain the same API source
+  // and ranking version while reading the next page.
+  async function rankingPage(previous = null) {
+    if (previous && (!integer(previous.version, 0) ||
+        !integer(previous.nextAfter, 1) || typeof previous.base !== 'string')) {
+      throw new Error('順位表の続き位置が無効です');
+    }
+    const base = previous ? previous.base : await currentBase();
+    const query = new URLSearchParams({limit: '30'});
+    if (previous) {
+      query.set('version', String(previous.version));
+      query.set('after', String(previous.nextAfter));
+    }
+    const page = await read(base, 'ranking?' + query);
+    const {version, rows, nextAfter, restarted} = page;
+    if (!integer(version, 0) || !Array.isArray(rows) || rows.length > 30 ||
+        typeof restarted !== 'boolean' ||
+        (previous && restarted !== (version !== previous.version))) {
+      throw new Error('順位表の形式が無効です');
+    }
+    const from = previous && !restarted ? previous.nextAfter : 0;
+    if (rows.some((row, i) => !integer(row?.position, 1) || row.position !== from + i + 1 ||
+        !integer(row.rank, 1, row.position) || typeof row.name !== 'string' ||
+        !integer(row.buildings, 0, 50) || !integer(row.average, 0, 10000)) ||
+        (nextAfter !== null && (!rows.length || nextAfter !== rows.at(-1).position))) {
+      throw new Error('順位表の値または続き位置が無効です');
+    }
+    return {version, rows, nextAfter, restarted: !!previous && restarted, base};
+  }
+
   async function hallOfFame(previous = null) {
     const query = new URLSearchParams();
     if (previous?.nextAfter != null) {
@@ -95,16 +125,16 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     return {version, rows, nextAfter, restarted};
   }
 
-  return {stats, ranking, hallOfFame};
+  return {stats, ranking, rankingPage, hallOfFame};
 }
 
 export const reader = createReader();
 
-export function renderRanking(container, table) {
-  container.replaceChildren();
+export function renderRanking(container, table, append = false) {
+  if (!append || table.restarted) container.replaceChildren();
   container.dataset.version = String(table.version);
   if (!table.rows.length) {
-    container.textContent = 'まだ記録がありません';
+    if (!container.childElementCount) container.textContent = 'まだ記録がありません';
     return;
   }
   for (const row of table.rows) {
