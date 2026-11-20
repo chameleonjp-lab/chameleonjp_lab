@@ -112,7 +112,7 @@ test('detail ranking retrieves all 205 players in 100-name pages; game preview s
     'limit=100', 'limit=100&version=21&after=100', 'limit=100&version=21&after=200',
   ]);
   assert.equal((await reader.ranking()).rows.length,30);
-  assert.equal(requests.at(-1), 'limit=30');
+  assert.deepEqual(requests.slice(-2), ['limit=30', 'limit=30&version=21&after=30']);
 });
 
 test('detail ranking rejects oversized pages beyond the 100-name server contract', async () => {
