@@ -10,12 +10,12 @@ export const OLD_IROATE_URL = 'https://chameleonjp.codeberg.page/iroate/';
 
 // Data fingerprints from main 419e25e68f3ee57f9e9d5030106d3fa418c43435. Only the
 // exact Iroate URL is normalized; every other URL and field stays covered.
-// The Chameleol addition was checked against every prior catalog row.
+// The Chameleol and Inubo additions were checked against every prior catalog row.
 // Literal fingerprints keep this check usable in a shallow checkout.
 const baseline = {
-  'catalog/games.json': { hash: '7e1e2bccd62fe3ec603dc953743bb086d04c8b03886573ad83550d88aad4459d', occurrences: 2 },
-  'index.html': { hash: 'f04c971bfaa1e589250e46660e843f9a37fe489973b4911f56eba74c25cca11b', occurrences: 2 },
-  'ranking.html': { hash: 'c701a8f13d5f279165f944ab742e7bd93a48bcbd1f1a9c9de87d67c5cd1960a2', occurrences: 4 }
+  'catalog/games.json': { hash: 'b5c2f8979ee26a35a83ec2c17b49307520fe88f2923340122cebc159aaca05aa', occurrences: 2 },
+  'index.html': { hash: '90392ca84e271063011e2e3af1a9891f6f491d2d21cb33d21e944204285cbc5f', occurrences: 2 },
+  'ranking.html': { hash: 'd4b47a9f1963a999fcc3ed406856f8804b85fe0eb1efa6d787c43161b1eb84c9', occurrences: 4 }
 };
 
 function inlineArray(source, marker) {

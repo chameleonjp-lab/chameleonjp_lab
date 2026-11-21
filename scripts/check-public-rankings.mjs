@@ -2,6 +2,7 @@
 // Read-only check of the public ranking endpoints; creates no play/score records.
 import fs from "node:fs";
 import assert from "node:assert/strict";
+import { inuboBoard, inuboStats } from "../inubo-data.js";
 
 const html = fs.readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const apiUrl = html.match(/const SUPABASE_URL = "([^"]+)"/)?.[1];
@@ -42,6 +43,18 @@ let next = 0;
 await Promise.all(Array.from({ length: Math.min(4, games.length) }, async () => {
   while (next < games.length) {
     const game = games[next++];
+    if (game.game_slug === "inubo") {
+      const stats = await inuboStats();
+      const best = await inuboBoard("total", 100);
+      const times = await inuboBoard("time", 100);
+      for (const [rows, order] of [[best, "desc"], [times, "asc"]]) {
+        checkRanks(rows.map(row => ({ ...row, rank_no: row.rank })), "value", order, "inubo");
+      }
+      assert.equal(best.length, times.length, "inubo: total/time player counts differ");
+      assert.ok(stats.player_count >= best.length, "inubo: more ranked players than starts");
+      summaries.push({ game_slug: "inubo", best_rows: best.length, time_rows: times.length, ...stats });
+      continue;
+    }
     const body = { p_game_slug: game.game_slug, p_limit: 100 };
     // Sequential requests within each worker keep the total concurrency at four.
     const first = await request("rpc/get_first_try_ranking", body);
