@@ -299,6 +299,25 @@ test('one table keeps the first source for its continuation while the next refre
 
 const {timeAttackMode, timeAttackRows, timeAttackPageResponse} = await import('./fixtures/chameleol-time-attack.mjs');
 
+test('all-colors Time Attack reads only the 20-building board and accepts the 10-second floor', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  const row = { ...timeAttackRows[0], family: 'all', titleId: 'ta.title.01', elapsedCs: 1000 };
+  const reader = createReader(async raw => {
+    const url = new URL(raw);
+    if (url.href === gameUrl + 'release.json') {
+      return Response.json({...release,timeAttack:{available:true,rulesVersion:'kamereoru-time-attack-rules-v3'}});
+    }
+    assert.equal(url.searchParams.get('course'),'all');
+    if (url.pathname.endsWith('/time-attack-stats')) {
+      return Response.json({modeId:timeAttackMode,totalPlays:1,participantCount:1});
+    }
+    return Response.json({...timeAttackPageResponse([row],url.searchParams),course:'all'});
+  });
+  assert.deepEqual(await reader.timeAttackSettings(),{timeAttackAvailable:true,allColorsAvailable:true});
+  assert.equal((await reader.timeAttackStats('all')).totalPlays,1);
+  assert.deepEqual((await reader.timeAttackPage(null,'all')).rows,[row]);
+});
+
 test('Time Attack reads 205 records and preserves the tie at the page boundary', async () => {
   const {createReader} = await import('../chameleol-ranking.js');
   const hits = [];

@@ -61,6 +61,7 @@ for (const engine of [chromium, webkit]) {
     let hallRows = null;
     let totalPlays = 4;
     let timeAttackAvailable = false;
+    let allColors = false;
     let timeAttackVersion = 3;
     let attackRows = timeAttackRows;
     let failNextAttackStats = false;
@@ -103,9 +104,11 @@ for (const engine of [chromium, webkit]) {
       }
       if (url.href === base+'/chameleol/release.json') {
         return route.fulfill({json:{env:'production',rankingApi:api,
-          timeAttack:{available:timeAttackAvailable,enabled:false}}});
+          timeAttack:{available:timeAttackAvailable,enabled:false,
+            rulesVersion:allColors?'kamereoru-time-attack-rules-v3':undefined}}});
       }
-      if (url.href === api + '/time-attack-stats') {
+      if (url.href.startsWith(api + '/time-attack-stats')) {
+        assert.equal(url.searchParams.get('course'),allColors?'all':null);
         if (failNextAttackStats) {
           failNextAttackStats = false;
           return route.fulfill({status:503});
@@ -114,11 +117,13 @@ for (const engine of [chromium, webkit]) {
           participantCount:attackRows.length}});
       }
       if (url.href.startsWith(api + '/time-attack-ranking?')) {
+        assert.equal(url.searchParams.get('course'),allColors?'all':null);
         if (failNextAttackPage) {
           failNextAttackPage = false;
           return route.fulfill({status:503});
         }
-        return route.fulfill({json:timeAttackPageResponse(attackRows, url.searchParams, timeAttackVersion)});
+        return route.fulfill({json:{...timeAttackPageResponse(attackRows, url.searchParams, timeAttackVersion),
+          course:allColors?'all':undefined}});
       }
       if (url.href === api+'/stats') {
         if (failNextStats) {
@@ -423,6 +428,13 @@ for (const engine of [chromium, webkit]) {
     await page.reload();
     await page.locator('#timeAttackRanking').getByText('まだ記録がありません').waitFor();
     await page.waitForFunction(() => document.querySelector('#timeAttackPlayers')?.textContent === '0人');
+    allColors = true;
+    attackRows = [{ ...timeAttackRows[0], name:'全色の記録', family:'all', elapsedCs:1000, titleId:'ta.title.01' }];
+    await page.goto(base + '/chameleonjp_lab/ranking.html?game=chameleol&tab=time-attack&course=legacy');
+    await page.locator('#timeAttackRanking').getByText('全色の記録', {exact:true}).waitFor();
+    assert.equal(await page.locator('#timeAttackRanking .time-attack-time').textContent(), '00:10.00');
+    assert.equal(await page.locator('#timeAttackRanking .time-attack-family').count(), 0);
+    assert.match(await page.locator('#timeAttackPanel .ranking-sub').textContent(), /20棟/);
     await page.goto(base + '/chameleonjp_lab/index.html');
     assert.equal(await page.locator('[data-accordion=chameleol]').count(), 1);
     assert.equal(await page.locator('[data-accordion=chameleol_time_attack]').count(), 0);
