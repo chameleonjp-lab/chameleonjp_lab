@@ -490,6 +490,11 @@ for (const engine of [chromium, webkit]) {
       finishStats.resolve();
       await page.unroute(api + '/stats', heldStats);
     }
+    // Let the released request and rendering finish before navigating away.
+    // The independence check above still runs while Chameleol is deliberately held.
+    await page.waitForFunction(() =>
+      document.querySelector('#plays-chameleol')?.textContent === '0回' &&
+      document.querySelector('#ranking-chameleol')?.textContent === 'まだ記録がありません');
     listedGames = [iroate, takkeu];
     await page.reload();
     await page.locator('[data-accordion=iroate]').waitFor();
