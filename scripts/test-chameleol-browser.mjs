@@ -90,7 +90,22 @@ for (const engine of [chromium, webkit]) {
         }
       }
       if (url.href === base+'/chameleol/release.json') {
-        return route.fulfill({json:{env:'production',rankingApi:api}});
+        return route.fulfill({json:{env:'production',rankingApi:api,timeAttack:{available:true,enabled:false}}});
+      }
+      if (url.href === api+'/time-attack-stats') {
+        return route.fulfill({json:{ok:true,modeId:'chameleol_time_attack',totalPlays:12,participantCount:205}});
+      }
+      if (url.href.startsWith(api+'/time-attack-ranking?')) {
+        const after=Number(url.searchParams.get('after')||0),limit=Number(url.searchParams.get('limit')||100);
+        const rows=Array.from({length:Math.min(205-after,limit)},(_,i)=>{
+          const n=after+i+1;
+          return {position:n,rank:n===101?100:n,name:n===1?'<img src=x onerror=alert(1)>':'タイム'+n,
+            elapsedCs:3500+n,family:n%3===0?'red':n%3===1?'green':'blue',
+            titleId:'ta.title.02'};
+        });
+        return route.fulfill({json:{ok:true,modeId:'chameleol_time_attack',
+          version:92,rows,nameCount:205,restarted:false,
+          nextAfter:after+limit<205?after+limit:null}});
       }
       if (url.href === api+'/stats') {
         if (failNextStats) {
@@ -375,6 +390,27 @@ for (const engine of [chromium, webkit]) {
       resumeSdk.resolve();
       await page.waitForLoadState('load');
     }
+    // Direct TA URL works without replacing the regular Best/Hall views.
+    await page.goto(base+'/chameleonjp_lab/ranking.html?game=chameleol&tab=time-attack');
+    await page.waitForFunction(()=>document.querySelectorAll('#timeAttackRanking .rank-row').length===100);
+    assert.equal(await page.locator('#timeAttackTab').getAttribute('aria-selected'),'true');
+    assert.equal(await page.locator('#timeAttackRanking .rank-name').first().textContent(),'<img src=x onerror=alert(1)>');
+    assert.equal(await page.locator('#timeAttackRanking img').count(),0,'player names are inserted as text');
+    assert.equal(await page.locator('#timeAttackMore').isVisible(),true);
+    await page.locator('#timeAttackMore').click();
+    await page.waitForFunction(()=>document.querySelectorAll('#timeAttackRanking .rank-row').length===200);
+    assert.equal(await page.locator('#timeAttackRanking .rank-no').nth(100).textContent(),'100位');
+    await page.locator('#timeAttackMore').click();
+    await page.waitForFunction(()=>document.querySelectorAll('#timeAttackRanking .rank-row').length===205);
+    assert.equal(await page.locator('#timeAttackMore').isVisible(),false);
+    await page.locator('#labLanguageSelect').selectOption('ko');
+    await page.waitForFunction(()=>document.querySelector('#timeAttackRanking .rank-score')?.textContent.includes('괴도'));
+    assert.ok((await page.locator('#timeAttackStats').textContent()).includes('플레이 횟수'));
+    await page.locator('#labLanguageSelect').selectOption('ja');
+    assert.ok((await page.locator('#timeAttackRanking .rank-score').first().textContent()).includes('怪盗'));
+    await page.getByRole('tab',{name:'自己ベスト'}).click();
+    assert.equal(await page.locator('#bestPanel').isVisible(),true);
+    assert.equal(new URL(page.url()).searchParams.get('tab'),null);
     assert.deepEqual(errors,[]);
     assert.ok(!calls.some(url=>url.includes('/rest/v1/rpc/')));
     console.log(engine.name()+': built list → 32-row detail → canonical game link, retry and zero verified');
