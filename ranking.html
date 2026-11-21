@@ -3039,9 +3039,10 @@
         const taRanking = document.getElementById('timeAttackRanking');
         const taMore = document.getElementById('timeAttackMore');
         const taStats = document.getElementById('timeAttackStats');
-        let taPage = null,taLoading = false;
+        let taPage = null,taLoading = false,taRows=[];
         const taRender = (page, append) => {
-          if (!append || page.restarted) taRanking.replaceChildren();
+          if (!append || page.restarted) {taRanking.replaceChildren();taRows=[];}
+          taRows.push(...page.rows);
           if (!page.rows.length && !append) taRanking.textContent = 'まだ完走記録がありません';
           for (const row of page.rows) {
             const line = document.createElement('div');line.className='rank-row';
@@ -3073,6 +3074,11 @@
           } finally {taLoading=false;taMore.disabled=false;}
         };
         taMore.addEventListener('click',loadTa);
+        document.addEventListener('lab-language-change',()=>{
+          if(token!==currentLoadToken||!taRows.length)return;
+          const rows=taRows.slice();
+          taRender({rows,restarted:true},false);
+        });
         void reader.timeAttackStats().then(stats=>{
           if(token===currentLoadToken)taStats.textContent='タイムアタック：'+stats.totalPlays.toLocaleString('ja-JP')+
             '回 / 完走登録名 '+stats.participantCount.toLocaleString('ja-JP')+'人';
