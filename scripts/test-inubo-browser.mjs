@@ -100,6 +100,10 @@ for (const engine of [chromium, webkit]) {
     await page.locator('[data-accordion=torani_yasashiku]').click();
     await page.locator('#game-torani_yasashiku .game-description').waitFor({ state: 'visible' });
     assert.equal(await page.locator('#game-torani_yasashiku .game-thumbnail').count(), 0);
+    const tiger = page.locator('#game-torani_yasashiku');
+    assert.equal(await tiger.locator('.actions a.button').getAttribute('href'), 'https://chameleonjp-lab.github.io/toraniyasashiku/');
+    const tigerDetail = new URL(await tiger.locator('#detail-torani_yasashiku').getAttribute('href'), base);
+    assert.equal(tigerDetail.searchParams.get('game'), 'torani_yasashiku');
     await page.getByRole('button', { name: 'Inubo', exact: true }).click();
     await thumbnail.waitFor({ state: 'visible' });
     assert.deepEqual(imageRequests, [thumbnailUrl]);
