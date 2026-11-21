@@ -14,7 +14,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <link rel="stylesheet" href="./i18n/language.css?v=20261120-15lang" />
-  <script src="./i18n/common.js?v=20261120-15lang"></script>
+  <script src="./i18n/common.js?v=20261122-newest"></script>
   <script src="./i18n/ranking.js?v=20261121-ta-v1"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
@@ -289,6 +289,18 @@
 
     .game-card.open .accordion-content {
       display: block;
+    }
+
+    .game-thumbnail:not([hidden]) {
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .game-thumbnail img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 14px;
     }
 
     .game-description,
@@ -766,6 +778,7 @@
       <div class="sort-row">
         <label class="sort-label" for="gameSortSelect">並び替え</label>
         <select class="sort-select" id="gameSortSelect" autocomplete="off">
+          <option value="newest" selected>最近追加された順</option>
           <option value="added">追加順</option>
           <option value="plays_desc">プレイ回数の多い順</option>
           <option value="plays_asc">プレイ回数の少ない順</option>
@@ -773,7 +786,7 @@
           <option value="players_asc">プレイ人数の少ない順</option>
         </select>
       </div>
-      <div class="sort-status" id="sortStatus" aria-live="polite">追加順で表示しています。</div>
+      <div class="sort-status" id="sortStatus" aria-live="polite">最近追加された順で表示しています。</div>
     </section>
     <section id="gameList" class="game-list" aria-label="ゲーム一覧"></section>
 
@@ -1763,14 +1776,35 @@
     const loadingGameSlugs = new Set();
     const gameStatsCache = new Map();
     const singleStatsCache = new Map();
+    // Verified share images, keyed by the game path on GitHub Pages so modes share an image.
+    const GAME_THUMBNAIL_BASE = "https://chameleonjp-lab.github.io/";
+    const GAME_THUMBNAILS = new Map([
+      ["iroate/", "assets/social-preview.png"],
+      ["ironarabe/", "assets/social-preview.png"],
+      ["goriragouu/", "assets/goriragouu-og-v1.png"],
+      ["tomatooku/", "assets/social-card.png"],
+      ["sainome/", "assets/sainome-ogp.jpg"],
+      ["sabasaba/", "assets/sabasaba-social-card.png"],
+      ["paripari/", "assets/paripari-og-v1.png"],
+      ["kakomare/", "og-image-v2.png"],
+      ["masumen/", "assets/masumen-og-v1.png"],
+      ["saisupi/", "assets/saisupi-og-v3.png"],
+      ["hanabin/", "src/assets/social-card.png"],
+      ["faitofuraito/", "social-card-eed6ea12da6e1c73.png"],
+      ["takkeu/", "og-takkeu-v1.png"],
+      ["chameleol/", "social-card.jpg"],
+      ["inubo/", "social-card.jpg"]
+    ]);
+    const DEFAULT_SORT_MODE = "newest";
     const sortLabels = {
+      newest: "最近追加された順",
       added: "追加順",
       plays_desc: "プレイ回数の多い順",
       plays_asc: "プレイ回数の少ない順",
       players_desc: "プレイ人数の多い順",
       players_asc: "プレイ人数の少ない順"
     };
-    let currentSortMode = "added";
+    let currentSortMode = DEFAULT_SORT_MODE;
     let statsSortPromise = null;
 
     function assignAddedOrder() {
@@ -1832,10 +1866,12 @@
     }
 
     function getSortedGames() {
-      const games = [...GAMES];
+      const games = getVisibleGames();
 
       games.sort((a, b) => {
         switch (currentSortMode) {
+          case "newest":
+            return compareByAddedOrder(b, a);
           case "plays_desc":
             return getCachedStat(b, "totalPlayCount") - getCachedStat(a, "totalPlayCount") || compareByAddedOrder(a, b);
           case "plays_asc":
@@ -1880,7 +1916,7 @@
     }
 
     function applySortStatus() {
-      const label = sortLabels[currentSortMode] || sortLabels.added;
+      const label = sortLabels[currentSortMode];
       setSortStatus(`${label}で表示しています。`);
     }
 
@@ -2015,7 +2051,7 @@
     }
 
     async function applySortMode(mode) {
-      currentSortMode = sortLabels[mode] ? mode : "added";
+      currentSortMode = Object.hasOwn(sortLabels, mode) ? mode : DEFAULT_SORT_MODE;
 
       if (isStatsSortMode(currentSortMode)) {
         setSortBusy(true);
@@ -2030,6 +2066,7 @@
     function setupSortControls() {
       if (!sortSelectEl) return;
 
+      sortSelectEl.value = currentSortMode;
       sortSelectEl.addEventListener("change", () => {
         applySortMode(sortSelectEl.value);
       });
@@ -2176,7 +2213,7 @@
         used.add(slug);
       });
 
-      return games.filter((game) => game.slug).sort(compareByAddedOrder);
+      return games;
     }
 
     const GAME_SELECT_COLUMNS = "display_order, game_slug, title, game_url, description, is_active, release_date, top_ranking_type, score_order, score_unit, score_scale, score_decimals, score_label, first_score_label, best_score_label";
@@ -2489,6 +2526,30 @@
       return `<a class="button secondary" href="${escapeHtml(detailUrlFor(game))}" id="detail-${escapeHtml(game.slug)}">詳細ランキングを見る</a>`;
     }
 
+    function loadGameThumbnail(card, game) {
+      if (!game.url?.startsWith(GAME_THUMBNAIL_BASE)) return;
+      const gamePath = game.url.slice(GAME_THUMBNAIL_BASE.length);
+      const thumbnailPath = GAME_THUMBNAILS.get(gamePath);
+      if (!thumbnailPath) return;
+
+      const content = card.querySelector(".accordion-content");
+      if (content.querySelector(".game-thumbnail")) return;
+
+      const link = document.createElement("a");
+      link.className = "game-thumbnail";
+      link.href = game.url;
+      link.hidden = true;
+
+      const image = document.createElement("img");
+      image.alt = game.title;
+      image.decoding = "async";
+      image.addEventListener("load", () => { link.hidden = false; }, { once: true });
+      image.addEventListener("error", () => link.remove(), { once: true });
+      link.append(image);
+      content.prepend(link);
+      image.src = new URL(thumbnailPath, game.url).href;
+    }
+
     function statsHtml(game) {
       const grouped = isGroupedGame(game);
       const playLabel = game.slug === "chameleol" ? "通常モードのプレイ回数" : grouped ? "合計プレイ回数（合算）" : "合計プレイ回数";
@@ -2529,7 +2590,7 @@
     }
 
     function renderCards() {
-      gameListEl.innerHTML = getVisibleGames().map((game) => {
+      gameListEl.innerHTML = getSortedGames().map((game) => {
         const rankingBadge = `<span class="badge soon" id="ranking-badge-${escapeHtml(game.slug)}">ランキング確認中</span>`;
         const difficultyBadge = cleanText(game.difficultySummary)
           ? `<span class="badge">${escapeHtml(game.difficultySummary)}</span>`
@@ -2591,6 +2652,7 @@
           if (!isOpen) {
             card.classList.add("open");
             button.setAttribute("aria-expanded", "true");
+            loadGameThumbnail(card, game);
             ensureGameDataLoaded(game);
           }
         });

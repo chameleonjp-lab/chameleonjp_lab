@@ -86,7 +86,7 @@ async function browserCase(browser, mode, helpers) {
     await context.route('**/*', async route => {
       const request = route.request();
       const url = new URL(request.url());
-      requests.push({ url: request.url(), method: request.method() });
+      requests.push({ url: request.url(), method: request.method(), type: request.resourceType() });
       if (url.origin === origin && ['/index.html', '/ranking.html'].includes(url.pathname)) {
         return route.fulfill({ contentType: 'text/html; charset=utf-8', body: url.pathname === '/index.html' ? index.source : ranking.source });
       }
@@ -170,7 +170,10 @@ async function browserCase(browser, mode, helpers) {
     }
     assert.deepEqual(pageErrors, []);
     assert.ok(requests.every(request => request.method === 'GET'), 'no write request was attempted');
-    assert.ok(requests.every(request => !request.url.startsWith(IROATE_URL) && !request.url.startsWith(OLD_IROATE_URL)), 'game links were inspected without visiting production');
+    const gameRequests = requests.filter(request => request.url.startsWith(IROATE_URL) || request.url.startsWith(OLD_IROATE_URL));
+    assert.deepEqual(gameRequests, [
+      { url: IROATE_URL + 'assets/social-preview.png', method: 'GET', type: 'image' }
+    ], 'only the thumbnail was requested from the game site and intercepted by the fixture');
     return requests.length;
   } finally {
     await context.close();

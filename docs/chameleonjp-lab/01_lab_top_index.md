@@ -68,7 +68,7 @@ Publishable keyは公開HTMLに入れてよい。ただし、`service_role` キ�
 |---|---|
 | ヘッダー | `カメレオンJPの実験場` |
 | 説明文 | スマホで遊べるミニゲーム置き場であることを説明 |
-| 並び替え | 追加順、プレイ回数、参加人数で切り替え |
+| 並び替え | 最近追加された順、追加順、プレイ回数、参加人数で切り替え |
 | ゲームカード一覧 | Supabase `games` から作る |
 | 各カードの開閉 | タイトルを押すと詳細を開く |
 | supporter枠 | カメレオン診断、λアルク教λなど |
@@ -81,6 +81,7 @@ Publishable keyは公開HTMLに入れてよい。ただし、`service_role` キ�
 
 | 表示 | 内容 |
 |---|---|
+| サムネイル | 設定済みの共有用画像をタイトルの直下に表示し、画像を押すと `game_url` へ移動 |
 | 説明 | `description` |
 | 合計プレイ回数 | `get_game_play_stats` の結果 |
 | 参加人数 | `get_game_play_stats` の結果 |
@@ -88,6 +89,8 @@ Publishable keyは公開HTMLに入れてよい。ただし、`service_role` キ�
 | 遊ぶボタン | `game_url` へ移動 |
 | シェアボタン | `share_text` と `game_url` を共有 |
 | 詳細ランキング | `ranking.html?game=game_slug` へ移動 |
+
+共有用画像を追加・移動したときは、公開ページの `og:image` と画像が開くことを確認し、`index.html` の `GAME_THUMBNAILS` にGitHub Pagesのゲームパスと画像のパスを登録する。画像はカードを開いたときに取得する。
 
 ## 6. ランキング表示
 
@@ -124,6 +127,7 @@ Publishable keyは公開HTMLに入れてよい。ただし、`service_role` キ�
 
 | 並び替え | 内容 |
 |---|---|
+| 最近追加された順（初期表示） | `display_order desc` |
 | 追加順 | `display_order asc` |
 | プレイ回数の多い順 | 集計取得後、合計プレイ回数の多い順 |
 | プレイ回数の少ない順 | 集計取得後、合計プレイ回数の少ない順 |
@@ -160,7 +164,7 @@ Publishable keyは公開HTMLに入れてよい。ただし、`service_role` キ�
 
 1. Supabase接続値を確認する。
 2. `public.games` から `is_active = true` のゲームを取得する。
-3. 取得したゲームを `display_order` で並べる。
+3. 初期表示では `display_order` の大きい順に並べる。
 4. カードの土台を描画する。
 5. 各カードの集計を取得する。
 6. カードが開かれた時にランキングを取得する。
@@ -196,7 +200,8 @@ Bearerを忘れると、キーを入れていても取得できない場合が�
 
 - `public.games` の登録ゲームが表示される。
 - `is_active = false` は表示されない。
-- 表示順が `display_order` と一致する。
+- 初期表示は `display_order` の大きい順になり、「追加順」に切り替えると小さい順になる。
+- サムネイルはカードを開くとタイトルの直下に表示され、押すと遊ぶボタンと同じURLに移動する。
 - 遊ぶボタンが `game_url` に飛ぶ。
 - 詳細ランキングが `ranking.html?game=slug` で開く。
 - 上位ランキングが3件まで出る。
