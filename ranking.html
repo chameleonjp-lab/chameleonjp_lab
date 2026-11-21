@@ -703,6 +703,16 @@
     #bestRanking .rank-name, #hallRanking .rank-name { overflow-wrap: anywhere; }
     #hallRanking .rank-row { grid-template-columns: auto minmax(0, 1fr); }
     #hallMore { margin-top: .8em; }
+    /* Time attack: long translated titles remain within a mobile result card. */
+    #timeAttackRanking .rank-row {
+      display:grid;grid-template-columns: minmax(36px,auto) minmax(0,1fr);
+      align-items:center;column-gap:10px;row-gap:4px;padding:12px 4px;
+      border-bottom:1px solid var(--inactive-tab-border);
+    }
+    #timeAttackRanking .rank-no {grid-row:1 / span 2;}
+    #timeAttackRanking .rank-name {min-width:0;overflow-wrap:anywhere;font-weight:800;}
+    #timeAttackRanking .rank-score {grid-column:2;min-width:0;overflow-wrap:anywhere;color:var(--text-sub);font-variant-numeric:tabular-nums;}
+
   </style>
 </head>
 
