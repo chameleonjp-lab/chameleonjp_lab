@@ -47,7 +47,7 @@ test('TA invalid source or invalid response is rejected',async()=>{
  const invalidTime=createReader(async raw=>Response.json(String(raw)===url?release:
    {ok:true,modeId:'chameleol_time_attack',version:1,restarted:false,nameCount:1,
     rows:[{...row(1),elapsedCs:123}],nextAfter:null}));
- await assert.rejects(invalidTime.timeAttackPage(),/値/);
+ await assert.rejects(invalidTime.timeAttackPage(),/無効/);
  const invalidMode=createReader(async raw=>Response.json(String(raw)===url?release:
    {ok:true,modeId:'chameleol',version:1,restarted:false,nameCount:0,rows:[],nextAfter:null}));
  await assert.rejects(invalidMode.timeAttackPage(),/形式/);
