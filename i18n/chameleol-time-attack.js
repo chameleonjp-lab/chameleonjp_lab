@@ -54,7 +54,7 @@ const display={red:'red',green:'green',blue:'blue'};
 window.ChameleolTimeAttack={
  title(id,lang='ja'){
    if(id==null)return lang==='ja'?'30棟完走':'30 buildings completed';
-   const match=/^ta\\.title\\.(\\d{2})$/.exec(id);
+   const match=/^ta\.title\.(\d{2})$/.exec(id);
    const i=match?Number(match[1])-1:-1;
    if(i<0||i>=58)return lang==='ja'?'30棟完走':'30 buildings completed';
    return lang==='ja'?namesJa[i]:namesEn[i];
