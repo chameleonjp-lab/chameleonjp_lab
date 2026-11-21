@@ -41,7 +41,8 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) {
       throw new Error('集計元のURLが無効です');
     }
-    return { base: url.href.replace(/\/$/, ''), timeAttackAvailable: release.timeAttack?.available === true };
+    return { base: url.href.replace(/\/$/, ''), timeAttackAvailable: release.timeAttack?.available === true,
+      allColorsAvailable: release.timeAttack?.rulesVersion === 'kamereoru-time-attack-rules-v3' };
   }
 
   function currentRelease() {
@@ -166,14 +167,23 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     return (await currentRelease()).timeAttackAvailable;
   }
 
-  async function timeAttackBase() {
-    const {base, timeAttackAvailable} = await currentRelease();
+  async function timeAttackSettings() {
+    const {timeAttackAvailable, allColorsAvailable} = await currentRelease();
+    return {timeAttackAvailable, allColorsAvailable};
+  }
+
+  async function timeAttackBase(course) {
+    const {base, timeAttackAvailable, allColorsAvailable} = await currentRelease();
     if (!timeAttackAvailable) throw new Error('タイムアタックの集計は準備中です');
+    if (course !== 'legacy' && (course !== 'all' || !allColorsAvailable)) {
+      throw new Error('このコースの集計は準備中です');
+    }
     return base;
   }
 
-  async function timeAttackStats() {
-    const response = await json(await timeAttackBase() + '/time-attack-stats');
+  async function timeAttackStats(course = 'legacy') {
+    const query = course === 'all' ? '?course=all' : '';
+    const response = await json(await timeAttackBase(course) + '/time-attack-stats' + query);
     if (response?.modeId !== timeAttackMode || (response.ok !== undefined && response.ok !== true) ||
         !integer(response.totalPlays, 0) || !integer(response.participantCount, 0, response.totalPlays)) {
       throw new Error('タイムアタックの集計値が無効です');
@@ -182,15 +192,16 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     return {modeId: timeAttackMode, totalPlays, participantCount};
   }
 
-  async function timeAttackPage(previous = null) {
+  async function timeAttackPage(previous = null, course = 'legacy') {
     if (previous && (!integer(previous.version, 0) || !integer(previous.nextAfter, 1) ||
         !integer(previous.nameCount, previous.nextAfter + 1) || typeof previous.base !== 'string' ||
         !Array.isArray(previous.rows) || previous.rows.at(-1)?.position !== previous.nextAfter)) {
       throw new Error('タイムアタックの続き位置が無効です');
     }
-    const base = await timeAttackBase();
-    const cursor = previous?.base === base ? previous : null;
+    const base = await timeAttackBase(course);
+    const cursor = previous?.base === base && previous.course === course ? previous : null;
     const query = new URLSearchParams({limit: String(detailPageSize)});
+    if (course === 'all') query.set('course', course);
     if (cursor) {
       query.set('version', String(cursor.version));
       query.set('after', String(cursor.nextAfter));
@@ -202,7 +213,8 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     const {modeId, version, rows, nameCount, nextAfter, restarted} = page;
     const continuation = cursor && !restarted;
     const from = continuation ? cursor.nextAfter : 0;
-    if (modeId !== timeAttackMode || !integer(version, 0) || !integer(nameCount, from) ||
+    if (modeId !== timeAttackMode || (course === 'all' && page.course !== course) ||
+        (page.course != null && page.course !== course) || !integer(version, 0) || !integer(nameCount, from) ||
         typeof restarted !== 'boolean' || restarted !== Boolean(cursor && cursor.version !== version) ||
         (continuation && nameCount !== cursor.nameCount) || !Array.isArray(rows) ||
         rows.length !== Math.min(detailPageSize, nameCount - from)) {
@@ -213,14 +225,16 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     }
     for (const [index, row] of rows.entries()) {
       if (row?.position !== from + index + 1 || !integer(row.rank, 1, row.position) ||
-          typeof row.name !== 'string' || !row.name.trim() || !integer(row.elapsedCs, 1500, 900719925468300) ||
-          !Object.hasOwn(timeAttackFamilies, row.family) ||
+          typeof row.name !== 'string' || !row.name.trim() ||
+          !integer(row.elapsedCs, course === 'all' ? 1000 : 1500, 900719925468300) ||
+          (course === 'all' ? row.family !== 'all' : !Object.hasOwn(timeAttackFamilies, row.family)) ||
           typeof row.officialAt !== 'string' || !Number.isFinite(Date.parse(row.officialAt))) {
         throw new Error('タイムアタックの順位表の値が無効です');
       }
       const title = titles.get(row.titleId);
+      const titleMinimum = course === 'all' && row.titleId === 'ta.title.01' ? 1000 : title?.minCs;
       if (row.elapsedCs > 60000 ? row.titleId !== null :
-        !title || row.elapsedCs < title.minCs || row.elapsedCs > title.maxCs) {
+        !title || row.elapsedCs < titleMinimum || row.elapsedCs > title.maxCs) {
         throw new Error('タイムアタックの称号が無効です');
       }
       const earlier = index === 0 ? (continuation ? cursor.rows.at(-1) : null) : rows[index - 1];
@@ -229,11 +243,11 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
         throw new Error('タイムアタックの順位または並びが無効です');
       }
     }
-    return {modeId, version, rows, nameCount, nextAfter, restarted: Boolean(previous && (!cursor || restarted)), base};
+    return {modeId, version, rows, nameCount, nextAfter, restarted: Boolean(previous && (!cursor || restarted)), base, course};
   }
 
   return {stats, rankingParticipantCount, ranking, rankingPage, hallOfFame,
-    timeAttackAvailable, timeAttackStats, timeAttackPage};
+    timeAttackAvailable, timeAttackSettings, timeAttackStats, timeAttackPage};
 }
 
 export const reader = createReader();
@@ -285,7 +299,7 @@ function timeAttackCell(tag, className, text) {
   return cell;
 }
 
-export function createTimeAttackView({panel, reader}) {
+export function createTimeAttackView({panel, reader, course = 'legacy'}) {
   const stats = panel.querySelector('.time-attack-stats');
   const total = panel.querySelector('#timeAttackPlays');
   const players = panel.querySelector('#timeAttackPlayers');
@@ -312,7 +326,7 @@ export function createTimeAttackView({panel, reader}) {
     statsError.replaceChildren();
     total.textContent = players.textContent = '読み込み中';
     try {
-      const {totalPlays, participantCount} = await reader.timeAttackStats();
+      const {totalPlays, participantCount} = await reader.timeAttackStats(course);
       if (signal.aborted) return;
       total.textContent = totalPlays.toLocaleString('ja-JP') + '回';
       players.textContent = participantCount.toLocaleString('ja-JP') + '人';
@@ -329,7 +343,7 @@ export function createTimeAttackView({panel, reader}) {
     if (!currentPage) container.textContent = '読み込み中';
     else status.textContent = '読み込み中';
     try {
-      const [page, titles] = await Promise.all([reader.timeAttackPage(currentPage), timeAttackTitles()]);
+      const [page, titles] = await Promise.all([reader.timeAttackPage(currentPage, course), timeAttackTitles()]);
       if (signal.aborted) return;
       catalog = titles;
       if (!currentPage || page.restarted) container.replaceChildren();
@@ -340,7 +354,7 @@ export function createTimeAttackView({panel, reader}) {
       const fragment = document.createDocumentFragment();
       for (const {rank, name, elapsedCs, family, titleId} of page.rows) {
         const line = timeAttackCell('div', 'time-attack-row', '');
-        const title = timeAttackCell('span', 'time-attack-title', '30棟完走');
+        const title = timeAttackCell('span', 'time-attack-title', course === 'all' ? '20棟完走' : '30棟完走');
         if (titleId) {
           title.dataset.timeAttackTitle = titleId;
           title.dataset.labNoTranslate = '';
@@ -350,8 +364,8 @@ export function createTimeAttackView({panel, reader}) {
           timeAttackCell('bdi', 'rank-name', name),
           timeAttackCell('span', 'rank-score time-attack-time', formatTimeAttack(elapsedCs)),
           title,
-          timeAttackCell('span', 'time-attack-family', timeAttackFamilies[family]),
         );
+        if (course === 'legacy') line.append(timeAttackCell('span', 'time-attack-family', timeAttackFamilies[family]));
         fragment.append(line);
       }
       container.append(fragment);
