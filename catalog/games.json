@@ -821,6 +821,27 @@
       "submission_mode": "verified",
       "score_min": 0,
       "score_max": 50
+    },
+    {
+      "display_order": 63,
+      "game_slug": "inubo",
+      "title": "イヌボー",
+      "game_url": "https://chameleonjp-lab.github.io/inubo/",
+      "description": "犬に乗って公園を駆け抜け、ジャンプと空中トリックでハイスコアを狙うゲームです。",
+      "share_text": "犬に乗って飛んで、回って、ハイスコアを狙おう！ #イヌボー https://chameleonjp-lab.github.io/inubo/",
+      "release_date": "2026-11-21",
+      "top_ranking_type": "best",
+      "score_order": "desc",
+      "score_unit": "点",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_label": "総合点",
+      "first_score_label": "初回スコア",
+      "best_score_label": "自己ベスト",
+      "is_active": true,
+      "submission_mode": "verified",
+      "score_min": 0,
+      "score_max": 2147483647
     }
   ]
 }

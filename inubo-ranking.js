@@ -1,3 +1,5 @@
+import { inuboBoard } from './inubo-data.js';
+
 const languages = ['ja', 'en', 'es', 'pt-BR', 'zh-Hans', 'fr', 'de', 'ko', 'ru', 'it', 'zh-Hant', 'id', 'tr', 'vi', 'th'];
 const translations = `
 イヌボー|Inubo|Inubo|Inubo|犬滑板|Inubo|Inubo|이누보|Инубо|Inubo|犬滑板|Inubo|Inubo|Inubo|อินุโบ
@@ -24,6 +26,7 @@ const retry = element('retry');
 document.documentElement.lang = language;
 document.title = t('イヌボー') + '｜' + t('詳細ランキング');
 game.href += '?lang=' + language;
+document.getElementById('lab').href += '?lang=' + language;
 game.textContent = element('title').textContent = t('イヌボー');
 element('heading').textContent = t('詳細ランキング');
 element('total').textContent = t('総合');
@@ -43,23 +46,11 @@ async function load(next) {
   retry.hidden = true;
   const timeout = setTimeout(() => request.abort(), 8000);
   try {
-    const response = await fetch('https://mlpnjgezrnhdxsxolyzj.supabase.co/rest/v1/rpc/inubo_ranking_board', {
-      method: 'POST',
-      headers: { apikey: 'sb_publishable_drzcy0v97knU6FgjqSgBHw_0A9XPdFM', 'content-type': 'application/json' },
-      credentials: 'omit',
-      redirect: 'error',
-      body: JSON.stringify({ p_course_id: 'park', p_course_version: 'park-5', p_rules_version: 'rules-freestyle-3', p_metric: next, p_limit: 100 }),
-      signal: request.signal,
-    });
-    if (!response.ok) throw Error('Leaderboard unavailable');
-    const data = await response.json();
-    if (!Array.isArray(data) || data.length > 100) throw Error('Invalid leaderboard');
+    const data = await inuboBoard(next, 100, request.signal);
     if (pending !== request) return;
     const number = new Intl.NumberFormat(language);
     const seconds = new Intl.NumberFormat(language, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     for (const row of data) {
-      if (!Number.isInteger(row.rank) || row.rank < 1 || row.rank > 100 || typeof row.display_name !== 'string'
-        || !Number.isSafeInteger(row.value) || row.value < 0) throw Error('Invalid ranking row');
       const item = document.createElement('li');
       const rank = document.createElement('span');
       rank.textContent = t('{n}位').replace('{n}', number.format(row.rank));

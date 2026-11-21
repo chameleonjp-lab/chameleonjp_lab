@@ -1984,6 +1984,36 @@
             "difficultyLabel": ""
           }
         ]
+      },
+      {
+        "pageSlug": "inubo",
+        "title": "イヌボー",
+        "url": "https://chameleonjp-lab.github.io/inubo/",
+        "description": "犬に乗って公園を駆け抜け、ジャンプと空中トリックでハイスコアを狙うゲームです。",
+        "shareText": "犬に乗って飛んで、回って、ハイスコアを狙おう！ #イヌボー https://chameleonjp-lab.github.io/inubo/",
+        "defaultDifficultyKey": "main",
+        "difficulties": [
+          {
+            "displayOrder": 63,
+            "slug": "inubo",
+            "title": "イヌボー",
+            "url": "https://chameleonjp-lab.github.io/inubo/",
+            "description": "犬に乗って公園を駆け抜け、ジャンプと空中トリックでハイスコアを狙うゲームです。",
+            "shareText": "犬に乗って飛んで、回って、ハイスコアを狙おう！ #イヌボー https://chameleonjp-lab.github.io/inubo/",
+            "releaseDate": "2026-11-21",
+            "topRanking": "best",
+            "scoreOrder": "desc",
+            "scoreUnit": "点",
+            "scoreScale": 1,
+            "scoreDecimals": 0,
+            "scoreLabel": "総合点",
+            "firstScoreLabel": "初回スコア",
+            "bestScoreLabel": "自己ベスト",
+            "isActive": true,
+            "key": "main",
+            "difficultyLabel": ""
+          }
+        ]
       }
 ];
 
@@ -3259,6 +3289,13 @@
     }
 
     async function init() {
+      const params = new URLSearchParams(window.location.search);
+      if (normalizeGameSlug(params.get("game")) === "inubo") {
+        const url = new URL("./inubo-ranking.html", window.location.href);
+        if (params.has("lang")) url.searchParams.set("lang", params.get("lang"));
+        window.location.replace(url);
+        return;
+      }
       if (isKeyUnset) keyNoticeEl.style.display = "block";
 
       const resolved = await resolveGameFromUrl();

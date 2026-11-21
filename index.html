@@ -18,7 +18,7 @@
   <script src="./i18n/ranking.js?v=20261121-ta-v1"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261120-15lang"></script>
+  <script src="./i18n/games-3.js?v=20261121-inubo"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/runtime.js?v=20261120-15lang"></script>
 
@@ -1688,6 +1688,29 @@
         "statsSlugs": [
           "chameleol"
         ]
+      },
+      {
+        "displayOrder": 63,
+        "slug": "inubo",
+        "title": "イヌボー",
+        "url": "https://chameleonjp-lab.github.io/inubo/",
+        "description": "犬に乗って公園を駆け抜け、ジャンプと空中トリックでハイスコアを狙うゲームです。",
+        "shareText": "犬に乗って飛んで、回って、ハイスコアを狙おう！ #イヌボー https://chameleonjp-lab.github.io/inubo/",
+        "releaseDate": "2026-11-21",
+        "topRanking": "best",
+        "scoreOrder": "desc",
+        "scoreUnit": "点",
+        "scoreScale": 1,
+        "scoreDecimals": 0,
+        "scoreLabel": "総合点",
+        "firstScoreLabel": "初回スコア",
+        "bestScoreLabel": "自己ベスト",
+        "isActive": true,
+        "rankingSlug": "inubo",
+        "detailSlug": "inubo",
+        "statsSlugs": [
+          "inubo"
+        ]
       }
 ];
 
@@ -1886,6 +1909,16 @@
         } catch { return null; }
       }
       if (singleStatsCache.has(normalizedSlug)) return singleStatsCache.get(normalizedSlug);
+      if (normalizedSlug === "inubo") {
+        try {
+          const { inuboStats } = await import("./inubo-data.js");
+          const stats = normalizeStats(await inuboStats());
+          singleStatsCache.set(normalizedSlug, stats);
+          return stats;
+        } catch {
+          return null;
+        }
+      }
       await waitForSupabaseSetup();
 
       if (isKeyUnset || !supabaseClient) {
@@ -1951,7 +1984,7 @@
       }
       const playerCount = Number(stats?.playerCount || 0);
 
-      if (totalPlayCount <= 0 && playerCount <= 0) {
+      if (game.slug !== "inubo" && totalPlayCount <= 0 && playerCount <= 0) {
         setStatsComingSoon(game);
         return false;
       }
@@ -2448,6 +2481,7 @@
 
     function detailUrlFor(game) {
       const slug = cleanText(game.detailSlug) || cleanText(game.slug);
+      if (slug === "inubo") return "/chameleonjp_lab/inubo-ranking.html";
       return `/chameleonjp_lab/ranking.html?game=${encodeURIComponent(slug)}`;
     }
 
@@ -2610,6 +2644,10 @@
         playersEl.textContent = "取得できませんでした";
         return null;
       }
+      if (game.slug === "inubo" && !stats) {
+        playsEl.textContent = playersEl.textContent = "取得できませんでした";
+        return null;
+      }
       return stats && applyStatsToCard(game, stats) ? stats : null;
     }
 
@@ -2691,12 +2729,19 @@
       const isFirstRanking = game.topRanking === "first";
       const functionName = isFirstRanking ? "get_first_try_ranking" : "get_best_score_ranking";
       try {
-        const { data, error } = await supabaseClient.rpc(functionName, {
-          p_game_slug: getRankingSlug(game),
-          p_limit: 3
-        });
-
-        if (error) throw error;
+        let data;
+        if (game.slug === "inubo") {
+          const { inuboBoard } = await import("./inubo-data.js");
+          const rows = await inuboBoard("total", 3);
+          data = rows.map(row => ({ rank_no: row.rank, display_name: row.display_name, best_score: row.value }));
+        } else {
+          const result = await supabaseClient.rpc(functionName, {
+            p_game_slug: getRankingSlug(game),
+            p_limit: 3
+          });
+          if (result.error) throw result.error;
+          data = result.data;
+        }
 
         const visibleRows = Array.isArray(data) ? data : [];
 
