@@ -2101,6 +2101,34 @@
     const GAME_SELECT_COLUMNS = "display_order, game_slug, title, game_url, description, is_active, release_date, top_ranking_type, score_order, score_unit, score_scale, score_decimals, score_label, first_score_label, best_score_label";
     const GAME_SELECT_COLUMNS_WITH_SHARE_TEXT = `${GAME_SELECT_COLUMNS}, share_text`;
 
+    const VERIFIED_PLAY_URL_MOVES = new Map([
+      ["https://chameleonjp.codeberg.page/binkarabin/", "https://chameleonjp-lab.github.io/binkarabin/"],
+      ["https://chameleonjp.codeberg.page/toremeshi/", "https://chameleonjp-lab.github.io/toremeshi/"],
+      ["https://chameleonjp.codeberg.page/kanijan/", "https://chameleonjp-lab.github.io/kanijan/"],
+      ["https://chameleonjp.codeberg.page/koroshine/", "https://chameleonjp-lab.github.io/koroshine/"],
+      ["https://chameleonjp.codeberg.page/uchikaeru/", "https://chameleonjp-lab.github.io/uchikaeru/"],
+      ["https://chameleonjp.codeberg.page/hito_wo_yurusuna/", "https://chameleonjp-lab.github.io/hito_wo_yurusuna/"],
+      ["https://chameleonjp.codeberg.page/songen_wo_kakeyouka/", "https://chameleonjp-lab.github.io/songen_wo_kakeyouka/"],
+      ["https://chameleonjp.codeberg.page/bekutoru/", "https://chameleonjp-lab.github.io/bekutoru/"],
+      ["https://chameleonjp.codeberg.page/anatano_1byou/", "https://chameleonjp-lab.github.io/anatano_1byou/"],
+      ["https://chameleonjp.codeberg.page/suiteki_catch/", "https://chameleonjp-lab.github.io/suitekicatch/"],
+      ["https://chameleonjp.codeberg.page/torani_yasashiku/", "https://chameleonjp-lab.github.io/toraniyasashiku/"],
+      ["https://chameleonjp.codeberg.page/machigai_mikke/", "https://chameleonjp-lab.github.io/matigaimikke/"],
+      ["https://chameleonjp.codeberg.page/emojihiroi/", "https://chameleonjp-lab.github.io/emojihiroi/"]
+    ]);
+
+    function withVerifiedPlayUrl(game) {
+      const original = game.url;
+      const url = VERIFIED_PLAY_URL_MOVES.get(original);
+      if (!url) return game;
+
+      // Match complete URL tokens, not an alias, an unrelated link, or a query variant.
+      const shareText = typeof game.shareText === "string"
+        ? game.shareText.replace(/https:\/\/[^\s<>"'、。！？（）]+/g, link => link === original ? url : link)
+        : game.shareText;
+      return { ...game, url, shareText };
+    }
+
     function shareTextFor(row, title, description, url) {
       return cleanText(row?.share_text) || `${title || ""}\n${description || ""}\n${url || ""}`.trim();
     }
@@ -3263,6 +3291,7 @@
     }
 
     async function showGamePage(page, baseGame) {
+      page = withVerifiedPlayUrl(page);
       const token = ++currentLoadToken;
       const hydratedGame = await loadGameMetadata(baseGame);
       if (token !== currentLoadToken) return;

@@ -1779,6 +1779,16 @@
     // Verified share images, keyed by the game path on GitHub Pages so modes share an image.
     const GAME_THUMBNAIL_BASE = "https://chameleonjp-lab.github.io/";
     const GAME_THUMBNAILS = new Map([
+      ["emojihiroi/", "assets/social-preview.png"],
+      ["binkarabin/", "assets/social-preview.png"],
+      ["toremeshi/", "assets/social-card.png"],
+      ["kanijan/", "assets/social-card.png"],
+      ["koroshine/", "assets/social-preview.png"],
+      ["uchikaeru/", "assets/social-preview.png"],
+      ["hito_wo_yurusuna/", "assets/social-preview.png"],
+      ["songen_wo_kakeyouka/", "assets/social-card.png"],
+      ["bekutoru/", "assets/social-card.png"],
+      ["anatano_1byou/", "assets/social-preview.png"],
       ["iroate/", "assets/social-preview.png"],
       ["ironarabe/", "assets/social-preview.png"],
       ["goriragouu/", "assets/goriragouu-og-v1.png"],
@@ -2122,6 +2132,34 @@
       };
     }
 
+    const VERIFIED_PLAY_URL_MOVES = new Map([
+      ["https://chameleonjp.codeberg.page/binkarabin/", "https://chameleonjp-lab.github.io/binkarabin/"],
+      ["https://chameleonjp.codeberg.page/toremeshi/", "https://chameleonjp-lab.github.io/toremeshi/"],
+      ["https://chameleonjp.codeberg.page/kanijan/", "https://chameleonjp-lab.github.io/kanijan/"],
+      ["https://chameleonjp.codeberg.page/koroshine/", "https://chameleonjp-lab.github.io/koroshine/"],
+      ["https://chameleonjp.codeberg.page/uchikaeru/", "https://chameleonjp-lab.github.io/uchikaeru/"],
+      ["https://chameleonjp.codeberg.page/hito_wo_yurusuna/", "https://chameleonjp-lab.github.io/hito_wo_yurusuna/"],
+      ["https://chameleonjp.codeberg.page/songen_wo_kakeyouka/", "https://chameleonjp-lab.github.io/songen_wo_kakeyouka/"],
+      ["https://chameleonjp.codeberg.page/bekutoru/", "https://chameleonjp-lab.github.io/bekutoru/"],
+      ["https://chameleonjp.codeberg.page/anatano_1byou/", "https://chameleonjp-lab.github.io/anatano_1byou/"],
+      ["https://chameleonjp.codeberg.page/suiteki_catch/", "https://chameleonjp-lab.github.io/suitekicatch/"],
+      ["https://chameleonjp.codeberg.page/torani_yasashiku/", "https://chameleonjp-lab.github.io/toraniyasashiku/"],
+      ["https://chameleonjp.codeberg.page/machigai_mikke/", "https://chameleonjp-lab.github.io/matigaimikke/"],
+      ["https://chameleonjp.codeberg.page/emojihiroi/", "https://chameleonjp-lab.github.io/emojihiroi/"]
+    ]);
+
+    function withVerifiedPlayUrl(game) {
+      const original = game.url;
+      const url = VERIFIED_PLAY_URL_MOVES.get(original);
+      if (!url) return game;
+
+      // Match complete URL tokens, not an alias, an unrelated link, or a query variant.
+      const shareText = typeof game.shareText === "string"
+        ? game.shareText.replace(/https:\/\/[^\s<>"'、。！？（）]+/g, link => link === original ? url : link)
+        : game.shareText;
+      return { ...game, url, shareText };
+    }
+
     function shareTextFor(row, title, description, url) {
       return cleanText(row?.share_text) || `${title || ""}\n${description || ""}\n${url || ""}`.trim();
     }
@@ -2306,7 +2344,7 @@
         if (error) throw error;
         if (!Array.isArray(data)) return false;
 
-        GAMES = buildGamesFromRows(data);
+        GAMES = buildGamesFromRows(data).map(withVerifiedPlayUrl);
         assignAddedOrder();
         hasLiveGamesCatalog = true;
         return true;
@@ -2869,6 +2907,7 @@
     }
 
     async function init() {
+      GAMES = GAMES.map(withVerifiedPlayUrl);
       if (isKeyUnset) keyNoticeEl.style.display = "block";
       await loadGamesFromSupabase();
       renderCards();
