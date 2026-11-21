@@ -9,6 +9,8 @@ const game = catalog.games.find(row => row.game_slug === 'inubo');
 const iroate = catalog.games.find(row => row.game_slug === 'iroate');
 const legacyGame = catalog.games.find(row => row.game_slug === 'torani_yasashiku');
 const thumbnailUrl = game.game_url + 'social-card.jpg';
+const tigerPlayUrl = 'https://chameleonjp-lab.github.io/toraniyasashiku/';
+const tigerThumbnailUrl = new URL('social-card-677e9d04.jpg', tigerPlayUrl).href;
 const iroateThumbnailUrl = iroate.game_url + 'assets/social-preview.png';
 const placeholderImage = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
 const sdk = `window.supabase={createClient:()=>({from(){
@@ -30,7 +32,7 @@ for (const engine of [chromium, webkit]) {
     await page.route('**/*', async route => {
       const url = new URL(route.request().url());
       if (url.hostname === 'cdn.jsdelivr.net') return route.fulfill({ body: sdk, contentType: 'text/javascript' });
-      if (url.href === thumbnailUrl) {
+      if (url.href === thumbnailUrl || url.href === tigerThumbnailUrl) {
         imageRequests.push(url.href);
         return route.fulfill({ body: placeholderImage, contentType: 'image/gif' });
       }
@@ -97,16 +99,21 @@ for (const engine of [chromium, webkit]) {
     await page.locator('#game-iroate .game-thumbnail').waitFor({ state: 'detached' });
     await page.locator('#game-iroate .game-description').waitFor({ state: 'visible' });
     await thumbnail.waitFor({ state: 'hidden' });
+    const tigerImageLoaded = page.waitForResponse(tigerThumbnailUrl);
     await page.locator('[data-accordion=torani_yasashiku]').click();
     await page.locator('#game-torani_yasashiku .game-description').waitFor({ state: 'visible' });
-    assert.equal(await page.locator('#game-torani_yasashiku .game-thumbnail').count(), 0);
+    assert.equal((await tigerImageLoaded).status(), 200);
     const tiger = page.locator('#game-torani_yasashiku');
-    assert.equal(await tiger.locator('.actions a.button').getAttribute('href'), 'https://chameleonjp-lab.github.io/toraniyasashiku/');
+    const tigerThumbnail = tiger.locator('.accordion-content > .game-thumbnail:first-child');
+    await tigerThumbnail.waitFor({ state: 'visible' });
+    assert.equal(await tigerThumbnail.getAttribute('href'), tigerPlayUrl);
+    assert.equal(await tigerThumbnail.locator('img').getAttribute('src'), tigerThumbnailUrl);
+    assert.equal(await tiger.locator('.actions a.button').getAttribute('href'), tigerPlayUrl);
     const tigerDetail = new URL(await tiger.locator('#detail-torani_yasashiku').getAttribute('href'), base);
     assert.equal(tigerDetail.searchParams.get('game'), 'torani_yasashiku');
     await page.getByRole('button', { name: 'Inubo', exact: true }).click();
     await thumbnail.waitFor({ state: 'visible' });
-    assert.deepEqual(imageRequests, [thumbnailUrl]);
+    assert.deepEqual(imageRequests, [thumbnailUrl, tigerThumbnailUrl]);
 
     await detail.click();
     await page.getByRole('button', { name: 'Time', exact: true }).click();
