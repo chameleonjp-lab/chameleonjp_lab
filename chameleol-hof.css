@@ -13,29 +13,13 @@ body.theme-chameleol-hof {
   --gem-emerald: #2fd17a;
   --gem-sapphire: #3b9eff;
 }
-/* 殿堂入りの入口だけを金枠と王冠で強調。ほかのゲームのタブには適用しない。 */
+/* 殿堂入りの入口を金枠で強調。 */
 body.theme-chameleol-hof #hallTab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 0;
-  padding: 8px 9px;
   border: 2px solid var(--gold-mid);
-  border-radius: 14px;
   background: linear-gradient(150deg, #1a442d, #0b2618);
   color: var(--gold-light);
   box-shadow: inset 0 0 0 1px rgba(255,243,176,.19), 0 4px 12px rgba(229,184,75,.21);
   transition: background .2s ease, box-shadow .2s ease, transform .2s ease;
-}
-body.theme-chameleol-hof #hallTab .hall-tab-crown {
-  width: 21px;
-  height: 21px;
-  flex: 0 0 auto;
-  fill: #ebbd48;
-  stroke: #fff3b0;
-  stroke-width: 1;
-  stroke-linejoin: round;
 }
 body.theme-chameleol-hof #hallTab.active {
   border-color: var(--gold-light);
@@ -43,20 +27,12 @@ body.theme-chameleol-hof #hallTab.active {
   color: #162a19;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.43), 0 4px 0 rgba(94,63,10,.48), 0 0 14px rgba(229,184,75,.25);
 }
-body.theme-chameleol-hof #hallTab.active .hall-tab-crown {
-  fill: #875712;
-  stroke: #644311;
-}
 body.theme-chameleol-hof #hallTab:hover {
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.35), 0 0 18px rgba(229,184,75,.38);
 }
 body.theme-chameleol-hof #hallTab:focus-visible {
   outline: 3px solid var(--gold-light);
   outline-offset: 3px;
-}
-@media (max-width: 390px) {
-  body.theme-chameleol-hof #hallTab { gap: 4px; padding: 7px 5px; font-size: 13px; }
-  body.theme-chameleol-hof #hallTab .hall-tab-crown { width: 18px; height: 18px; }
 }
 
 body.theme-chameleol-hof.hof-active {
