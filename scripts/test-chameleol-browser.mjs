@@ -173,7 +173,8 @@ for (const engine of [chromium, webkit]) {
     await page.waitForFunction(() => document.querySelector('#rankingParticipantCount')?.textContent === '2人');
     assert.equal(await page.locator('#totalPlayCount').textContent(),'4回');
     assert.equal(await page.locator('#playerCount').textContent(),'1人');
-    assert.equal(await page.getByRole('tab').count(),2);
+    assert.equal(await page.getByRole('tab').count(),3);
+    assert.equal(await page.getByRole('tab', {name:'タイムアタック'}).count(),1);
     assert.equal(await page.locator('#hallTab .hall-tab-crown[aria-hidden="true"]').count(), 1);
     assert.equal(await page.locator('#hallTab').evaluate(el => getComputedStyle(el).borderTopWidth), '2px');
     assert.equal(await page.locator('#hallTab').evaluate(el => getComputedStyle(el).borderTopColor), 'rgb(229, 184, 75)');
