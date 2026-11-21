@@ -56,12 +56,16 @@ test('TA translation lookup recognizes all 58 title IDs, 15 languages, and safe 
  const source=await readFile(new URL('../i18n/chameleol-time-attack.js',import.meta.url),'utf8');
  const context={window:{LabI18nRows:[]}};vm.runInNewContext(source,context);
  const service=context.window.ChameleolTimeAttack;
- assert.equal(context.window.LabI18nRows.length,23);
+ assert.equal(context.window.LabI18nRows.length,32);
  for(const row of context.window.LabI18nRows)assert.equal(row.length,15);
  for(let i=1;i<=58;i++){
   const id='ta.title.'+String(i).padStart(2,'0');
   assert.notEqual(service.title(id,'ja'),'30棟完走');
   assert.notEqual(service.title(id,'en'),'30 buildings completed');
+  for(const lang of ['ja','en','es','pt-BR','zh-Hans','fr','de','ko','ru','it','zh-Hant','id','tr','vi','th']){
+    assert.ok(service.title(id,lang));
+    assert.ok(!/^ta\\.title\\./.test(service.title(id,lang)));
+  }
  }
  assert.equal(service.title('ta.title.59','ja'),'30棟完走');
  assert.equal(service.family('green','ko'),'초록 계열');
