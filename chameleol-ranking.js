@@ -138,7 +138,51 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     return {version, rows, nextAfter, restarted};
   }
 
-  return {stats, rankingParticipantCount, ranking, rankingPage, hallOfFame};
+
+  // The time-attack competition is separate from the 50-building scores and Hall of Fame.
+  async function timeAttackBase(){
+    const release=await json(releaseUrl);
+    if(release.env!=='production'||!release.rankingApi||release.timeAttack?.available!==true){
+      throw new Error('タイムアタックのランキングは準備中です');
+    }
+    const base=new URL(release.rankingApi);
+    if(base.protocol!=='https:'||base.username||base.password||base.search||base.hash)
+      throw Error('タイムアタックの集計元が無効です');
+    return base.href.replace(/\/$/,'');
+  }
+  async function timeAttackStats(){
+    const base=await timeAttackBase(),res=await read(base,'time-attack-stats');
+    if(res.modeId!=='chameleol_time_attack'||!integer(res.totalPlays,0)||
+      !integer(res.participantCount,0))throw Error('タイムアタック集計の形式が無効です');
+    return {totalPlays:res.totalPlays,participantCount:res.participantCount};
+  }
+  async function timeAttackPage(previous=null){
+    if(previous && (!integer(previous.version,0)||!integer(previous.nextAfter,1)||
+      typeof previous.base!=='string'))throw Error('タイムアタックの続き位置が無効です');
+    const liveBase=await timeAttackBase();
+    const changed=Boolean(previous&&previous.base!==liveBase);
+    const base=liveBase;
+    const prev=changed?null:previous;
+    const params=new URLSearchParams({limit:'100'});
+    if(prev){params.set('version',String(prev.version));params.set('after',String(prev.nextAfter));}
+    const page=await read(base,'time-attack-ranking?'+params);
+    if(page.modeId!=='chameleol_time_attack'||!integer(page.version,0)||
+      !Array.isArray(page.rows)||page.rows.length>100||typeof page.restarted!=='boolean'||
+      !integer(page.nameCount,0))throw Error('タイムアタック順位表の形式が無効です');
+    const restarted=changed||Boolean(prev&&page.restarted);
+    const start=!restarted&&prev?prev.nextAfter:0;
+    if(page.rows.some((row,i)=>!integer(row?.position,1)||row.position!==start+i+1||
+      !integer(row.rank,1,row.position)||typeof row.name!=='string'||
+      !integer(row.elapsedCs,1500,900719925468300)||
+      !['red','green','blue'].includes(row.family)||
+      (row.titleId!=null&&!/^ta\.title\.(0[1-9]|[1-4][0-9]|5[0-8])$/.test(row.titleId)))||
+      (page.nextAfter!==null&&(!page.rows.length||page.nextAfter!==page.rows.at(-1).position)))
+      throw Error('タイムアタックの順位または記録が無効です');
+    return {version:page.version,rows:page.rows,nextAfter:page.nextAfter,
+      restarted,base,nameCount:page.nameCount};
+  }
+
+  return {stats, rankingParticipantCount, ranking, rankingPage, hallOfFame, timeAttackStats, timeAttackPage};
 }
 
 export const reader = createReader();
