@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>イヌボー｜ランキング</title>
+  <style>
+    :root{font-family:system-ui,sans-serif;color:#262222;background:#f6efe2}
+    *{box-sizing:border-box}
+    body{margin:0}
+    main{max-width:40rem;margin:auto;padding:1.25rem}
+    h1{margin:1.1rem 0 .5rem;font-size:clamp(2rem,8vw,3.5rem)}
+    nav,.tabs{display:flex;flex-wrap:wrap;gap:.5rem}
+    button,a{font:inherit;display:inline-flex;align-items:center;min-height:44px;padding:.45rem .85rem;color:inherit;background:#fff9ed;border:1px solid #a17e67;border-radius:.55rem;text-decoration:none}
+    button{cursor:pointer}
+    [hidden]{display:none}
+    button[aria-pressed=true]{color:#fff;background:#8a261a;border-color:#8a261a;font-weight:700}
+    h2{font-size:1.25rem}
+    ol{margin:1rem 0;padding:0;list-style:none;background:#fff9ed;border-radius:.65rem}
+    li{display:grid;grid-template-columns:minmax(2.5rem,auto) minmax(2rem,1fr) minmax(3rem,auto);gap:.65rem;padding:.65rem;border-bottom:1px solid #ddcbb7;overflow-wrap:anywhere}
+    li strong{text-align:end}
+  </style>
+  <script type="module" src="./inubo-ranking.js"></script>
+</head>
+<body>
+<main>
+  <nav><a id="game" href="https://chameleonjp-lab.github.io/inubo/">イヌボー</a><a href="./" aria-label="ChameleonJP Lab">ChameleonJP Lab</a></nav>
+  <h1 id="title">イヌボー</h1>
+  <h2 id="heading">詳細ランキング</h2>
+  <div class="tabs" role="group" aria-labelledby="heading">
+    <button id="total" type="button" aria-pressed="true">総合</button>
+    <button id="time" type="button" aria-pressed="false">タイム</button>
+  </div>
+  <p id="status" role="status"></p>
+  <ol id="rows" aria-labelledby="heading"></ol>
+  <button id="retry" type="button" hidden>再試行</button>
+</main>
+</body>
+</html>
