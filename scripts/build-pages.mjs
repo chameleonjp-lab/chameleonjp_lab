@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 const rootFiles = ['index.html', 'ranking.html', 'terms.html', 'chameleol-ranking.js', 'chameleol-hof.css', 'chameleol-hof.js', 'IMG_7589.JPG', 'banner'];
 const translations = [
   'common.js', 'ranking.js', 'games-1.js', 'games-2.js', 'games-3.js',
-  'extras.js', 'hall.js', 'terms-1.js', 'terms-2.js', 'terms-3.js',
+  'extras.js', 'hall.js', 'chameleol-time-attack.js', 'terms-1.js', 'terms-2.js', 'terms-3.js',
   'runtime.js', 'language.css'
 ];
 const files = [...rootFiles, ...translations.map(file => 'i18n/' + file)];

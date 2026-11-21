@@ -16,7 +16,7 @@
 
   <link rel="stylesheet" href="./i18n/language.css?v=20261120-15lang" />
   <script src="./i18n/common.js?v=20261120-15lang"></script>
-  <script src="./i18n/ranking.js?v=20261120-15lang"></script>
+  <script src="./i18n/ranking.js?v=20261121-ta-v1"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
   <script src="./i18n/games-3.js?v=20261120-15lang"></script>
@@ -245,7 +245,7 @@
       background: rgba(230, 255, 159, 0.1);
     }
 
-    .stats {
+    .stats, .time-attack-stats {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
@@ -362,6 +362,57 @@
     .ranking-tab:active {
       transform: translateY(1px);
     }
+
+    .theme-chameleol-hof .ranking-switch {
+      grid-template-columns: none;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(0, 1fr);
+    }
+
+    .theme-chameleol-hof .ranking-tab {
+      min-width: 0;
+      height: 100%;
+      padding: 6px 4px;
+      overflow-wrap: anywhere;
+    }
+
+    .theme-chameleol-hof #hallTab span { min-width: 0; }
+
+    .time-attack-stats[hidden], #timeAttackTab[hidden] {
+      display: none;
+    }
+
+    #timeAttackRanking {
+      margin-top: 16px;
+    }
+
+    .time-attack-row {
+      display: grid;
+      grid-template-columns: fit-content(22%) minmax(0, 1fr) fit-content(40%);
+      gap: 3px 10px;
+      align-items: start;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--inactive-tab-border);
+    }
+
+    .time-attack-row > * {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .time-attack-time {
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .time-attack-title, .time-attack-family {
+      color: var(--text-sub);
+      font-size: 13px;
+    }
+
+    .time-attack-title { grid-column: 2; }
+    .time-attack-family { text-align: right; }
+    #timeAttackMore { margin-top: 12px; }
 
     .ranking-area {
       display: grid;
@@ -1953,6 +2004,7 @@
     let supabaseClient = null;
     let currentLoadToken = 0;
     let hofController = null;
+    let timeAttackController = null;
 
     const pageTitleEl = document.getElementById("pageTitle");
     const pageLeadEl = document.getElementById("pageLead");
@@ -2452,6 +2504,8 @@
     function renderBase(page, game) {
       hofController?.dispose();
       hofController = null;
+      timeAttackController?.dispose();
+      timeAttackController = null;
       document.body.classList.toggle("theme-chameleol-hof", game.slug === "chameleol");
       document.body.classList.remove("hof-active");
       pageTitleEl.textContent = `${page.title} 詳細ランキング`;
@@ -2474,15 +2528,15 @@
 
           <div class="stats${chameleol ? " stats-chameleol" : ""}" aria-label="${escapeHtml(page.title)}の集計">
             <div class="stat-box">
-              <span class="stat-label">${chameleol ? "プレイ回数" : "合計プレイ回数"}</span>
+              <span class="stat-label">${chameleol ? "通常モードのプレイ回数" : "合計プレイ回数"}</span>
               <span class="stat-value" id="totalPlayCount">読み込み中</span>
             </div>
             ${chameleol ? `<div class="stat-box">
-              <span class="stat-label">ランキング参加者</span>
+              <span class="stat-label">通常モードのランキング参加者</span>
               <span class="stat-value" id="rankingParticipantCount">読み込み中</span>
             </div>` : ""}
             <div class="stat-box">
-              <span class="stat-label">${chameleol ? "50棟クリア人数（殿堂入り）" : "参加人数"}</span>
+              <span class="stat-label">${chameleol ? "通常モードの50棟クリア人数（殿堂入り）" : "参加人数"}</span>
               <span class="stat-value" id="playerCount">読み込み中</span>
             </div>
           </div>
@@ -2518,6 +2572,8 @@
             ${chameleol ? `
               <button class="ranking-tab" type="button" id="hallTab" role="tab"
                 aria-selected="false" aria-controls="hallPanel" data-ranking-tab="hall"><svg class="hall-tab-crown" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2.5 7.5 7.5 11 12 4.5 16.5 11 21.5 7.5 19.5 19H4.5Z"/><path d="M4.7 16.5h14.6M9.2 19h5.6" fill="none"/></svg><span>殿堂入り</span></button>
+              <button class="ranking-tab" type="button" id="timeAttackTab" role="tab" hidden
+                aria-selected="false" aria-controls="timeAttackPanel" data-ranking-tab="timeAttack">タイムアタック</button>
             ` : ''}
             <button
               class="ranking-tab"
@@ -2588,6 +2644,24 @@
               <div class="ranking-list" id="hallRanking" aria-live="polite">読み込み中</div>
               <button class="button secondary hof-shimmer" id="hallMore" type="button" hidden>次の50件</button>
             </section>
+            <section class="ranking-card" id="timeAttackPanel" role="tabpanel" aria-labelledby="timeAttackTab" hidden>
+              <h2 class="ranking-title">タイムアタックランキング</h2>
+              <p class="ranking-sub">赤・青・緑の全系統を合わせ、30棟の自己ベストタイムで競います。</p>
+              <div class="time-attack-stats" aria-live="polite">
+                <div class="stat-box">
+                  <span class="stat-label">プレイ回数</span>
+                  <span class="stat-value" id="timeAttackPlays">読み込み中</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-label">完走登録名数</span>
+                  <span class="stat-value" id="timeAttackPlayers">読み込み中</span>
+                </div>
+              </div>
+              <div id="timeAttackStatsError" aria-live="polite"></div>
+              <div class="ranking-list" id="timeAttackRanking" aria-live="polite">読み込み中</div>
+              <div id="timeAttackPageStatus" aria-live="polite"></div>
+              <button class="button secondary" id="timeAttackMore" type="button" hidden>次の100名を表示</button>
+            </section>
           ` : ''}
 
           <section class="ranking-card" id="playsPanel" role="tabpanel" aria-labelledby="playsTab" hidden>
@@ -2623,7 +2697,7 @@
 
       document.querySelectorAll("[data-ranking-tab]").forEach((button) => {
         button.addEventListener("click", () => {
-          switchRankingTab(button.dataset.rankingTab);
+          switchRankingTab(button.dataset.rankingTab, true);
         });
       });
 
@@ -2637,9 +2711,11 @@
       switchRankingTab(game.topRanking === "first" ? "first" : "best");
     }
 
-    function switchRankingTab(tabName) {
-      const tabs = ["first", "best", "plays", "hall"];
-      const activeTab = tabs.includes(tabName) ? tabName : "first";
+    function switchRankingTab(tabName, updateUrl = false) {
+      const tabs = ["first", "best", "plays", "hall", "timeAttack"];
+      const chameleol = document.body.classList.contains("theme-chameleol-hof");
+      const selected = tabs.includes(tabName) && document.getElementById(`${tabName}Tab`);
+      const activeTab = selected && !selected.hidden ? tabName : chameleol ? "best" : "first";
 
       tabs.forEach((name) => {
         const tab = document.getElementById(`${name}Tab`);
@@ -2651,9 +2727,60 @@
         }
         if (panel) panel.hidden = !isActive;
       });
-      const hofSelected = activeTab === "hall" && document.body.classList.contains("theme-chameleol-hof");
+      const hofSelected = activeTab === "hall" && chameleol;
       document.body.classList.toggle("hof-active", hofSelected);
       hofController?.onTabChange(hofSelected);
+      timeAttackController?.onTabChange(activeTab === "timeAttack");
+      if (updateUrl && chameleol) {
+        const url = new URL(window.location.href);
+        if (activeTab === "timeAttack") url.searchParams.set("tab", "time-attack");
+        else url.searchParams.delete("tab");
+        window.history.replaceState(null, "", url.toString());
+      }
+    }
+
+    function loadTimeAttackTab(token) {
+      const tab = document.getElementById("timeAttackTab");
+      const panel = document.getElementById("timeAttackPanel");
+      const rows = panel.querySelector("#timeAttackRanking");
+      const wantsTimeAttack = () => new URLSearchParams(window.location.search).get("tab") === "time-attack";
+      let rankingModule;
+      let moduleAttempt = 0;
+      const connect = async () => {
+        rows.textContent = "読み込み中";
+        try {
+          if (!rankingModule) {
+            const url = new URL("./chameleol-ranking.js?v=20261121-ta-v1", window.location.href);
+            if (moduleAttempt) url.searchParams.set("retry", String(moduleAttempt));
+            moduleAttempt++;
+            rankingModule = await import(url.href);
+          }
+          const { reader, createTimeAttackView } = rankingModule;
+          const available = await reader.timeAttackAvailable();
+          if (token !== currentLoadToken) return;
+          tab.hidden = !available;
+          if (available) {
+            timeAttackController = createTimeAttackView({panel, reader});
+            if (wantsTimeAttack()) switchRankingTab("timeAttack");
+          } else if (wantsTimeAttack()) {
+            switchRankingTab("best", true);
+          }
+        } catch {
+          if (token !== currentLoadToken || !wantsTimeAttack()) return;
+          tab.hidden = false;
+          switchRankingTab("timeAttack");
+          if (rankingModule) {
+            rankingModule.showRetry(rows, connect);
+          } else {
+            const retry = document.createElement("button");
+            retry.type = "button";
+            retry.textContent = "再試行";
+            retry.addEventListener("click", connect, { once: true });
+            rows.replaceChildren("取得できませんでした。", retry);
+          }
+        }
+      };
+      void connect();
     }
 
     function setDetailStatsComingSoon(token) {
@@ -2694,7 +2821,7 @@
       const playerCountEl = document.getElementById("playerCount");
 
       if (game.slug === "chameleol") {
-        const { reader, showRetry } = await import("./chameleol-ranking.js?v=20261120-best100-hofmotion");
+        const { reader, showRetry } = await import("./chameleol-ranking.js?v=20261121-ta-v1");
         const participantsEl = document.getElementById("rankingParticipantCount");
         totalPlayCountEl.textContent = playerCountEl.textContent = participantsEl.textContent = "読み込み中";
         try {
@@ -2969,7 +3096,7 @@
           { reader, renderRanking, showRetry },
           { createHallOfFameView }
         ] = await Promise.all([
-          import("./chameleol-ranking.js?v=20261120-best100-hofmotion"),
+          import("./chameleol-ranking.js?v=20261121-ta-v1"),
           import("./chameleol-hof.js?v=20261120-hof-titles-300")
         ]);
         if (token !== currentLoadToken) return;
@@ -3116,7 +3243,11 @@
       } else {
         url.searchParams.delete("difficulty");
       }
+      const chameleol = hydratedGame.slug === "chameleol";
+      const requestedTab = url.searchParams.get("tab");
+      if (!chameleol || requestedTab !== "time-attack") url.searchParams.delete("tab");
       window.history.replaceState(null, "", url.toString());
+      if (chameleol) loadTimeAttackTab(token);
 
       const stats = await loadStats(hydratedGame, token);
       if (token !== currentLoadToken) return;

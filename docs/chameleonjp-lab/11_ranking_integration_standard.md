@@ -86,6 +86,12 @@ URLの末尾と`game_slug`が同じである必要はありません。
 
 `game_slug`をURLから推測して作ることを禁止します。マニフェストに書かれた値だけを使います。
 
+同じ作品の詳細ページに別モードを載せる場合、`submission_mode: verified` の専用モードは代表の `game_slug` を共有できます。作品カードと `public.games` の既存の行はそのまま使い、保存先、送信先、順位の並び、記録の単位を `mode_id` ごとに照合します。各 `mode_id` は一つの文書内で重複できません。
+
+専用モードの `ranking_entries` には、そのモードの `play_count`、`submission`、`ranking_rpc`、`stats_rpc` をまとめて設定します。従来の項目は文書全体の `play_count` と `submission` を使います。専用モードでトップの通常用経路や、ほかの専用経路を再利用すると検査に失敗します。
+
+カメレオるの同系色タイムアタックは、`game_slug: chameleol`、`mode_id: chameleol_time_attack` を使います。順位は100分の1秒単位の整数を昇順に並べます。通常モードは従来どおり棟数を降順に並べます。ゲーム側のマニフェストを検査するには、このリポジトリで `node scripts/validate-ranking-manifest.mjs <マニフェストのパス>` を実行します。
+
 ## 5. 識別子の共通ルール
 
 ### 5.1 `game_id`
@@ -99,7 +105,7 @@ URLの末尾と`game_slug`が同じである必要はありません。
 
 ### 5.2 `game_slug`
 
-`game_slug`はランキングの保存単位を表します。
+`game_slug`はランキングの保存単位を表します。同一作品の専用モードは、4.2節のように `mode_id` を加えて保存先を決めます。
 
 - `public.games.game_slug`、送信引数、ランキング取得引数で完全一致させる。
 - 大文字小文字、アンダースコア、単数・複数、時間表記を勝手に変換しない。
