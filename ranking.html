@@ -3039,7 +3039,15 @@
         const taRanking = document.getElementById('timeAttackRanking');
         const taMore = document.getElementById('timeAttackMore');
         const taStats = document.getElementById('timeAttackStats');
-        let taPage = null,taLoading = false,taRows=[];
+        let taPage = null,taLoading = false,taRows=[],lastTaStats=null;
+        const updateTaStats=()=>{
+          if(!lastTaStats||token!==currentLoadToken)return;
+          const lang=document.documentElement.lang||'ja';
+          const label=key=>window.ChameleolTimeAttack?.text?.(key,lang)||key;
+          const number=n=>new Intl.NumberFormat(lang).format(n);
+          taStats.textContent=label('plays')+': '+number(lastTaStats.totalPlays)+' / '+
+            label('finishers')+': '+number(lastTaStats.participantCount);
+        };
         const taRender = (page, append) => {
           if (!append || page.restarted) {taRanking.replaceChildren();taRows=[];}
           taRows.push(...page.rows);
@@ -3075,16 +3083,15 @@
         };
         taMore.addEventListener('click',loadTa);
         document.addEventListener('lab-language-change',()=>{
-          if(token!==currentLoadToken||!taRows.length)return;
-          const rows=taRows.slice();
-          taRender({rows,restarted:true},false);
+          if(token!==currentLoadToken)return;
+          if(taRows.length){const rows=taRows.slice();taRender({rows,restarted:true},false);}
+          updateTaStats();
         });
         void reader.timeAttackStats().then(stats=>{
-          if(token===currentLoadToken)taStats.textContent='タイムアタック：'+stats.totalPlays.toLocaleString('ja-JP')+
-            '回 / 完走登録名 '+stats.participantCount.toLocaleString('ja-JP')+'人';
+          if(token===currentLoadToken){lastTaStats=stats;updateTaStats();}
         }).catch(()=>{
           if(token===currentLoadToken)showRetry(taStats,()=>void reader.timeAttackStats().then(stats=>{
-            if(token===currentLoadToken)taStats.textContent='タイムアタック：'+stats.totalPlays+'回 / 完走登録名 '+stats.participantCount+'人';
+            if(token===currentLoadToken){lastTaStats=stats;updateTaStats();}
           }));
         });
         void loadTa();
