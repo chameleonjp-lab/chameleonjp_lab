@@ -243,8 +243,129 @@
               "type": "string",
               "minLength": 1
             }
+          },
+          "client_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "play_count": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "count_at",
+              "rpc",
+              "idempotency"
+            ],
+            "properties": {
+              "count_at": {
+                "const": "start"
+              },
+              "rpc": {
+                "type": "string",
+                "minLength": 1
+              },
+              "idempotency": {
+                "const": true
+              },
+              "unregistered_rpc": {
+                "const": "start_faitofuraito_guest_play_v1"
+              }
+            }
+          },
+          "submission": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rpc",
+              "automatic",
+              "idempotency",
+              "timeout_ms"
+            ],
+            "properties": {
+              "rpc": {
+                "type": "string",
+                "minLength": 1
+              },
+              "automatic": {
+                "const": true
+              },
+              "idempotency": {
+                "const": true
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 30000
+              }
+            }
+          },
+          "ranking_rpc": {
+            "type": "string",
+            "pattern": "^kamereoru/time-attack-ranking$"
+          },
+          "stats_rpc": {
+            "type": "string",
+            "pattern": "^kamereoru/time-attack-stats$"
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "mode_id": {
+                  "const": "chameleol_time_attack"
+                }
+              },
+              "required": [
+                "mode_id"
+              ]
+            },
+            "then": {
+              "required": [
+                "client_version",
+                "play_count",
+                "submission",
+                "ranking_rpc",
+                "stats_rpc"
+              ],
+              "properties": {
+                "game_slug": {
+                  "const": "chameleol"
+                },
+                "score_order": {
+                  "const": "asc"
+                },
+                "score_unit": {
+                  "const": "秒"
+                },
+                "score_scale": {
+                  "const": 100
+                },
+                "score_decimals": {
+                  "const": 2
+                },
+                "score_min": {
+                  "const": 1500
+                },
+                "play_count": {
+                  "properties": {
+                    "rpc": {
+                      "const": "kamereoru/time-attack-launch"
+                    }
+                  }
+                },
+                "submission": {
+                  "properties": {
+                    "rpc": {
+                      "const": "kamereoru/time-attack-complete"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     }
   },
