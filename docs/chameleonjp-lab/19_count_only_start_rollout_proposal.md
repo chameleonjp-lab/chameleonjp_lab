@@ -22,6 +22,12 @@
 
 **判断が必要な場合:** 各modeのID等の証拠が得られず統合値が求められるとき。選択は旧表示を維持して新計測を別に検証するか、比較可能な時点以降に限定した新しい指標を別ラベルで表示するか。後者の表示範囲・旧ブラウザー対応・集計切替はここでは実装しない。
 
+## 先行検証の参照例（まだ対象への接続はしない）
+
+カメレオるの通常プレーは参照例。[固定版の実プレイ入場](https://github.com/chameleonjp-lab/chameleol/blob/e7c1c157484e66699c5cdc3d0f665eb78ba179b6/src/app.js#L807-L889)は予約と入場を分離し、名前の有無にかかわらず同じ開始ID体系を使う。[端末保存](https://github.com/chameleonjp-lab/chameleol/blob/e7c1c157484e66699c5cdc3d0f665eb78ba179b6/src/storage/store.js#L175-L192)と[再送](https://github.com/chameleonjp-lab/chameleol/blob/e7c1c157484e66699c5cdc3d0f665eb78ba179b6/src/net/start.js#L124-L167)を追跡でき、[保存と集計の既存SQL](https://github.com/chameleonjp-lab/chameleol/blob/e7c1c157484e66699c5cdc3d0f665eb78ba179b6/supabase/migrations/20261118100000_release_metrics.sql)と[実験場の専用読取](https://github.com/chameleonjp-lab/chameleonjp_lab/blob/cfd45d42b8fbb01686f66261a89f127b0db3a28e/chameleol-ranking.js#L63-L66)がある。この専門経路を他作品に使う設計ではない。タイムアタック・練習・従来のランキング送信は対象外。
+
+固定版の通知コードを通信不能なVM、インメモリ保存、模擬受付に接続した3ケースで、開始前取消、応答喪失・再読込時の同じID再送、結果による重複なし、別の再戦と別の保存先を確認した。SQL／Edgeの実行、端末の実保存、公開上の動作、過去データの一致は未検証。先行検証を行う場合は、名前なしの初回開始と途中終了、名前ありの予約だけと実入場、旧／新版を跨ぐ再送、練習と初回ガイド、本番に接続しない切戻しをそれぞれ試す。旧readerと両立し、同じ開始の重複・順位や人数の差・既存記録の消失がない場合だけ次の設計へ進む。
+
 ## 提案の対象ファイル
 
 このリポジトリの対象は次の3ファイルのみ:
