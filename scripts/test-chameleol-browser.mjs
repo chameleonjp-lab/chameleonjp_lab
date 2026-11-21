@@ -72,7 +72,7 @@ for (const engine of [chromium, webkit]) {
         const asset = url.pathname.slice('/chameleonjp_lab/i18n/'.length);
         const allowed = new Set([
           'common.js', 'ranking.js', 'games-1.js', 'games-2.js', 'games-3.js',
-          'extras.js', 'hall.js', 'terms-1.js', 'terms-2.js', 'terms-3.js',
+          'extras.js', 'hall.js', 'chameleol-time-attack.js', 'terms-1.js', 'terms-2.js', 'terms-3.js',
           'runtime.js', 'language.css'
         ]);
         if (allowed.has(asset)) {
