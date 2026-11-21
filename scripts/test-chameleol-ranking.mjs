@@ -296,3 +296,118 @@ test('one table keeps the first source for its continuation while the next refre
   assert.equal((await reader.ranking()).rows.length,1);
   assert.deepEqual(hits,[old,old,next]);
 });
+
+const {timeAttackMode, timeAttackRows, timeAttackPageResponse} = await import('./fixtures/chameleol-time-attack.mjs');
+
+test('Time Attack reads 205 records and preserves the tie at the page boundary', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  const hits = [];
+  const reader = createReader(async raw => {
+    const url = new URL(raw);
+    if (url.href === gameUrl + 'release.json') {
+      return Response.json({...release, timeAttack:{available:true, enabled:false}});
+    }
+    hits.push(url.pathname + url.search);
+    if (url.pathname.endsWith('/time-attack-stats')) {
+      return Response.json({modeId:timeAttackMode, totalPlays:330, participantCount:205});
+    }
+    assert.ok(url.pathname.endsWith('/time-attack-ranking'));
+    return Response.json(timeAttackPageResponse(timeAttackRows, url.searchParams));
+  });
+  assert.equal(await reader.timeAttackAvailable(), true);
+  assert.deepEqual(await reader.timeAttackStats(), {modeId:timeAttackMode, totalPlays:330, participantCount:205});
+  const first = await reader.timeAttackPage();
+  const second = await reader.timeAttackPage(first);
+  const third = await reader.timeAttackPage(second);
+  assert.deepEqual([first, second, third].map(page => page.rows.length), [100, 100, 5]);
+  assert.equal(first.rows.at(-1).rank, 100);
+  assert.equal(second.rows[0].rank, 100);
+  assert.equal(second.rows[1].rank, 102);
+  assert.equal(third.rows.at(-1).titleId, null);
+  assert.equal(third.nextAfter, null);
+  assert.deepEqual(hits.map(hit => hit.split('/').at(-1)), [
+    'time-attack-stats',
+    'time-attack-ranking?limit=100',
+    'time-attack-ranking?limit=100&version=3&after=100',
+    'time-attack-ranking?limit=100&version=3&after=200',
+  ]);
+});
+
+test('Time Attack replaces expired ranking pages and resets the cursor on a source change', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  let source = 'https://old.example.test/functions/v1/kamereoru';
+  let version = 3;
+  const hits = [];
+  const reader = createReader(async raw => {
+    const url = new URL(raw);
+    if (url.href === gameUrl + 'release.json') {
+      return Response.json({env:'production',rankingApi:source,timeAttack:{available:true}});
+    }
+    hits.push(url.href);
+    return Response.json(timeAttackPageResponse(timeAttackRows, url.searchParams, version));
+  });
+  const first = await reader.timeAttackPage();
+  version++;
+  const expired = await reader.timeAttackPage(first);
+  assert.equal(expired.restarted, true);
+  assert.equal(expired.version, 4);
+  assert.equal(expired.rows[0].position, 1);
+  source = 'https://new.example.test/functions/v1/kamereoru';
+  const changed = await reader.timeAttackPage(expired);
+  assert.equal(changed.restarted, true);
+  assert.equal(changed.rows[0].position, 1);
+  assert.equal(hits.at(-1), source + '/time-attack-ranking?limit=100');
+});
+
+test('Time Attack checks availability and rejects responses from the ordinary mode', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  let timeAttack = {available:false,enabled:true};
+  const reader = createReader(async raw => {
+    const url = new URL(raw);
+    if (url.href === gameUrl + 'release.json') return Response.json({...release, timeAttack});
+    assert.equal(timeAttack.available, true, 'the disabled endpoint must never be read');
+    return Response.json({...timeAttackPageResponse([], url.searchParams, 0), modeId:'main',
+      totalPlays:1, participantCount:0});
+  });
+  assert.equal(await reader.timeAttackAvailable(), false);
+  await assert.rejects(reader.timeAttackPage(), /準備中/);
+  await assert.rejects(reader.timeAttackStats(), /準備中/);
+  timeAttack = {available:true,enabled:false};
+  await assert.rejects(reader.timeAttackPage(), /形式/);
+  await assert.rejects(reader.timeAttackStats(), /無効/);
+});
+
+test('Time Attack rejects a forged cursor, inconsistent ranks and incorrect title boundaries', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  let updatePage = page => page;
+  const reader = createReader(async raw => {
+    const url = new URL(raw);
+    if (url.href === gameUrl + 'release.json') {
+      return Response.json({...release, timeAttack:{available:true}});
+    }
+    return Response.json(updatePage(timeAttackPageResponse(timeAttackRows, url.searchParams)));
+  });
+  await assert.rejects(reader.timeAttackPage({version:0, nextAfter:1, nameCount:2, base:'https://x.test'}), /続き位置/);
+  updatePage = page => ({...page, nextAfter:99});
+  await assert.rejects(reader.timeAttackPage(), /続き位置/);
+  updatePage = page => ({...page, rows:[{...page.rows[0], titleId:'ta.title.02'}, ...page.rows.slice(1)]});
+  await assert.rejects(reader.timeAttackPage(), /称号/);
+  updatePage = page => ({...page, rows:[page.rows[0], {...page.rows[1], rank:2}, ...page.rows.slice(2)]});
+  await assert.rejects(reader.timeAttackPage(), /並び/);
+});
+
+test('Time Attack treats a verified empty list and zero counts as ordinary results', async () => {
+  const {createReader} = await import('../chameleol-ranking.js');
+  const reader = createReader(async raw => {
+    const url = new URL(raw);
+    if (url.href === gameUrl + 'release.json') {
+      return Response.json({...release, timeAttack:{available:true}});
+    }
+    if (url.pathname.endsWith('/time-attack-stats')) {
+      return Response.json({ok:true, modeId:timeAttackMode, totalPlays:0, participantCount:0});
+    }
+    return Response.json(timeAttackPageResponse([], url.searchParams, 0));
+  });
+  assert.deepEqual((await reader.timeAttackPage()).rows, []);
+  assert.equal((await reader.timeAttackStats()).participantCount, 0);
+});

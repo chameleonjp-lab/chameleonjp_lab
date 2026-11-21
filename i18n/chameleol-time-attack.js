@@ -1,90 +1,1282 @@
-// Generated from game rules and time-attack translations at feature branch.
-(function(){
-const namesJa=[
-  '神速のカメレオン','閃光の怪盗','一瞬の怪盗','疾風の怪盗','幻の擬態師','無音の怪盗',
-  '月下の怪盗','屋根の怪盗','擬態の名人','変色の名人','色合わせの名人','明暗の名人',
-  '濃淡の名人','影渡りの達人','屋根渡りの達人','路地抜けの達人','宝石の目利き',
-  '宝石の隠し役','宝石の運び手','金庫の鍵番','色合わせ職人','明暗合わせ職人',
-  '色見本の職人','壁色の職人','石畳の職人','看板色の職人','屋根色の職人',
-  '窓辺の見張り','路地の見張り','街角の見張り','夜道の案内役','屋根の案内役',
-  '路地の案内役','街角の案内役','夜道の調べ役','路地の調べ役','壁色の調べ役',
-  '窓明かりの観察役','街灯の観察役','月影の観察役','壁色の見習い',
-  '看板色の見習い','屋根歩きの見習い','路地歩きの見習い','擬態の練習生',
-  '明暗の練習生','変色の練習生','色探しの練習生','屋根の探検家',
-  '路地の探検家','街角の探検家','石畳の歩き手','屋根下の歩き手',
-  '路地の歩き手','月夜の散歩者','街灯の散歩者','街角の散歩者','街めぐりカメレオン'
-];
-const namesEn=[
- 'Lightning Chameleon','Flash Thief','Instant Thief','Gale Thief','Phantom Mimic','Silent Thief',
- 'Moonlit Thief','Rooftop Thief','Master of Disguise','Master of Color','Color-Matching Master',
- 'Light and Shade Master','Shade Master','Shadow-Crossing Expert','Rooftop Expert','Alleyway Expert',
- 'Gem Connoisseur','Gem Concealer','Gem Courier','Vault Keeper','Color Artisan','Light and Shade Artisan',
- 'Color Sample Artisan','Wall Color Artisan','Cobblestone Artisan','Sign Color Artisan','Rooftop Color Artisan',
- 'Window Watcher','Alley Watcher','Street Corner Watcher','Night Guide','Rooftop Guide','Alley Guide',
- 'Street Corner Guide','Night Investigator','Alley Investigator','Wall Color Investigator',
- 'Windowlight Observer','Streetlight Observer','Moonshadow Observer','Wall Color Apprentice',
- 'Sign Color Apprentice','Rooftop Walking Apprentice','Alley Walking Apprentice',
- 'Disguise Trainee','Brightness Trainee','Color-Changing Trainee','Color-Finding Trainee',
- 'Rooftop Explorer','Alley Explorer','Street Corner Explorer','Cobblestone Walker',
- 'Under-Roof Walker','Alley Walker','Moonlit Stroller','Streetlight Stroller',
- 'Street Corner Stroller','City-Wandering Chameleon'
-];
-const raw={
-  "es": "Camaleón relámpago|Ladrón fulgurante|Ladrón fugaz|Ladrón del vendaval|Maestro del camuflaje fantasma|Ladrón silencioso|Ladrón bajo la luna|Ladrón de los tejados|Maestro del camuflaje|Maestro del cambio de color|Maestro de igualar colores|Maestro de luces y sombras|Maestro de matices|Experto en cruzar sombras|Experto en cruzar tejados|Experto en escapar por callejones|Conocedor de gemas|Ocultador de gemas|Mensajero de gemas|Guardián de la caja fuerte|Artesano del color|Artesano de luces y sombras|Artesano de muestras de color|Artesano del color de paredes|Artesano del empedrado|Artesano de colores de letreros|Artesano de colores de tejados|Vigía de la ventana|Vigía del callejón|Vigía de la esquina|Guía nocturno|Guía de tejados|Guía de callejones|Guía de esquinas|Inspector nocturno|Inspector de callejones|Inspector de colores de pared|Observador de luces de ventana|Observador de farolas|Observador de sombras lunares|Aprendiz de colores de pared|Aprendiz de colores de letreros|Aprendiz de caminar por tejados|Aprendiz de caminar por callejones|Alumno de camuflaje|Alumno de luces y sombras|Alumno de cambios de color|Alumno de buscar colores|Explorador de tejados|Explorador de callejones|Explorador de esquinas|Caminante del empedrado|Caminante bajo los tejados|Caminante de callejones|Paseante a la luz de la luna|Paseante bajo las farolas|Paseante de las esquinas|Camaleón viajero urbano",
-  "pt-BR": "Camaleão relâmpago|Ladrão fulgurante|Ladrão num piscar de olhos|Ladrão do vendaval|Mestre do disfarce fantasma|Ladrão silencioso|Ladrão ao luar|Ladrão dos telhados|Mestre do disfarce|Mestre da mudança de cor|Mestre da combinação de cores|Mestre da luz e sombra|Mestre dos tons|Especialista em atravessar sombras|Especialista em atravessar telhados|Especialista em fugir por becos|Conhecedor de gemas|Escondedor de gemas|Mensageiro de gemas|Guardião do cofre|Artesão das cores|Artesão de luz e sombra|Artesão de amostras de cor|Artesão da cor das paredes|Artesão do calçamento|Artesão da cor das placas|Artesão da cor dos telhados|Vigia da janela|Vigia do beco|Vigia da esquina|Guia noturno|Guia dos telhados|Guia dos becos|Guia das esquinas|Investigador noturno|Investigador dos becos|Investigador da cor das paredes|Observador da luz das janelas|Observador dos postes|Observador das sombras da lua|Aprendiz da cor das paredes|Aprendiz da cor das placas|Aprendiz dos telhados|Aprendiz dos becos|Aluno do disfarce|Aluno de luz e sombra|Aluno de mudança de cor|Aluno de busca de cores|Explorador dos telhados|Explorador dos becos|Explorador das esquinas|Caminhante do calçamento|Caminhante sob os telhados|Caminhante dos becos|Passeante ao luar|Passeante sob os postes|Passeante das esquinas|Camaleão viajante da cidade",
-  "zh-Hans": "神速变色龙|闪光怪盗|瞬息怪盗|疾风怪盗|幻影拟态师|无声怪盗|月下怪盗|屋顶怪盗|拟态大师|变色大师|配色大师|明暗大师|浓淡大师|穿影高手|越顶高手|穿巷高手|宝石鉴赏家|宝石藏匿者|宝石搬运者|金库守门人|配色工匠|明暗工匠|色卡工匠|墙色工匠|石板路工匠|招牌色工匠|屋顶色工匠|窗边哨兵|小巷哨兵|街角哨兵|夜路向导|屋顶向导|小巷向导|街角向导|夜路调查员|小巷调查员|墙色调查员|窗光观察员|路灯观察员|月影观察员|墙色学徒|招牌色学徒|屋顶行走学徒|小巷行走学徒|拟态练习生|明暗练习生|变色练习生|寻色练习生|屋顶探险家|小巷探险家|街角探险家|石板路行者|屋檐下行者|小巷行者|月夜漫步者|路灯下漫步者|街角漫步者|城市漫游变色龙",
-  "fr": "Caméléon éclair|Voleur fulgurant|Voleur insaisissable|Voleur de la tempête|Maître du camouflage fantôme|Voleur silencieux|Voleur au clair de lune|Voleur des toits|Maître du camouflage|Maître du changement de couleur|Maître des accords de couleurs|Maître des ombres et lumières|Maître des nuances|Expert des ombres|Expert des toits|Expert des ruelles|Connaisseur de pierres précieuses|Cacheur de pierres précieuses|Messager des pierres précieuses|Gardien du coffre|Artisan des couleurs|Artisan des ombres et lumières|Artisan des nuanciers|Artisan des couleurs murales|Artisan des pavés|Artisan des enseignes|Artisan des couleurs de toit|Guetteur de fenêtre|Guetteur de ruelle|Guetteur de coin de rue|Guide de nuit|Guide des toits|Guide des ruelles|Guide des coins de rue|Enquêteur nocturne|Enquêteur des ruelles|Enquêteur des couleurs murales|Observateur des lumières de fenêtre|Observateur des réverbères|Observateur des ombres lunaires|Apprenti des couleurs murales|Apprenti des enseignes|Apprenti marcheur des toits|Apprenti marcheur des ruelles|Élève du camouflage|Élève des ombres et lumières|Élève du changement de couleur|Élève de la recherche de couleurs|Explorateur des toits|Explorateur des ruelles|Explorateur des coins de rue|Marcheur des pavés|Marcheur sous les toits|Marcheur des ruelles|Promeneur au clair de lune|Promeneur sous les réverbères|Promeneur des coins de rue|Caméléon vagabond des villes",
-  "de": "Blitzschnelles Chamäleon|Blitzdieb|Augenblickdieb|Sturmdieb|Meister der Phantomtarnung|Lautloser Dieb|Mondscheindieb|Dachdieb|Meister der Tarnung|Meister des Farbwechsels|Meister der Farbanpassung|Meister von Licht und Schatten|Meister der Farbtöne|Experte für Schattenwege|Experte für Dachwege|Experte für Gassenwege|Edelsteinkenner|Edelsteinverstecker|Edelsteinbote|Hüter des Tresors|Farbenhandwerker|Handwerker für Licht und Schatten|Farbmusterhandwerker|Wandfarbenhandwerker|Pflastersteinhandwerker|Schildfarbenhandwerker|Dachfarbenhandwerker|Fensterwächter|Gassenwächter|Straßeneckenwächter|Nachtwegführer|Dachwegführer|Gassenführer|Eckenführer|Nachtwegermittler|Gassenermittler|Wandfarbenermittler|Beobachter des Fensterlichts|Laternenbeobachter|Mondschattenbeobachter|Wandfarbenlehrling|Schildfarbenlehrling|Dachläuferlehrling|Gassenläuferlehrling|Tarnungsübender|Licht-und-Schatten-Übender|Farbwechselübender|Farbsuchübender|Dachentdecker|Gassenentdecker|Eckenentdecker|Pflastersteinwanderer|Wanderer unter Dächern|Gassenwanderer|Mondscheinspaziergänger|Laternenlichtspaziergänger|Eckenspaziergänger|Stadtwanderndes Chamäleon",
-  "ko": "번개 카멜레온|섬광의 괴도|찰나의 괴도|질풍의 괴도|환영의 위장술사|무음의 괴도|달빛 아래 괴도|지붕 위 괴도|위장의 달인|변색의 달인|색 맞추기의 달인|명암의 달인|농담의 달인|그림자를 건너는 고수|지붕을 건너는 고수|골목을 빠져나가는 고수|보석 감정가|보석 은닉자|보석 운반자|금고 문지기|색 맞추기 장인|명암 장인|색 견본 장인|벽 색 장인|돌길 장인|간판 색 장인|지붕 색 장인|창가의 파수꾼|골목의 파수꾼|길모퉁이의 파수꾼|밤길 안내자|지붕길 안내자|골목길 안내자|길모퉁이 안내자|밤길 조사관|골목 조사관|벽 색 조사관|창빛 관찰자|가로등 관찰자|달그림자 관찰자|벽 색 견습생|간판 색 견습생|지붕 걷기 견습생|골목 걷기 견습생|위장 연습생|명암 연습생|변색 연습생|색 찾기 연습생|지붕 탐험가|골목 탐험가|길모퉁이 탐험가|돌길 걷는 이|지붕 아래 걷는 이|골목길 걷는 이|달밤 산책자|가로등 아래 산책자|길모퉁이 산책자|도시를 누비는 카멜레온",
-  "ru": "Молниеносный хамелеон|Сверкающий вор|Неуловимый вор|Вор-ураган|Мастер призрачной маскировки|Бесшумный вор|Лунный вор|Кровельный вор|Мастер маскировки|Мастер смены цвета|Мастер подбора цветов|Мастер света и тени|Мастер оттенков|Знаток теневых путей|Знаток крыш|Знаток переулков|Ценитель драгоценных камней|Хранитель тайных камней|Посыльный с камнями|Страж сейфа|Ремесленник по цветам|Ремесленник света и тени|Мастер цветовых образцов|Мастер цвета стен|Мастер мостовой|Мастер цвета вывесок|Мастер цвета крыш|Дозорный у окна|Дозорный в переулке|Дозорный на углу|Ночной проводник|Проводник по крышам|Проводник по переулкам|Проводник по углам|Ночной следопыт|Следопыт переулков|Исследователь цвета стен|Наблюдатель за светом окон|Наблюдатель за фонарями|Наблюдатель за лунными тенями|Подмастерье цвета стен|Подмастерье цвета вывесок|Подмастерье по крышам|Подмастерье по переулкам|Ученик маскировки|Ученик света и тени|Ученик смены цвета|Ученик поиска цветов|Исследователь крыш|Исследователь переулков|Исследователь перекрёстков|Пешеход по мостовой|Пешеход под крышами|Пешеход переулков|Лунный гуляка|Гуляка под фонарями|Гуляка на углу|Странствующий по городу хамелеон",
-  "it": "Camaleonte fulmineo|Ladro folgorante|Ladro in un istante|Ladro del vento|Maestro del mimetismo fantasma|Ladro silenzioso|Ladro al chiaro di luna|Ladro dei tetti|Maestro del mimetismo|Maestro del cambio di colore|Maestro dell'abbinamento dei colori|Maestro di luci e ombre|Maestro delle sfumature|Esperto delle ombre|Esperto dei tetti|Esperto dei vicoli|Intenditore di gemme|Custode di gemme nascoste|Corriere delle gemme|Guardiano della cassaforte|Artigiano dei colori|Artigiano di luci e ombre|Artigiano dei campioni di colore|Artigiano dei colori dei muri|Artigiano del selciato|Artigiano dei colori delle insegne|Artigiano dei colori dei tetti|Sentinella alla finestra|Sentinella del vicolo|Sentinella dell'angolo|Guida notturna|Guida dei tetti|Guida dei vicoli|Guida degli angoli|Investigatore notturno|Investigatore dei vicoli|Investigatore dei colori dei muri|Osservatore delle luci alle finestre|Osservatore dei lampioni|Osservatore delle ombre lunari|Apprendista dei colori dei muri|Apprendista dei colori delle insegne|Apprendista dei tetti|Apprendista dei vicoli|Allievo del mimetismo|Allievo di luci e ombre|Allievo del cambio di colore|Allievo della ricerca dei colori|Esploratore dei tetti|Esploratore dei vicoli|Esploratore degli angoli|Viandante del selciato|Viandante sotto i tetti|Viandante dei vicoli|Passeggiatore al chiaro di luna|Passeggiatore sotto i lampioni|Passeggiatore degli angoli|Camaleonte viaggiatore urbano",
-  "zh-Hant": "神速變色龍|閃光怪盜|瞬息怪盜|疾風怪盜|幻影擬態師|無聲怪盜|月下怪盜|屋頂怪盜|擬態大師|變色大師|配色大師|明暗大師|濃淡大師|穿影高手|越頂高手|穿巷高手|寶石鑑賞家|寶石藏匿者|寶石搬運者|金庫守門人|配色工匠|明暗工匠|色卡工匠|牆色工匠|石板路工匠|招牌色工匠|屋頂色工匠|窗邊哨兵|小巷哨兵|街角哨兵|夜路嚮導|屋頂嚮導|小巷嚮導|街角嚮導|夜路調查員|小巷調查員|牆色調查員|窗光觀察員|路燈觀察員|月影觀察員|牆色學徒|招牌色學徒|屋頂行走學徒|小巷行走學徒|擬態練習生|明暗練習生|變色練習生|尋色練習生|屋頂探險家|小巷探險家|街角探險家|石板路行者|屋簷下行者|小巷行者|月夜漫步者|路燈下漫步者|街角漫步者|城市漫遊變色龍",
-  "id": "Bunglon secepat kilat|Pencuri berkilat|Pencuri sekejap|Pencuri badai|Ahli penyamaran bayangan|Pencuri senyap|Pencuri cahaya bulan|Pencuri atap|Ahli penyamaran|Ahli pergantian warna|Ahli pencocokan warna|Ahli terang dan gelap|Ahli gradasi warna|Pakar penyeberang bayangan|Pakar penyeberang atap|Pakar pelolos gang|Pakar batu permata|Penyembunyi permata|Pembawa permata|Penjaga brankas|Perajin warna|Perajin terang dan gelap|Perajin contoh warna|Perajin warna dinding|Perajin jalan batu|Perajin warna papan nama|Perajin warna atap|Pengintai jendela|Pengintai gang|Pengintai sudut jalan|Pemandu malam|Pemandu atap|Pemandu gang|Pemandu sudut jalan|Penyelidik malam|Penyelidik gang|Penyelidik warna dinding|Pengamat cahaya jendela|Pengamat lampu jalan|Pengamat bayangan bulan|Murid warna dinding|Murid warna papan nama|Murid berjalan di atap|Murid berjalan di gang|Peserta latihan penyamaran|Peserta latihan terang gelap|Peserta latihan ganti warna|Peserta latihan mencari warna|Penjelajah atap|Penjelajah gang|Penjelajah sudut jalan|Pejalan jalan batu|Pejalan di bawah atap|Pejalan gang|Pejalan malam bulan|Pejalan di bawah lampu|Pejalan sudut jalan|Bunglon penjelajah kota",
-  "tr": "Şimşek bukalemun|Parıltı hırsızı|Bir anlık hırsız|Fırtına hırsızı|Hayalet kamuflaj ustası|Sessiz hırsız|Ay ışığı hırsızı|Çatı hırsızı|Kamuflaj ustası|Renk değiştirme ustası|Renk eşleme ustası|Işık ve gölge ustası|Ton ustası|Gölge geçiş uzmanı|Çatı geçiş uzmanı|Ara sokak kaçış uzmanı|Mücevher uzmanı|Mücevher saklayıcısı|Mücevher taşıyıcısı|Kasa bekçisi|Renk zanaatkârı|Işık ve gölge zanaatkârı|Renk örneği zanaatkârı|Duvar rengi zanaatkârı|Arnavut kaldırımı zanaatkârı|Tabela rengi zanaatkârı|Çatı rengi zanaatkârı|Pencere nöbetçisi|Ara sokak nöbetçisi|Köşe nöbetçisi|Gece yolu rehberi|Çatı rehberi|Ara sokak rehberi|Köşe rehberi|Gece yolu araştırmacısı|Ara sokak araştırmacısı|Duvar rengi araştırmacısı|Pencere ışığı gözlemcisi|Sokak lambası gözlemcisi|Ay gölgesi gözlemcisi|Duvar rengi çırağı|Tabela rengi çırağı|Çatı yürüyüşü çırağı|Ara sokak yürüyüşü çırağı|Kamuflaj öğrencisi|Işık ve gölge öğrencisi|Renk değiştirme öğrencisi|Renk arama öğrencisi|Çatı kâşifi|Ara sokak kâşifi|Sokak köşesi kâşifi|Taş yol gezgini|Çatı altı gezgini|Ara sokak gezgini|Ay ışığı gezgini|Sokak lambası gezgini|Sokak köşesi gezgini|Şehri gezen bukalemun",
-  "vi": "Tắc kè nhanh như chớp|Đạo chích ánh chớp|Đạo chích trong khoảnh khắc|Đạo chích gió lốc|Bậc thầy ngụy trang ảo ảnh|Đạo chích không tiếng động|Đạo chích dưới trăng|Đạo chích trên mái nhà|Bậc thầy ngụy trang|Bậc thầy đổi màu|Bậc thầy phối màu|Bậc thầy sáng tối|Bậc thầy sắc độ|Cao thủ băng qua bóng tối|Cao thủ vượt mái nhà|Cao thủ thoát qua ngõ|Người sành đá quý|Người giấu đá quý|Người vận chuyển đá quý|Người giữ két sắt|Thợ thủ công màu sắc|Thợ thủ công sáng tối|Thợ thủ công bảng màu|Thợ thủ công màu tường|Thợ thủ công đường đá|Thợ thủ công màu biển hiệu|Thợ thủ công màu mái nhà|Người canh bên cửa sổ|Người canh trong ngõ|Người canh góc phố|Người dẫn đường đêm|Người dẫn đường mái nhà|Người dẫn đường ngõ hẻm|Người dẫn đường góc phố|Người khảo sát đường đêm|Người khảo sát ngõ hẻm|Người khảo sát màu tường|Người quan sát ánh cửa sổ|Người quan sát đèn đường|Người quan sát bóng trăng|Học việc màu tường|Học việc màu biển hiệu|Học việc đi trên mái|Học việc đi trong ngõ|Học viên ngụy trang|Học viên sáng tối|Học viên đổi màu|Học viên tìm màu|Nhà thám hiểm mái nhà|Nhà thám hiểm ngõ hẻm|Nhà thám hiểm góc phố|Người đi trên đường đá|Người đi dưới mái hiên|Người đi trong ngõ|Người dạo bước dưới trăng|Người dạo bước dưới đèn đường|Người dạo bước góc phố|Tắc kè dạo quanh thành phố",
-  "th": "กิ้งก่าเร็วดั่งสายฟ้า|จอมโจรแสงวาบ|จอมโจรชั่วพริบตา|จอมโจรพายุ|ปรมาจารย์พรางตัวล่องหน|จอมโจรไร้เสียง|จอมโจรใต้แสงจันทร์|จอมโจรบนหลังคา|ปรมาจารย์พรางตัว|ปรมาจารย์เปลี่ยนสี|ปรมาจารย์จับคู่สี|ปรมาจารย์แสงเงา|ปรมาจารย์เฉดสี|ผู้เชี่ยวชาญข้ามเงา|ผู้เชี่ยวชาญข้ามหลังคา|ผู้เชี่ยวชาญหนีตามตรอก|ผู้รู้เรื่องอัญมณี|ผู้ซ่อนอัญมณี|ผู้ขนส่งอัญมณี|ผู้เฝ้าตู้เซฟ|ช่างฝีมือจับคู่สี|ช่างฝีมือแสงเงา|ช่างฝีมือตัวอย่างสี|ช่างฝีมือสีผนัง|ช่างฝีมือถนนหิน|ช่างฝีมือสีป้าย|ช่างฝีมือสีหลังคา|ยามเฝ้าหน้าต่าง|ยามเฝ้าตรอก|ยามเฝ้าหัวมุม|ผู้นำทางยามค่ำ|ผู้นำทางบนหลังคา|ผู้นำทางในตรอก|ผู้นำทางหัวมุม|นักสำรวจทางกลางคืน|นักสำรวจตรอก|นักสำรวจสีผนัง|ผู้สังเกตแสงหน้าต่าง|ผู้สังเกตไฟถนน|ผู้สังเกตเงาจันทร์|ผู้ฝึกหัดสีผนัง|ผู้ฝึกหัดสีป้าย|ผู้ฝึกเดินหลังคา|ผู้ฝึกเดินตรอก|ผู้ฝึกพรางตัว|ผู้ฝึกแสงเงา|ผู้ฝึกเปลี่ยนสี|ผู้ฝึกค้นหาสี|นักผจญภัยบนหลังคา|นักผจญภัยในตรอก|นักผจญภัยหัวมุม|คนเดินถนนหิน|คนเดินใต้ชายคา|คนเดินในตรอก|คนเดินเล่นใต้แสงจันทร์|คนเดินเล่นใต้ไฟถนน|คนเดินเล่นหัวมุม|กิ้งก่าเที่ยวทั่วเมือง",
-};
-const localizedTitles=Object.freeze(Object.fromEntries([['ja',namesJa],['en',namesEn],...Object.entries(raw).map(([k,v])=>[k,v.split('|')])]));
-
-const keys=['mode','start','clear','quit','time','building','family','color','brightness','red','green','blue',
- 'paused','resume','notCleared','unrankedQuestion','startError','anonymous','verifying','again','ranking','shareMode','shareRecord'];
-const labels={
- ja:['タイムアタックモード','同系色モード','30棟クリア！','途中終了','タイム','建物','系統','色','明度','赤系','緑系','青系','一時停止','再開','未クリア','ランキングに接続できません。今回はランキング対象外で遊びますか？','開始できませんでした','ランキング対象外','記録を確認中','もう一度','ランキング','タイムアタックモード','記録'],
- en:['Time Attack Mode','Same-Color Mode','30 buildings cleared!','Quit','Time','Building','Color family','Color','Brightness','Red','Green','Blue','Paused','Resume','Not cleared','Ranking unavailable. Play without ranking this time?','Unable to start','Not ranked','Verifying result','Try again','Ranking','Time Attack Mode','Record'],
- es:['Modo contrarreloj','Modo de colores similares','¡30 edificios superados!','Salir','Tiempo','Edificio','Gama','Color','Brillo','Rojo','Verde','Azul','Pausa','Continuar','Sin completar','Ranking no disponible. ¿Jugar sin clasificación?','No se pudo iniciar','Sin clasificación','Verificando','Otra vez','Clasificación','Modo contrarreloj','Tiempo'],
- 'pt-BR':['Modo contra o tempo','Modo de cores similares','30 prédios concluídos!','Sair','Tempo','Prédio','Família de cores','Cor','Brilho','Vermelho','Verde','Azul','Pausado','Continuar','Não concluído','Ranking indisponível. Jogar sem classificação?','Falha ao iniciar','Sem ranking','Verificando','Jogar de novo','Ranking','Modo contra o tempo','Tempo'],
- 'zh-Hans':['计时挑战模式','同色系模式','完成30栋！','退出','时间','建筑','色系','颜色','亮度','红色系','绿色系','蓝色系','已暂停','继续','未通关','排行榜不可用，仍要以非排名方式游玩吗？','无法开始','不计排名','正在核实','再玩一次','排行榜','计时挑战模式','记录'],
- fr:['Mode contre-la-montre','Mode couleurs proches','30 bâtiments terminés !','Quitter','Temps','Bâtiment','Famille','Couleur','Luminosité','Rouge','Vert','Bleu','Pause','Reprendre','Non terminé','Classement indisponible. Jouer hors classement ?','Impossible de démarrer','Hors classement','Vérification','Rejouer','Classement','Mode contre-la-montre','Temps'],
- de:['Zeitangriffsmodus','Ähnliche-Farben-Modus','30 Gebäude geschafft!','Beenden','Zeit','Gebäude','Farbfamilie','Farbe','Helligkeit','Rot','Grün','Blau','Pause','Fortsetzen','Nicht geschafft','Rangliste nicht erreichbar. Ohne Rangliste spielen?','Start fehlgeschlagen','Ohne Rangliste','Wird geprüft','Nochmal','Rangliste','Zeitangriffsmodus','Zeit'],
- ko:['타임어택 모드','동일 계열 색상 모드','30개 건물 완료!','종료','시간','건물','색상 계열','색상','밝기','빨강 계열','초록 계열','파랑 계열','일시정지','재개','미완료','랭킹 연결 실패. 비랭킹으로 플레이할까요?','시작 실패','랭킹 제외','기록 확인 중','다시 하기','랭킹','타임어택 모드','기록'],
- ru:['Режим на время','Режим похожих цветов','30 зданий пройдено!','Выйти','Время','Здание','Гамма','Цвет','Яркость','Красная','Зелёная','Синяя','Пауза','Продолжить','Не завершено','Рейтинг недоступен. Играть без рейтинга?','Не удалось начать','Вне рейтинга','Проверка','Ещё раз','Рейтинг','Режим на время','Результат'],
- it:['Modalità a tempo','Modalità colori simili','30 edifici completati!','Esci','Tempo','Edificio','Famiglia di colori','Colore','Luminosità','Rosso','Verde','Blu','Pausa','Riprendi','Non completato','Classifica non disponibile. Giocare senza classifica?','Impossibile iniziare','Non classificato','Verifica in corso','Riprova','Classifica','Modalità a tempo','Tempo'],
- 'zh-Hant':['計時挑戰模式','同色系模式','完成30棟！','退出','時間','建築','色系','顏色','亮度','紅色系','綠色系','藍色系','已暫停','繼續','未過關','排行榜無法連線，要以不計排名方式遊玩嗎？','無法開始','不計排名','正在核實','再玩一次','排行榜','計時挑戰模式','紀錄'],
- id:['Mode kejar waktu','Mode warna senada','30 gedung selesai!','Keluar','Waktu','Gedung','Kelompok warna','Warna','Kecerahan','Merah','Hijau','Biru','Jeda','Lanjutkan','Belum selesai','Peringkat tidak tersedia. Main tanpa peringkat?','Tidak bisa mulai','Tanpa peringkat','Memverifikasi','Main lagi','Peringkat','Mode kejar waktu','Rekor'],
- tr:['Zamana Karşı Mod','Benzer Renkler Modu','30 bina tamamlandı!','Çık','Süre','Bina','Renk grubu','Renk','Parlaklık','Kırmızı','Yeşil','Mavi','Duraklatıldı','Devam et','Tamamlanmadı','Sıralama kullanılamıyor. Sıralamasız oynansın mı?','Başlatılamadı','Sıralama dışı','Doğrulanıyor','Yeniden oyna','Sıralama','Zamana Karşı Mod','Süre'],
- vi:['Chế độ tính giờ','Chế độ màu cùng tông','Hoàn thành 30 tòa nhà!','Thoát','Thời gian','Tòa nhà','Nhóm màu','Màu','Độ sáng','Đỏ','Lục','Lam','Tạm dừng','Tiếp tục','Chưa hoàn thành','Không thể kết nối bảng xếp hạng. Chơi không xếp hạng?','Không thể bắt đầu','Không xếp hạng','Đang xác minh','Chơi lại','Xếp hạng','Chế độ tính giờ','Kỷ lục'],
- th:['โหมดจับเวลา','โหมดสีโทนเดียวกัน','ผ่านครบ 30 อาคาร!','ออก','เวลา','อาคาร','กลุ่มสี','สี','ความสว่าง','สีแดง','สีเขียว','สีน้ำเงิน','หยุดชั่วคราว','เล่นต่อ','ยังไม่สำเร็จ','ติดต่ออันดับไม่ได้ เล่นแบบไม่จัดอันดับหรือไม่?','เริ่มไม่ได้','ไม่นับอันดับ','กำลังตรวจสอบ','เล่นอีกครั้ง','อันดับ','โหมดจับเวลา','สถิติ']
-};
-const extraKeys=['tab','heading','description','loadingStats','loadingRanking','empty','plays','finishers','more'];
-const extraLabels={"ja":["タイムアタック","同系色タイムアタック","30棟の最速タイムで競います。赤・青・緑をまとめた順位です。","プレー回数を読み込み中です","タイムアタック順位を読み込み中です","まだ完走記録がありません","プレー回数","完走登録名","次の100名を表示"],"en":["Time attack","Same-color time attack","Race for the fastest time across 30 buildings. Red, blue and green share one ranking.","Loading play count","Loading time-attack rankings","No completed records yet","Plays","Registered finishers","Show the next 100"],"es":["Contrarreloj","Contrarreloj de colores similares","Compite por el mejor tiempo en 30 edificios. Rojo, azul y verde comparten una clasificación.","Cargando partidas","Cargando clasificación contrarreloj","Todavía no hay tiempos completados","Partidas","Participantes que completaron","Mostrar los próximos 100"],"pt-BR":["Contra o tempo","Contra o tempo de cores similares","Dispute o menor tempo em 30 prédios. Vermelho, azul e verde têm um único ranking.","Carregando partidas","Carregando ranking contra o tempo","Nenhuma conclusão registrada ainda","Partidas","Concluintes registrados","Mostrar os próximos 100"],"zh-Hans":["计时挑战","同色系计时挑战","挑战30栋建筑的最快用时。红、蓝、绿三种颜色合并排名。","正在读取游玩次数","正在读取计时排名","还没有通关记录","游玩次数","登记通关人数","显示后100名"],"fr":["Contre-la-montre","Contre-la-montre des couleurs proches","Visez le meilleur temps sur 30 bâtiments. Rouge, bleu et vert partagent le même classement.","Chargement des parties","Chargement du classement","Aucun temps terminé pour le moment","Parties","Participants ayant terminé","Afficher les 100 suivants"],"de":["Zeitangriff","Zeitangriff mit ähnlichen Farben","Erreiche die Bestzeit über 30 Gebäude. Rot, Blau und Grün haben eine gemeinsame Rangliste.","Spiele werden geladen","Zeitangriffs-Rangliste wird geladen","Noch keine Abschlüsse","Spiele","Registrierte Abschlüsse","Nächste 100 anzeigen"],"ko":["타임어택","동일 계열 색상 타임어택","30개 건물의 최단 시간을 겨룹니다. 빨강·파랑·초록을 합쳐 순위를 매깁니다.","플레이 횟수 불러오는 중","타임어택 순위 불러오는 중","아직 완주 기록이 없습니다","플레이 횟수","완주 등록 인원","다음 100명 표시"],"ru":["Игра на время","Игра на время с похожими цветами","Соревнуйтесь за лучшее время на 30 зданиях. Красный, синий и зелёный в одном рейтинге.","Загрузка числа игр","Загрузка рейтинга на время","Пока нет завершённых результатов","Игр","Зарегистрированных финишировавших","Показать следующие 100"],"it":["Contro il tempo","Contro il tempo con colori simili","Ottieni il tempo migliore su 30 edifici. Rosso, blu e verde condividono la classifica.","Caricamento partite","Caricamento classifica a tempo","Ancora nessun tempo completato","Partite","Partecipanti arrivati al traguardo","Mostra i prossimi 100"],"zh-Hant":["計時挑戰","同色系計時挑戰","挑戰30棟建築的最短時間。紅、藍、綠三種顏色合併排名。","正在讀取遊玩次數","正在讀取計時排行","目前還沒有通關紀錄","遊玩次數","登記通關人數","顯示後100名"],"id":["Kejar waktu","Kejar waktu warna senada","Raih waktu tercepat untuk 30 gedung. Merah, biru, dan hijau digabung dalam satu peringkat.","Memuat jumlah permainan","Memuat peringkat kejar waktu","Belum ada catatan selesai","Permainan","Peserta yang berhasil finis","Tampilkan 100 berikutnya"],"tr":["Zamana karşı","Benzer renklerle zamana karşı","30 binayı en kısa sürede bitirin. Kırmızı, mavi ve yeşil aynı sıralamada.","Oyun sayısı yükleniyor","Zaman sıralaması yükleniyor","Henüz tamamlanmış kayıt yok","Oyunlar","Bitiren kayıtlı oyuncular","Sonraki 100 kişiyi göster"],"vi":["Thử thách tính giờ","Thử thách tính giờ cùng tông màu","Thi hoàn thành 30 tòa nhà nhanh nhất. Đỏ, xanh dương và xanh lá chung bảng xếp hạng.","Đang tải lượt chơi","Đang tải bảng xếp hạng thời gian","Chưa có thành tích hoàn thành","Lượt chơi","Người hoàn thành đã đăng ký","Hiển thị 100 người tiếp theo"],"th":["แข่งทำเวลา","แข่งทำเวลาโทนสีเดียวกัน","แข่งทำเวลาที่เร็วที่สุดใน 30 อาคาร สีแดง น้ำเงิน และเขียวอยู่ในอันดับเดียวกัน","กำลังโหลดจำนวนครั้งที่เล่น","กำลังโหลดอันดับจับเวลา","ยังไม่มีสถิติที่ผ่านครบ","ครั้งที่เล่น","ผู้ผ่านครบที่ลงทะเบียน","แสดงอีก 100 คน"]};
-const order=['ja','en','es','pt-BR','zh-Hans','fr','de','ko','ru','it','zh-Hant','id','tr','vi','th'];
-window.LabI18nRows=(window.LabI18nRows||[]).concat(keys.map((key,i)=>order.map(l=>labels[l]?.[i]||labels.en[i])),extraKeys.map((key,i)=>order.map(l=>extraLabels[l]?.[i]||extraLabels.en[i])));
-const display={red:'red',green:'green',blue:'blue'};
-window.ChameleolTimeAttack={
- title(id,lang='ja'){
-   if(id==null)return lang==='ja'?'30棟完走':'30 buildings completed';
-   const match=/^ta\.title\.(\d{2})$/.exec(id);
-   const i=match?Number(match[1])-1:-1;
-   if(i<0||i>=58)return lang==='ja'?'30棟完走':'30 buildings completed';
-   return (localizedTitles[lang]||localizedTitles.en)[i];
- },
- family(value,lang='ja'){
-   const key=display[value];const i=keys.indexOf(key);
-   return i<0?value:(labels[lang]?.[i]||labels.en[i]);
- },
- text(key,lang='ja'){
-   const i=keys.indexOf(key);if(i>=0)return labels[lang]?.[i]||labels.en[i];
-   const j=extraKeys.indexOf(key);return j<0?key:(extraLabels[lang]?.[j]||extraLabels.en[j]);
- }
-};
-})();
+// Generated by chameleol/scripts/export-time-attack-titles.mjs.
+export const sourceCommit = "d0d4de4cf0e258d10e75740e9c936e9e3970749e";
+export const contentSha256 = "96e2e972312eb47ac29da41f8e93e23327e73cd8cab56b641f0a42ea985835a9";
+export const titles = Object.freeze([
+  {
+    "id": "ta.title.01",
+    "minCs": 1500,
+    "maxCs": 3500,
+    "labels": {
+      "ja": "神速のカメレオン",
+      "en": "Lightning Chameleon",
+      "es": "Camaleón relámpago",
+      "pt-BR": "Camaleão relâmpago",
+      "zh-Hans": "神速变色龙",
+      "fr": "Caméléon foudroyant",
+      "de": "Blitzchamäleon",
+      "ko": "신속의 카멜레온",
+      "ru": "Хамелеон-молния",
+      "it": "Camaleonte fulmineo",
+      "zh-Hant": "神速變色龍",
+      "id": "Bunglon Kilat",
+      "tr": "Şimşek Bukalemun",
+      "vi": "Tắc kè chớp nhoáng",
+      "th": "กิ้งก่าสายฟ้า"
+    }
+  },
+  {
+    "id": "ta.title.02",
+    "minCs": 3501,
+    "maxCs": 4500,
+    "labels": {
+      "ja": "閃光の怪盗",
+      "en": "Flash Thief",
+      "es": "Ladrón destello",
+      "pt-BR": "Ladrão do clarão",
+      "zh-Hans": "闪光怪盗",
+      "fr": "Voleur éclair",
+      "de": "Blitzdieb",
+      "ko": "섬광의 괴도",
+      "ru": "Вор-вспышка",
+      "it": "Ladro lampo",
+      "zh-Hant": "閃光怪盜",
+      "id": "Pencuri Kilatan",
+      "tr": "Şimşek Hırsızı",
+      "vi": "Siêu trộm tia chớp",
+      "th": "จอมโจรแสงวาบ"
+    }
+  },
+  {
+    "id": "ta.title.03",
+    "minCs": 4501,
+    "maxCs": 5500,
+    "labels": {
+      "ja": "一瞬の怪盗",
+      "en": "Blink Thief",
+      "es": "Ladrón fugaz",
+      "pt-BR": "Ladrão fugaz",
+      "zh-Hans": "瞬影怪盗",
+      "fr": "Voleur insaisissable",
+      "de": "Flüchtiger Dieb",
+      "ko": "순간의 괴도",
+      "ru": "Неуловимый вор",
+      "it": "Ladro fugace",
+      "zh-Hant": "瞬影怪盜",
+      "id": "Pencuri Sekejap",
+      "tr": "Göz Açıp Kapayana Dek Kaçan Hırsız",
+      "vi": "Siêu trộm thoắt ẩn thoắt hiện",
+      "th": "จอมโจรชั่วพริบตา"
+    }
+  },
+  {
+    "id": "ta.title.04",
+    "minCs": 5501,
+    "maxCs": 6500,
+    "labels": {
+      "ja": "疾風の怪盗",
+      "en": "Gale Thief",
+      "es": "Ladrón del vendaval",
+      "pt-BR": "Ladrão da ventania",
+      "zh-Hans": "疾风怪盗",
+      "fr": "Voleur des rafales",
+      "de": "Sturmdieb",
+      "ko": "질풍의 괴도",
+      "ru": "Вор-ураган",
+      "it": "Ladro della burrasca",
+      "zh-Hant": "疾風怪盜",
+      "id": "Pencuri Badai",
+      "tr": "Fırtına Hırsızı",
+      "vi": "Siêu trộm cuồng phong",
+      "th": "จอมโจรสายลมกรด"
+    }
+  },
+  {
+    "id": "ta.title.05",
+    "minCs": 6501,
+    "maxCs": 7500,
+    "labels": {
+      "ja": "幻の擬態師",
+      "en": "Phantom Mimic",
+      "es": "Mimo fantasma",
+      "pt-BR": "Mímico fantasma",
+      "zh-Hans": "幻影拟态师",
+      "fr": "Mime fantôme",
+      "de": "Phantomtarnkünstler",
+      "ko": "환영의 의태사",
+      "ru": "Призрак маскировки",
+      "it": "Mimo fantasma",
+      "zh-Hant": "幻影擬態師",
+      "id": "Penyamar Hantu",
+      "tr": "Hayalet Taklitçi",
+      "vi": "Bậc thầy ngụy trang bóng ma",
+      "th": "นักพรางตัวเงาลวง"
+    }
+  },
+  {
+    "id": "ta.title.06",
+    "minCs": 7501,
+    "maxCs": 8500,
+    "labels": {
+      "ja": "無音の怪盗",
+      "en": "Silent Thief",
+      "es": "Ladrón silencioso",
+      "pt-BR": "Ladrão silencioso",
+      "zh-Hans": "无声怪盗",
+      "fr": "Voleur silencieux",
+      "de": "Lautloser Dieb",
+      "ko": "소리 없는 괴도",
+      "ru": "Бесшумный вор",
+      "it": "Ladro silenzioso",
+      "zh-Hant": "無聲怪盜",
+      "id": "Pencuri Senyap",
+      "tr": "Sessiz Hırsız",
+      "vi": "Siêu trộm không tiếng động",
+      "th": "จอมโจรไร้เสียง"
+    }
+  },
+  {
+    "id": "ta.title.07",
+    "minCs": 8501,
+    "maxCs": 9500,
+    "labels": {
+      "ja": "月下の怪盗",
+      "en": "Moonlit Thief",
+      "es": "Ladrón a la luz de la luna",
+      "pt-BR": "Ladrão ao luar",
+      "zh-Hans": "月下怪盗",
+      "fr": "Voleur au clair de lune",
+      "de": "Mondscheindieb",
+      "ko": "달빛 아래 괴도",
+      "ru": "Вор под луной",
+      "it": "Ladro al chiaro di luna",
+      "zh-Hant": "月下怪盜",
+      "id": "Pencuri di Bawah Bulan",
+      "tr": "Ay Işığı Hırsızı",
+      "vi": "Siêu trộm dưới trăng",
+      "th": "จอมโจรใต้แสงจันทร์"
+    }
+  },
+  {
+    "id": "ta.title.08",
+    "minCs": 9501,
+    "maxCs": 10500,
+    "labels": {
+      "ja": "屋根の怪盗",
+      "en": "Rooftop Thief",
+      "es": "Ladrón de los tejados",
+      "pt-BR": "Ladrão dos telhados",
+      "zh-Hans": "屋顶怪盗",
+      "fr": "Voleur des toits",
+      "de": "Dachdieb",
+      "ko": "지붕 위 괴도",
+      "ru": "Крышный вор",
+      "it": "Ladro dei tetti",
+      "zh-Hant": "屋頂怪盜",
+      "id": "Pencuri Atap",
+      "tr": "Çatı Hırsızı",
+      "vi": "Siêu trộm mái nhà",
+      "th": "จอมโจรบนหลังคา"
+    }
+  },
+  {
+    "id": "ta.title.09",
+    "minCs": 10501,
+    "maxCs": 11500,
+    "labels": {
+      "ja": "擬態の名人",
+      "en": "Master of Disguise",
+      "es": "Maestro del camuflaje",
+      "pt-BR": "Mestre da camuflagem",
+      "zh-Hans": "拟态宗师",
+      "fr": "Maître du camouflage",
+      "de": "Meister der Tarnung",
+      "ko": "의태의 명인",
+      "ru": "Мастер маскировки",
+      "it": "Maestro del mimetismo",
+      "zh-Hant": "擬態宗師",
+      "id": "Ahli Kamuflase",
+      "tr": "Kamuflaj Ustası",
+      "vi": "Bậc thầy ngụy trang",
+      "th": "ปรมาจารย์การพรางตัว"
+    }
+  },
+  {
+    "id": "ta.title.10",
+    "minCs": 11501,
+    "maxCs": 12500,
+    "labels": {
+      "ja": "変色の名人",
+      "en": "Master of Color Change",
+      "es": "Maestro del cambio de color",
+      "pt-BR": "Mestre da mudança de cor",
+      "zh-Hans": "变色宗师",
+      "fr": "Maître du changement de couleur",
+      "de": "Meister des Farbwechsels",
+      "ko": "변색의 명인",
+      "ru": "Мастер смены цвета",
+      "it": "Maestro del cambio di colore",
+      "zh-Hant": "變色宗師",
+      "id": "Ahli Perubahan Warna",
+      "tr": "Renk Değiştirme Ustası",
+      "vi": "Bậc thầy đổi màu",
+      "th": "ปรมาจารย์การเปลี่ยนสี"
+    }
+  },
+  {
+    "id": "ta.title.11",
+    "minCs": 12501,
+    "maxCs": 13500,
+    "labels": {
+      "ja": "色合わせの名人",
+      "en": "Master Color Matcher",
+      "es": "Maestro de la igualación de colores",
+      "pt-BR": "Mestre da combinação de cores",
+      "zh-Hans": "配色宗师",
+      "fr": "Maître de l’accord des couleurs",
+      "de": "Meister des Farbabgleichs",
+      "ko": "색 맞추기 명인",
+      "ru": "Мастер подбора цвета",
+      "it": "Maestro dell’abbinamento dei colori",
+      "zh-Hant": "配色宗師",
+      "id": "Ahli Pencocokan Warna",
+      "tr": "Renk Eşleştirme Ustası",
+      "vi": "Bậc thầy khớp màu",
+      "th": "ปรมาจารย์การเทียบสี"
+    }
+  },
+  {
+    "id": "ta.title.12",
+    "minCs": 13501,
+    "maxCs": 14500,
+    "labels": {
+      "ja": "明暗の名人",
+      "en": "Master of Light and Shade",
+      "es": "Maestro de luces y sombras",
+      "pt-BR": "Mestre de luz e sombra",
+      "zh-Hans": "明暗宗师",
+      "fr": "Maître du clair-obscur",
+      "de": "Meister von Licht und Schatten",
+      "ko": "명암의 명인",
+      "ru": "Мастер света и тени",
+      "it": "Maestro del chiaroscuro",
+      "zh-Hant": "明暗宗師",
+      "id": "Ahli Terang dan Bayang",
+      "tr": "Işık ve Gölge Ustası",
+      "vi": "Bậc thầy sáng tối",
+      "th": "ปรมาจารย์แสงและเงา"
+    }
+  },
+  {
+    "id": "ta.title.13",
+    "minCs": 14501,
+    "maxCs": 15500,
+    "labels": {
+      "ja": "濃淡の名人",
+      "en": "Master of Tones",
+      "es": "Maestro de los tonos",
+      "pt-BR": "Mestre dos tons",
+      "zh-Hans": "浓淡宗师",
+      "fr": "Maître des nuances",
+      "de": "Meister der Farbtöne",
+      "ko": "농담의 명인",
+      "ru": "Мастер оттенков",
+      "it": "Maestro delle sfumature",
+      "zh-Hant": "濃淡宗師",
+      "id": "Ahli Gradasi Warna",
+      "tr": "Renk Tonları Ustası",
+      "vi": "Bậc thầy sắc độ",
+      "th": "ปรมาจารย์เฉดสี"
+    }
+  },
+  {
+    "id": "ta.title.14",
+    "minCs": 15501,
+    "maxCs": 16500,
+    "labels": {
+      "ja": "影渡りの達人",
+      "en": "Shadow Crossing Expert",
+      "es": "Experto en cruzar sombras",
+      "pt-BR": "Especialista em atravessar sombras",
+      "zh-Hans": "穿影达人",
+      "fr": "Expert des passages dans l’ombre",
+      "de": "Schattengänger",
+      "ko": "그림자 건너기의 달인",
+      "ru": "Знаток переходов через тени",
+      "it": "Esperto di passaggi nell’ombra",
+      "zh-Hant": "穿影達人",
+      "id": "Jago Menyusuri Bayang",
+      "tr": "Gölgelerden Geçme Uzmanı",
+      "vi": "Cao thủ vượt bóng",
+      "th": "ผู้เชี่ยวชาญการข้ามเงา"
+    }
+  },
+  {
+    "id": "ta.title.15",
+    "minCs": 16501,
+    "maxCs": 17500,
+    "labels": {
+      "ja": "屋根渡りの達人",
+      "en": "Rooftop Crossing Expert",
+      "es": "Experto en cruzar tejados",
+      "pt-BR": "Especialista em cruzar telhados",
+      "zh-Hans": "翻越屋顶达人",
+      "fr": "Expert des traversées sur les toits",
+      "de": "Meister der Dachübergänge",
+      "ko": "지붕 건너기의 달인",
+      "ru": "Знаток переходов по крышам",
+      "it": "Esperto di attraversamenti sui tetti",
+      "zh-Hant": "翻越屋頂達人",
+      "id": "Jago Menyeberangi Atap",
+      "tr": "Çatılardan Geçme Uzmanı",
+      "vi": "Cao thủ băng qua mái nhà",
+      "th": "ผู้เชี่ยวชาญการข้ามหลังคา"
+    }
+  },
+  {
+    "id": "ta.title.16",
+    "minCs": 17501,
+    "maxCs": 18500,
+    "labels": {
+      "ja": "路地抜けの達人",
+      "en": "Alley Escape Expert",
+      "es": "Experto en escapar por callejones",
+      "pt-BR": "Especialista em fugir por becos",
+      "zh-Hans": "穿巷达人",
+      "fr": "Expert des échappées par les ruelles",
+      "de": "Meister der Gassenflucht",
+      "ko": "골목 빠져나가기 달인",
+      "ru": "Знаток побегов через переулки",
+      "it": "Esperto di fughe nei vicoli",
+      "zh-Hant": "穿巷達人",
+      "id": "Jago Lolos Lewat Gang",
+      "tr": "Ara Sokaklardan Kaçış Uzmanı",
+      "vi": "Cao thủ thoát qua hẻm",
+      "th": "ผู้เชี่ยวชาญการหลบหนีทางตรอก"
+    }
+  },
+  {
+    "id": "ta.title.17",
+    "minCs": 18501,
+    "maxCs": 19500,
+    "labels": {
+      "ja": "宝石の目利き",
+      "en": "Gem Appraiser",
+      "es": "Tasador de gemas",
+      "pt-BR": "Avaliador de joias",
+      "zh-Hans": "宝石鉴定师",
+      "fr": "Expert en gemmes",
+      "de": "Edelsteingutachter",
+      "ko": "보석 감정사",
+      "ru": "Оценщик самоцветов",
+      "it": "Stimatore di gemme",
+      "zh-Hant": "寶石鑑定師",
+      "id": "Penaksir Permata",
+      "tr": "Mücevher Değerleme Uzmanı",
+      "vi": "Chuyên gia giám định đá quý",
+      "th": "นักประเมินอัญมณี"
+    }
+  },
+  {
+    "id": "ta.title.18",
+    "minCs": 19501,
+    "maxCs": 20500,
+    "labels": {
+      "ja": "宝石の隠し役",
+      "en": "Gem Hider",
+      "es": "Escondedor de gemas",
+      "pt-BR": "Escondedor de joias",
+      "zh-Hans": "宝石藏匿员",
+      "fr": "Cacheur de gemmes",
+      "de": "Edelsteinverstecker",
+      "ko": "보석 은닉 담당",
+      "ru": "Хранитель тайников с самоцветами",
+      "it": "Custode dei nascondigli delle gemme",
+      "zh-Hant": "寶石藏匿員",
+      "id": "Penyembunyi Permata",
+      "tr": "Mücevher Saklayıcısı",
+      "vi": "Người giấu đá quý",
+      "th": "ผู้ซ่อนอัญมณี"
+    }
+  },
+  {
+    "id": "ta.title.19",
+    "minCs": 20501,
+    "maxCs": 21500,
+    "labels": {
+      "ja": "宝石の運び手",
+      "en": "Gem Courier",
+      "es": "Mensajero de gemas",
+      "pt-BR": "Mensageiro de joias",
+      "zh-Hans": "宝石运送员",
+      "fr": "Coursier de gemmes",
+      "de": "Edelsteinkurier",
+      "ko": "보석 운반꾼",
+      "ru": "Курьер самоцветов",
+      "it": "Corriere di gemme",
+      "zh-Hant": "寶石運送員",
+      "id": "Kurir Permata",
+      "tr": "Mücevher Kuryesi",
+      "vi": "Người chuyển đá quý",
+      "th": "ผู้ส่งอัญมณี"
+    }
+  },
+  {
+    "id": "ta.title.20",
+    "minCs": 21501,
+    "maxCs": 22500,
+    "labels": {
+      "ja": "金庫の鍵番",
+      "en": "Keeper of the Safe Key",
+      "es": "Guardián de la llave de la caja fuerte",
+      "pt-BR": "Guardião da chave do cofre",
+      "zh-Hans": "保险柜钥匙看守",
+      "fr": "Gardien de la clé du coffre",
+      "de": "Wächter des Tresorschlüssels",
+      "ko": "금고 열쇠지기",
+      "ru": "Хранитель ключа от сейфа",
+      "it": "Custode della chiave della cassaforte",
+      "zh-Hant": "保險箱鑰匙看守",
+      "id": "Penjaga Kunci Brankas",
+      "tr": "Kasa Anahtarı Bekçisi",
+      "vi": "Người giữ chìa khóa két",
+      "th": "ผู้เฝ้ากุญแจตู้เซฟ"
+    }
+  },
+  {
+    "id": "ta.title.21",
+    "minCs": 22501,
+    "maxCs": 23500,
+    "labels": {
+      "ja": "色合わせ職人",
+      "en": "Color Matching Artisan",
+      "es": "Artesano de la igualación de colores",
+      "pt-BR": "Artesão da combinação de cores",
+      "zh-Hans": "配色工匠",
+      "fr": "Artisan de l’accord des couleurs",
+      "de": "Handwerker des Farbabgleichs",
+      "ko": "색 맞추기 장인",
+      "ru": "Умелец по подбору цвета",
+      "it": "Artigiano dell’abbinamento dei colori",
+      "zh-Hant": "配色工匠",
+      "id": "Perajin Pencocokan Warna",
+      "tr": "Renk Eşleştirme Zanaatkârı",
+      "vi": "Nghệ nhân khớp màu",
+      "th": "ช่างเทียบสี"
+    }
+  },
+  {
+    "id": "ta.title.22",
+    "minCs": 23501,
+    "maxCs": 24500,
+    "labels": {
+      "ja": "明暗合わせ職人",
+      "en": "Light and Shade Artisan",
+      "es": "Artesano de luces y sombras",
+      "pt-BR": "Artesão de luz e sombra",
+      "zh-Hans": "明暗工匠",
+      "fr": "Artisan du clair-obscur",
+      "de": "Handwerker für Licht und Schatten",
+      "ko": "명암 맞추기 장인",
+      "ru": "Умелец света и тени",
+      "it": "Artigiano del chiaroscuro",
+      "zh-Hant": "明暗工匠",
+      "id": "Perajin Terang dan Bayang",
+      "tr": "Işık ve Gölge Zanaatkârı",
+      "vi": "Nghệ nhân cân sáng tối",
+      "th": "ช่างปรับแสงและเงา"
+    }
+  },
+  {
+    "id": "ta.title.23",
+    "minCs": 24501,
+    "maxCs": 25500,
+    "labels": {
+      "ja": "色見本の職人",
+      "en": "Color Swatch Artisan",
+      "es": "Artesano de muestras de color",
+      "pt-BR": "Artesão de amostras de cor",
+      "zh-Hans": "色卡工匠",
+      "fr": "Artisan des nuanciers",
+      "de": "Handwerker der Farbmuster",
+      "ko": "색 견본 장인",
+      "ru": "Умелец цветовых образцов",
+      "it": "Artigiano dei campioni di colore",
+      "zh-Hant": "色票工匠",
+      "id": "Perajin Sampel Warna",
+      "tr": "Renk Örneği Zanaatkârı",
+      "vi": "Nghệ nhân mẫu màu",
+      "th": "ช่างทำตัวอย่างสี"
+    }
+  },
+  {
+    "id": "ta.title.24",
+    "minCs": 25501,
+    "maxCs": 26500,
+    "labels": {
+      "ja": "壁色の職人",
+      "en": "Wall Color Artisan",
+      "es": "Artesano del color de los muros",
+      "pt-BR": "Artesão das cores das paredes",
+      "zh-Hans": "墙色工匠",
+      "fr": "Artisan des couleurs murales",
+      "de": "Wandfarbenhandwerker",
+      "ko": "벽 색깔 장인",
+      "ru": "Умелец по цветам стен",
+      "it": "Artigiano dei colori delle pareti",
+      "zh-Hant": "牆色工匠",
+      "id": "Perajin Warna Dinding",
+      "tr": "Duvar Rengi Zanaatkârı",
+      "vi": "Nghệ nhân màu tường",
+      "th": "ช่างสีผนัง"
+    }
+  },
+  {
+    "id": "ta.title.25",
+    "minCs": 26501,
+    "maxCs": 27500,
+    "labels": {
+      "ja": "石畳の職人",
+      "en": "Cobblestone Artisan",
+      "es": "Artesano del empedrado",
+      "pt-BR": "Artesão das pedras da rua",
+      "zh-Hans": "石板路工匠",
+      "fr": "Artisan des pavés",
+      "de": "Pflasterhandwerker",
+      "ko": "돌길 장인",
+      "ru": "Умелец мостовой",
+      "it": "Artigiano del selciato",
+      "zh-Hant": "石板路工匠",
+      "id": "Perajin Jalan Batu",
+      "tr": "Arnavut Kaldırımı Ustası",
+      "vi": "Nghệ nhân đường đá",
+      "th": "ช่างปูถนนหิน"
+    }
+  },
+  {
+    "id": "ta.title.26",
+    "minCs": 27501,
+    "maxCs": 28500,
+    "labels": {
+      "ja": "看板色の職人",
+      "en": "Sign Color Artisan",
+      "es": "Artesano del color de los letreros",
+      "pt-BR": "Artesão das cores das placas",
+      "zh-Hans": "招牌配色工匠",
+      "fr": "Artisan des couleurs d’enseignes",
+      "de": "Handwerker für Schildfarben",
+      "ko": "간판 색깔 장인",
+      "ru": "Умелец по цветам вывесок",
+      "it": "Artigiano dei colori delle insegne",
+      "zh-Hant": "招牌配色工匠",
+      "id": "Perajin Warna Papan Nama",
+      "tr": "Tabela Rengi Zanaatkârı",
+      "vi": "Nghệ nhân màu biển hiệu",
+      "th": "ช่างสีป้าย"
+    }
+  },
+  {
+    "id": "ta.title.27",
+    "minCs": 28501,
+    "maxCs": 29500,
+    "labels": {
+      "ja": "屋根色の職人",
+      "en": "Roof Color Artisan",
+      "es": "Artesano del color de los tejados",
+      "pt-BR": "Artesão das cores dos telhados",
+      "zh-Hans": "屋顶配色工匠",
+      "fr": "Artisan des couleurs des toits",
+      "de": "Handwerker für Dachfarben",
+      "ko": "지붕 색깔 장인",
+      "ru": "Умелец по цветам крыш",
+      "it": "Artigiano dei colori dei tetti",
+      "zh-Hant": "屋頂配色工匠",
+      "id": "Perajin Warna Atap",
+      "tr": "Çatı Rengi Zanaatkârı",
+      "vi": "Nghệ nhân màu mái nhà",
+      "th": "ช่างสีหลังคา"
+    }
+  },
+  {
+    "id": "ta.title.28",
+    "minCs": 29501,
+    "maxCs": 30500,
+    "labels": {
+      "ja": "窓辺の見張り",
+      "en": "Window Watcher",
+      "es": "Vigía de la ventana",
+      "pt-BR": "Vigia da janela",
+      "zh-Hans": "窗边哨兵",
+      "fr": "Guetteur à la fenêtre",
+      "de": "Fensterwache",
+      "ko": "창가 파수꾼",
+      "ru": "Часовой у окна",
+      "it": "Vedetta alla finestra",
+      "zh-Hant": "窗邊哨兵",
+      "id": "Pengawas Jendela",
+      "tr": "Pencere Gözcüsü",
+      "vi": "Người gác bên cửa sổ",
+      "th": "ยามริมหน้าต่าง"
+    }
+  },
+  {
+    "id": "ta.title.29",
+    "minCs": 30501,
+    "maxCs": 31500,
+    "labels": {
+      "ja": "路地の見張り",
+      "en": "Alley Lookout",
+      "es": "Vigía del callejón",
+      "pt-BR": "Vigia do beco",
+      "zh-Hans": "小巷哨兵",
+      "fr": "Guetteur des ruelles",
+      "de": "Gassenwache",
+      "ko": "골목 파수꾼",
+      "ru": "Часовой в переулке",
+      "it": "Vedetta del vicolo",
+      "zh-Hant": "小巷哨兵",
+      "id": "Pengawas Gang",
+      "tr": "Ara Sokak Gözcüsü",
+      "vi": "Người gác hẻm",
+      "th": "ยามเฝ้าตรอก"
+    }
+  },
+  {
+    "id": "ta.title.30",
+    "minCs": 31501,
+    "maxCs": 32500,
+    "labels": {
+      "ja": "街角の見張り",
+      "en": "Street Corner Lookout",
+      "es": "Vigía de la esquina",
+      "pt-BR": "Vigia da esquina",
+      "zh-Hans": "街角哨兵",
+      "fr": "Guetteur du coin de rue",
+      "de": "Wache an der Straßenecke",
+      "ko": "길모퉁이 파수꾼",
+      "ru": "Часовой на углу",
+      "it": "Vedetta all’angolo",
+      "zh-Hant": "街角哨兵",
+      "id": "Pengawas Sudut Jalan",
+      "tr": "Sokak Köşesi Gözcüsü",
+      "vi": "Người gác góc phố",
+      "th": "ยามเฝ้ามุมถนน"
+    }
+  },
+  {
+    "id": "ta.title.31",
+    "minCs": 32501,
+    "maxCs": 33500,
+    "labels": {
+      "ja": "夜道の案内役",
+      "en": "Night Route Guide",
+      "es": "Guía de rutas nocturnas",
+      "pt-BR": "Guia dos caminhos noturnos",
+      "zh-Hans": "夜路向导",
+      "fr": "Guide des chemins de nuit",
+      "de": "Wegweiser durch die Nacht",
+      "ko": "밤길 안내자",
+      "ru": "Проводник по ночным улицам",
+      "it": "Guida dei percorsi notturni",
+      "zh-Hant": "夜路嚮導",
+      "id": "Pemandu Jalan Malam",
+      "tr": "Gece Yolu Rehberi",
+      "vi": "Người dẫn đường đêm",
+      "th": "คนนำทางยามค่ำคืน"
+    }
+  },
+  {
+    "id": "ta.title.32",
+    "minCs": 33501,
+    "maxCs": 34500,
+    "labels": {
+      "ja": "屋根の案内役",
+      "en": "Rooftop Guide",
+      "es": "Guía de los tejados",
+      "pt-BR": "Guia dos telhados",
+      "zh-Hans": "屋顶向导",
+      "fr": "Guide des toits",
+      "de": "Dachwegweiser",
+      "ko": "지붕길 안내자",
+      "ru": "Проводник по крышам",
+      "it": "Guida dei tetti",
+      "zh-Hant": "屋頂嚮導",
+      "id": "Pemandu Atap",
+      "tr": "Çatı Rehberi",
+      "vi": "Người dẫn đường trên mái",
+      "th": "คนนำทางบนหลังคา"
+    }
+  },
+  {
+    "id": "ta.title.33",
+    "minCs": 34501,
+    "maxCs": 35500,
+    "labels": {
+      "ja": "路地の案内役",
+      "en": "Alley Guide",
+      "es": "Guía de los callejones",
+      "pt-BR": "Guia dos becos",
+      "zh-Hans": "小巷向导",
+      "fr": "Guide des ruelles",
+      "de": "Gassenwegweiser",
+      "ko": "골목 안내자",
+      "ru": "Проводник по переулкам",
+      "it": "Guida dei vicoli",
+      "zh-Hant": "小巷嚮導",
+      "id": "Pemandu Gang",
+      "tr": "Ara Sokak Rehberi",
+      "vi": "Người dẫn đường qua hẻm",
+      "th": "คนนำทางในตรอก"
+    }
+  },
+  {
+    "id": "ta.title.34",
+    "minCs": 35501,
+    "maxCs": 36500,
+    "labels": {
+      "ja": "街角の案内役",
+      "en": "Street Corner Guide",
+      "es": "Guía de las esquinas",
+      "pt-BR": "Guia das esquinas",
+      "zh-Hans": "街角向导",
+      "fr": "Guide des coins de rue",
+      "de": "Wegweiser an der Straßenecke",
+      "ko": "길모퉁이 안내자",
+      "ru": "Проводник по городским углам",
+      "it": "Guida degli angoli di strada",
+      "zh-Hant": "街角嚮導",
+      "id": "Pemandu Sudut Jalan",
+      "tr": "Sokak Köşesi Rehberi",
+      "vi": "Người dẫn đường ở góc phố",
+      "th": "คนนำทางที่มุมถนน"
+    }
+  },
+  {
+    "id": "ta.title.35",
+    "minCs": 36501,
+    "maxCs": 37500,
+    "labels": {
+      "ja": "夜道の調べ役",
+      "en": "Night Route Scout",
+      "es": "Explorador de rutas nocturnas",
+      "pt-BR": "Batedor noturno",
+      "zh-Hans": "夜路调查员",
+      "fr": "Éclaireur des chemins de nuit",
+      "de": "Nachtkundschafter",
+      "ko": "밤길 조사원",
+      "ru": "Разведчик ночных улиц",
+      "it": "Ricognitore dei percorsi notturni",
+      "zh-Hant": "夜路調查員",
+      "id": "Pengintai Jalan Malam",
+      "tr": "Gece Yolu İzcisi",
+      "vi": "Trinh sát đường đêm",
+      "th": "นักสำรวจทางยามค่ำคืน"
+    }
+  },
+  {
+    "id": "ta.title.36",
+    "minCs": 37501,
+    "maxCs": 38500,
+    "labels": {
+      "ja": "路地の調べ役",
+      "en": "Alley Scout",
+      "es": "Explorador de callejones",
+      "pt-BR": "Batedor dos becos",
+      "zh-Hans": "小巷调查员",
+      "fr": "Éclaireur des ruelles",
+      "de": "Gassenkundschafter",
+      "ko": "골목 조사원",
+      "ru": "Разведчик переулков",
+      "it": "Ricognitore dei vicoli",
+      "zh-Hant": "小巷調查員",
+      "id": "Pengintai Gang",
+      "tr": "Ara Sokak İzcisi",
+      "vi": "Trinh sát hẻm",
+      "th": "นักสำรวจเส้นทางในตรอก"
+    }
+  },
+  {
+    "id": "ta.title.37",
+    "minCs": 38501,
+    "maxCs": 39500,
+    "labels": {
+      "ja": "壁色の調べ役",
+      "en": "Wall Color Scout",
+      "es": "Explorador del color de los muros",
+      "pt-BR": "Batedor das cores das paredes",
+      "zh-Hans": "墙色调查员",
+      "fr": "Éclaireur des couleurs murales",
+      "de": "Erkunder der Wandfarben",
+      "ko": "벽 색깔 조사원",
+      "ru": "Разведчик цветов стен",
+      "it": "Ricognitore dei colori delle pareti",
+      "zh-Hant": "牆色調查員",
+      "id": "Pengintai Warna Dinding",
+      "tr": "Duvar Rengi İzcisi",
+      "vi": "Trinh sát màu tường",
+      "th": "นักสำรวจสีผนัง"
+    }
+  },
+  {
+    "id": "ta.title.38",
+    "minCs": 39501,
+    "maxCs": 40500,
+    "labels": {
+      "ja": "窓明かりの観察役",
+      "en": "Window Light Observer",
+      "es": "Observador de ventanas iluminadas",
+      "pt-BR": "Observador de janelas iluminadas",
+      "zh-Hans": "窗灯观察员",
+      "fr": "Observateur des fenêtres éclairées",
+      "de": "Beobachter der Fensterlichter",
+      "ko": "창문 불빛 관찰자",
+      "ru": "Наблюдатель за светом в окнах",
+      "it": "Osservatore delle finestre illuminate",
+      "zh-Hant": "窗燈觀察員",
+      "id": "Pengamat Cahaya Jendela",
+      "tr": "Pencere Işığı Gözlemcisi",
+      "vi": "Người quan sát ánh đèn cửa sổ",
+      "th": "ผู้สังเกตแสงจากหน้าต่าง"
+    }
+  },
+  {
+    "id": "ta.title.39",
+    "minCs": 40501,
+    "maxCs": 41500,
+    "labels": {
+      "ja": "街灯の観察役",
+      "en": "Street Lamp Observer",
+      "es": "Observador de farolas",
+      "pt-BR": "Observador dos postes de luz",
+      "zh-Hans": "路灯观察员",
+      "fr": "Observateur des lampadaires",
+      "de": "Beobachter der Straßenlaternen",
+      "ko": "가로등 관찰자",
+      "ru": "Наблюдатель за фонарями",
+      "it": "Osservatore dei lampioni",
+      "zh-Hant": "路燈觀察員",
+      "id": "Pengamat Lampu Jalan",
+      "tr": "Sokak Lambası Gözlemcisi",
+      "vi": "Người quan sát đèn đường",
+      "th": "ผู้สังเกตไฟถนน"
+    }
+  },
+  {
+    "id": "ta.title.40",
+    "minCs": 41501,
+    "maxCs": 42500,
+    "labels": {
+      "ja": "月影の観察役",
+      "en": "Moonshadow Observer",
+      "es": "Observador de sombras lunares",
+      "pt-BR": "Observador das sombras da lua",
+      "zh-Hans": "月影观察员",
+      "fr": "Observateur des ombres lunaires",
+      "de": "Beobachter der Mondschatten",
+      "ko": "달그림자 관찰자",
+      "ru": "Наблюдатель за лунными тенями",
+      "it": "Osservatore delle ombre lunari",
+      "zh-Hant": "月影觀察員",
+      "id": "Pengamat Bayang Bulan",
+      "tr": "Ay Gölgesi Gözlemcisi",
+      "vi": "Người quan sát bóng trăng",
+      "th": "ผู้สังเกตเงาจันทร์"
+    }
+  },
+  {
+    "id": "ta.title.41",
+    "minCs": 42501,
+    "maxCs": 43500,
+    "labels": {
+      "ja": "壁色の見習い",
+      "en": "Wall Color Apprentice",
+      "es": "Aprendiz del color de los muros",
+      "pt-BR": "Aprendiz das cores das paredes",
+      "zh-Hans": "墙色学徒",
+      "fr": "Apprenti des couleurs murales",
+      "de": "Wandfarbenlehrling",
+      "ko": "벽 색깔 견습생",
+      "ru": "Подмастерье по цветам стен",
+      "it": "Apprendista dei colori delle pareti",
+      "zh-Hant": "牆色學徒",
+      "id": "Murid Warna Dinding",
+      "tr": "Duvar Rengi Çırağı",
+      "vi": "Học việc màu tường",
+      "th": "เด็กฝึกสีผนัง"
+    }
+  },
+  {
+    "id": "ta.title.42",
+    "minCs": 43501,
+    "maxCs": 44500,
+    "labels": {
+      "ja": "看板色の見習い",
+      "en": "Sign Color Apprentice",
+      "es": "Aprendiz del color de los letreros",
+      "pt-BR": "Aprendiz das cores das placas",
+      "zh-Hans": "招牌配色学徒",
+      "fr": "Apprenti des couleurs d’enseignes",
+      "de": "Lehrling der Schildfarben",
+      "ko": "간판 색깔 견습생",
+      "ru": "Подмастерье по цветам вывесок",
+      "it": "Apprendista dei colori delle insegne",
+      "zh-Hant": "招牌配色學徒",
+      "id": "Murid Warna Papan Nama",
+      "tr": "Tabela Rengi Çırağı",
+      "vi": "Học việc màu biển hiệu",
+      "th": "เด็กฝึกสีป้าย"
+    }
+  },
+  {
+    "id": "ta.title.43",
+    "minCs": 44501,
+    "maxCs": 45500,
+    "labels": {
+      "ja": "屋根歩きの見習い",
+      "en": "Rooftop Walking Apprentice",
+      "es": "Aprendiz de caminante de tejados",
+      "pt-BR": "Aprendiz de andar pelos telhados",
+      "zh-Hans": "屋顶行走学徒",
+      "fr": "Apprenti marcheur sur les toits",
+      "de": "Dachläufer in Ausbildung",
+      "ko": "지붕 걷기 견습생",
+      "ru": "Ученик крышного ходока",
+      "it": "Apprendista camminatore sui tetti",
+      "zh-Hant": "屋頂行走學徒",
+      "id": "Murid Pejalan Atap",
+      "tr": "Çatı Yürüyüşü Çırağı",
+      "vi": "Học việc đi trên mái",
+      "th": "เด็กฝึกเดินบนหลังคา"
+    }
+  },
+  {
+    "id": "ta.title.44",
+    "minCs": 45501,
+    "maxCs": 46500,
+    "labels": {
+      "ja": "路地歩きの見習い",
+      "en": "Alley Walking Apprentice",
+      "es": "Aprendiz de caminante de callejones",
+      "pt-BR": "Aprendiz de andar pelos becos",
+      "zh-Hans": "小巷行走学徒",
+      "fr": "Apprenti marcheur dans les ruelles",
+      "de": "Gassenläufer in Ausbildung",
+      "ko": "골목 걷기 견습생",
+      "ru": "Ученик переулочного ходока",
+      "it": "Apprendista camminatore nei vicoli",
+      "zh-Hant": "小巷行走學徒",
+      "id": "Murid Pejalan Gang",
+      "tr": "Ara Sokak Yürüyüşü Çırağı",
+      "vi": "Học việc đi trong hẻm",
+      "th": "เด็กฝึกเดินในตรอก"
+    }
+  },
+  {
+    "id": "ta.title.45",
+    "minCs": 46501,
+    "maxCs": 47500,
+    "labels": {
+      "ja": "擬態の練習生",
+      "en": "Disguise Trainee",
+      "es": "Estudiante de camuflaje",
+      "pt-BR": "Estudante de camuflagem",
+      "zh-Hans": "拟态练习生",
+      "fr": "Élève du camouflage",
+      "de": "Tarnschüler",
+      "ko": "의태 연습생",
+      "ru": "Ученик маскировки",
+      "it": "Allievo del mimetismo",
+      "zh-Hant": "擬態練習生",
+      "id": "Pelajar Kamuflase",
+      "tr": "Kamuflaj Öğrencisi",
+      "vi": "Học viên ngụy trang",
+      "th": "นักเรียนพรางตัว"
+    }
+  },
+  {
+    "id": "ta.title.46",
+    "minCs": 47501,
+    "maxCs": 48500,
+    "labels": {
+      "ja": "明暗の練習生",
+      "en": "Light and Shade Trainee",
+      "es": "Estudiante de luces y sombras",
+      "pt-BR": "Estudante de luz e sombra",
+      "zh-Hans": "明暗练习生",
+      "fr": "Élève du clair-obscur",
+      "de": "Schüler für Licht und Schatten",
+      "ko": "명암 연습생",
+      "ru": "Ученик света и тени",
+      "it": "Allievo del chiaroscuro",
+      "zh-Hant": "明暗練習生",
+      "id": "Pelajar Terang dan Bayang",
+      "tr": "Işık ve Gölge Öğrencisi",
+      "vi": "Học viên sáng tối",
+      "th": "นักเรียนแสงและเงา"
+    }
+  },
+  {
+    "id": "ta.title.47",
+    "minCs": 48501,
+    "maxCs": 49500,
+    "labels": {
+      "ja": "変色の練習生",
+      "en": "Color Change Trainee",
+      "es": "Estudiante de cambio de color",
+      "pt-BR": "Estudante de mudança de cor",
+      "zh-Hans": "变色练习生",
+      "fr": "Élève du changement de couleur",
+      "de": "Farbwechselschüler",
+      "ko": "변색 연습생",
+      "ru": "Ученик смены цвета",
+      "it": "Allievo del cambio di colore",
+      "zh-Hant": "變色練習生",
+      "id": "Pelajar Perubahan Warna",
+      "tr": "Renk Değiştirme Öğrencisi",
+      "vi": "Học viên đổi màu",
+      "th": "นักเรียนเปลี่ยนสี"
+    }
+  },
+  {
+    "id": "ta.title.48",
+    "minCs": 49501,
+    "maxCs": 50500,
+    "labels": {
+      "ja": "色探しの練習生",
+      "en": "Color Hunting Trainee",
+      "es": "Estudiante de búsqueda de colores",
+      "pt-BR": "Estudante de busca por cores",
+      "zh-Hans": "寻色练习生",
+      "fr": "Élève de la chasse aux couleurs",
+      "de": "Farbsucher in Ausbildung",
+      "ko": "색 찾기 연습생",
+      "ru": "Ученик поиска цветов",
+      "it": "Allievo della ricerca dei colori",
+      "zh-Hant": "尋色練習生",
+      "id": "Pelajar Pencari Warna",
+      "tr": "Renk Arama Öğrencisi",
+      "vi": "Học viên tìm màu",
+      "th": "นักเรียนค้นหาสี"
+    }
+  },
+  {
+    "id": "ta.title.49",
+    "minCs": 50501,
+    "maxCs": 51500,
+    "labels": {
+      "ja": "屋根の探検家",
+      "en": "Rooftop Explorer",
+      "es": "Aventurero de los tejados",
+      "pt-BR": "Explorador dos telhados",
+      "zh-Hans": "屋顶探险家",
+      "fr": "Explorateur des toits",
+      "de": "Dachentdecker",
+      "ko": "지붕 탐험가",
+      "ru": "Исследователь крыш",
+      "it": "Esploratore dei tetti",
+      "zh-Hant": "屋頂探險家",
+      "id": "Penjelajah Atap",
+      "tr": "Çatı Kâşifi",
+      "vi": "Nhà thám hiểm mái nhà",
+      "th": "นักผจญภัยบนหลังคา"
+    }
+  },
+  {
+    "id": "ta.title.50",
+    "minCs": 51501,
+    "maxCs": 52500,
+    "labels": {
+      "ja": "路地の探検家",
+      "en": "Alley Explorer",
+      "es": "Aventurero de los callejones",
+      "pt-BR": "Explorador dos becos",
+      "zh-Hans": "小巷探险家",
+      "fr": "Explorateur des ruelles",
+      "de": "Gassenentdecker",
+      "ko": "골목 탐험가",
+      "ru": "Исследователь переулков",
+      "it": "Esploratore dei vicoli",
+      "zh-Hant": "小巷探險家",
+      "id": "Penjelajah Gang",
+      "tr": "Ara Sokak Kâşifi",
+      "vi": "Nhà thám hiểm hẻm",
+      "th": "นักผจญภัยในตรอก"
+    }
+  },
+  {
+    "id": "ta.title.51",
+    "minCs": 52501,
+    "maxCs": 53500,
+    "labels": {
+      "ja": "街角の探検家",
+      "en": "Street Corner Explorer",
+      "es": "Aventurero de las esquinas",
+      "pt-BR": "Explorador das esquinas",
+      "zh-Hans": "街角探险家",
+      "fr": "Explorateur des coins de rue",
+      "de": "Entdecker der Straßenecken",
+      "ko": "길모퉁이 탐험가",
+      "ru": "Исследователь городских углов",
+      "it": "Esploratore degli angoli di strada",
+      "zh-Hant": "街角探險家",
+      "id": "Penjelajah Sudut Jalan",
+      "tr": "Sokak Köşesi Kâşifi",
+      "vi": "Nhà thám hiểm góc phố",
+      "th": "นักผจญภัยที่มุมถนน"
+    }
+  },
+  {
+    "id": "ta.title.52",
+    "minCs": 53501,
+    "maxCs": 54500,
+    "labels": {
+      "ja": "石畳の歩き手",
+      "en": "Cobblestone Walker",
+      "es": "Caminante del empedrado",
+      "pt-BR": "Andarilho das ruas de pedra",
+      "zh-Hans": "石板路行者",
+      "fr": "Marcheur des rues pavées",
+      "de": "Pflasterwanderer",
+      "ko": "돌길을 걷는 이",
+      "ru": "Ходок по мостовой",
+      "it": "Camminatore sul selciato",
+      "zh-Hant": "石板路行者",
+      "id": "Pejalan Jalan Batu",
+      "tr": "Taş Sokak Yürüyüşçüsü",
+      "vi": "Người đi đường lát đá",
+      "th": "คนเดินถนนหิน"
+    }
+  },
+  {
+    "id": "ta.title.53",
+    "minCs": 54501,
+    "maxCs": 55500,
+    "labels": {
+      "ja": "屋根下の歩き手",
+      "en": "Eaves Walker",
+      "es": "Caminante bajo los aleros",
+      "pt-BR": "Andarilho sob os beirais",
+      "zh-Hans": "屋檐下行者",
+      "fr": "Marcheur sous les auvents",
+      "de": "Wanderer unter Dachrinnen",
+      "ko": "처마 밑을 걷는 이",
+      "ru": "Ходок под карнизами",
+      "it": "Camminatore sotto le gronde",
+      "zh-Hant": "屋簷下行者",
+      "id": "Pejalan di Bawah Tirisan",
+      "tr": "Saçak Altı Yürüyüşçüsü",
+      "vi": "Người đi dưới mái hiên",
+      "th": "คนเดินใต้ชายคา"
+    }
+  },
+  {
+    "id": "ta.title.54",
+    "minCs": 55501,
+    "maxCs": 56500,
+    "labels": {
+      "ja": "路地の歩き手",
+      "en": "Alley Walker",
+      "es": "Caminante de los callejones",
+      "pt-BR": "Andarilho dos becos",
+      "zh-Hans": "小巷行者",
+      "fr": "Marcheur des ruelles",
+      "de": "Gassenwanderer",
+      "ko": "골목을 걷는 이",
+      "ru": "Ходок по переулкам",
+      "it": "Camminatore dei vicoli",
+      "zh-Hant": "小巷行者",
+      "id": "Pejalan Gang",
+      "tr": "Ara Sokak Yürüyüşçüsü",
+      "vi": "Người đi trong hẻm",
+      "th": "คนเดินในตรอก"
+    }
+  },
+  {
+    "id": "ta.title.55",
+    "minCs": 56501,
+    "maxCs": 57500,
+    "labels": {
+      "ja": "月夜の散歩者",
+      "en": "Moonlight Stroller",
+      "es": "Paseante a la luz de la luna",
+      "pt-BR": "Passeante ao luar",
+      "zh-Hans": "月夜漫步者",
+      "fr": "Promeneur au clair de lune",
+      "de": "Spaziergänger im Mondlicht",
+      "ko": "달밤의 산책자",
+      "ru": "Гуляющий под луной",
+      "it": "Passeggiatore al chiaro di luna",
+      "zh-Hant": "月夜漫步者",
+      "id": "Pengelana di Bawah Bulan",
+      "tr": "Ay Işığı Gezgini",
+      "vi": "Người dạo dưới trăng",
+      "th": "นักเดินเล่นใต้แสงจันทร์"
+    }
+  },
+  {
+    "id": "ta.title.56",
+    "minCs": 57501,
+    "maxCs": 58500,
+    "labels": {
+      "ja": "街灯の散歩者",
+      "en": "Lamplight Stroller",
+      "es": "Paseante bajo las farolas",
+      "pt-BR": "Passeante sob os postes de luz",
+      "zh-Hans": "路灯下漫步者",
+      "fr": "Promeneur sous les lampadaires",
+      "de": "Spaziergänger im Laternenlicht",
+      "ko": "가로등 아래 산책자",
+      "ru": "Гуляющий под фонарями",
+      "it": "Passeggiatore sotto i lampioni",
+      "zh-Hant": "路燈下漫步者",
+      "id": "Pengelana di Bawah Lampu Jalan",
+      "tr": "Sokak Lambaları Gezgini",
+      "vi": "Người dạo dưới đèn đường",
+      "th": "นักเดินเล่นใต้ไฟถนน"
+    }
+  },
+  {
+    "id": "ta.title.57",
+    "minCs": 58501,
+    "maxCs": 59500,
+    "labels": {
+      "ja": "街角の散歩者",
+      "en": "Street Corner Stroller",
+      "es": "Paseante de las esquinas",
+      "pt-BR": "Passeante das esquinas",
+      "zh-Hans": "街角漫步者",
+      "fr": "Promeneur des coins de rue",
+      "de": "Spaziergänger an Straßenecken",
+      "ko": "길모퉁이 산책자",
+      "ru": "Гуляющий по городским углам",
+      "it": "Passeggiatore degli angoli di strada",
+      "zh-Hant": "街角漫步者",
+      "id": "Pengelana Sudut Jalan",
+      "tr": "Sokak Köşesi Gezgini",
+      "vi": "Người dạo góc phố",
+      "th": "นักเดินเล่นตามมุมถนน"
+    }
+  },
+  {
+    "id": "ta.title.58",
+    "minCs": 59501,
+    "maxCs": 60000,
+    "labels": {
+      "ja": "街めぐりカメレオン",
+      "en": "City Roaming Chameleon",
+      "es": "Camaleón callejero",
+      "pt-BR": "Camaleão que passeia pela cidade",
+      "zh-Hans": "城市漫游变色龙",
+      "fr": "Caméléon qui arpente la ville",
+      "de": "Stadtwanderndes Chamäleon",
+      "ko": "도시를 누비는 카멜레온",
+      "ru": "Хамелеон на прогулке по городу",
+      "it": "Camaleonte a spasso per la città",
+      "zh-Hant": "城市漫遊變色龍",
+      "id": "Bunglon Penjelajah Kota",
+      "tr": "Şehri Gezen Bukalemun",
+      "vi": "Tắc kè dạo quanh thành phố",
+      "th": "กิ้งก่าเดินเที่ยวเมือง"
+    }
+  }
+].map(row => Object.freeze({ ...row, labels: Object.freeze(row.labels) })));
+export const timeAttackTitleData = Object.freeze({ sourceCommit, contentSha256, titles });

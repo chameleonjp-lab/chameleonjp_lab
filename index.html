@@ -15,7 +15,7 @@
 
   <link rel="stylesheet" href="./i18n/language.css?v=20261120-15lang" />
   <script src="./i18n/common.js?v=20261120-15lang"></script>
-  <script src="./i18n/ranking.js?v=20261120-15lang"></script>
+  <script src="./i18n/ranking.js?v=20261121-ta-v1"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
   <script src="./i18n/games-3.js?v=20261120-15lang"></script>
@@ -1881,7 +1881,7 @@
       if (!normalizedSlug) return { totalPlayCount: 0, playerCount: 0 };
       if (normalizedSlug === "chameleol") {
         try {
-          const { reader } = await import("./chameleol-ranking.js?v=20261120-best100-hofmotion");
+          const { reader } = await import("./chameleol-ranking.js?v=20261121-ta-v1");
           return await reader.stats();
         } catch { return null; }
       }
@@ -2457,8 +2457,8 @@
 
     function statsHtml(game) {
       const grouped = isGroupedGame(game);
-      const playLabel = game.slug === "chameleol" ? "延べプレイ回数" : grouped ? "合計プレイ回数（合算）" : "合計プレイ回数";
-      const playerLabel = game.slug === "chameleol" ? "初クリア人数（登録名単位）" : game.slug === "faitofuraito"
+      const playLabel = game.slug === "chameleol" ? "通常モードのプレイ回数" : grouped ? "合計プレイ回数（合算）" : "合計プレイ回数";
+      const playerLabel = game.slug === "chameleol" ? "通常モードの初クリア人数（登録名単位）" : game.slug === "faitofuraito"
         ? "登録名（モード別合計）"
         : grouped ? "参加人数（合算）" : "参加人数";
       return `
@@ -2605,7 +2605,7 @@
 
       const stats = await fetchGameStats(game);
       if (game.slug === "chameleol" && !stats) {
-        const { showRetry } = await import("./chameleol-ranking.js?v=20261120-best100-hofmotion");
+        const { showRetry } = await import("./chameleol-ranking.js?v=20261121-ta-v1");
         showRetry(playsEl, () => loadStats(game));
         playersEl.textContent = "取得できませんでした";
         return null;
@@ -2663,7 +2663,7 @@
       if (!rankingEl) return false;
 
       if (game.slug === "chameleol") {
-        const { reader, renderRanking, showRetry } = await import("./chameleol-ranking.js?v=20261120-best100-hofmotion");
+        const { reader, renderRanking, showRetry } = await import("./chameleol-ranking.js?v=20261121-ta-v1");
         rankingEl.textContent = "読み込み中";
         try {
           const table = await reader.ranking(3);

@@ -102,55 +102,10 @@
       }
     },
     "play_count": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "count_at",
-        "rpc",
-        "idempotency"
-      ],
-      "properties": {
-        "count_at": {
-          "const": "start"
-        },
-        "rpc": {
-          "type": "string",
-          "minLength": 1
-        },
-        "idempotency": {
-          "const": true
-        },
-        "unregistered_rpc": {
-          "const": "start_faitofuraito_guest_play_v1"
-        }
-      }
+      "$ref": "#/$defs/play_count"
     },
     "submission": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "rpc",
-        "automatic",
-        "idempotency",
-        "timeout_ms"
-      ],
-      "properties": {
-        "rpc": {
-          "type": "string",
-          "minLength": 1
-        },
-        "automatic": {
-          "const": true
-        },
-        "idempotency": {
-          "const": true
-        },
-        "timeout_ms": {
-          "type": "integer",
-          "minimum": 1000,
-          "maximum": 30000
-        }
-      }
+      "$ref": "#/$defs/submission"
     },
     "ranking_entries": {
       "type": "array",
@@ -244,70 +199,40 @@
               "minLength": 1
             }
           },
-          "client_version": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 40
-          },
           "play_count": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "count_at",
-              "rpc",
-              "idempotency"
-            ],
-            "properties": {
-              "count_at": {
-                "const": "start"
-              },
-              "rpc": {
-                "type": "string",
-                "minLength": 1
-              },
-              "idempotency": {
-                "const": true
-              },
-              "unregistered_rpc": {
-                "const": "start_faitofuraito_guest_play_v1"
-              }
-            }
+            "$ref": "#/$defs/play_count"
           },
           "submission": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "rpc",
-              "automatic",
-              "idempotency",
-              "timeout_ms"
-            ],
-            "properties": {
-              "rpc": {
-                "type": "string",
-                "minLength": 1
-              },
-              "automatic": {
-                "const": true
-              },
-              "idempotency": {
-                "const": true
-              },
-              "timeout_ms": {
-                "type": "integer",
-                "minimum": 1000,
-                "maximum": 30000
-              }
-            }
+            "$ref": "#/$defs/submission"
           },
           "ranking_rpc": {
-            "type": "string",
-            "pattern": "^kamereoru/time-attack-ranking$"
+            "$ref": "#/$defs/endpoint"
           },
           "stats_rpc": {
-            "type": "string",
-            "pattern": "^kamereoru/time-attack-stats$"
+            "$ref": "#/$defs/endpoint"
           }
+        },
+        "dependentRequired": {
+          "play_count": [
+            "submission",
+            "ranking_rpc",
+            "stats_rpc"
+          ],
+          "submission": [
+            "play_count",
+            "ranking_rpc",
+            "stats_rpc"
+          ],
+          "ranking_rpc": [
+            "play_count",
+            "submission",
+            "stats_rpc"
+          ],
+          "stats_rpc": [
+            "play_count",
+            "submission",
+            "ranking_rpc"
+          ]
         },
         "allOf": [
           {
@@ -323,7 +248,6 @@
             },
             "then": {
               "required": [
-                "client_version",
                 "play_count",
                 "submission",
                 "ranking_rpc",
@@ -332,6 +256,37 @@
               "properties": {
                 "game_slug": {
                   "const": "chameleol"
+                },
+                "ranking_rpc": {
+                  "const": "kamereoru/time-attack-ranking"
+                },
+                "stats_rpc": {
+                  "const": "kamereoru/time-attack-stats"
+                },
+                "play_count": {
+                  "properties": {
+                    "rpc": {
+                      "const": "kamereoru/time-attack-launch"
+                    }
+                  },
+                  "not": {
+                    "required": [
+                      "unregistered_rpc"
+                    ]
+                  }
+                },
+                "submission": {
+                  "properties": {
+                    "rpc": {
+                      "const": "kamereoru/time-attack-complete"
+                    },
+                    "timeout_ms": {
+                      "const": 8000
+                    }
+                  }
+                },
+                "top_ranking_type": {
+                  "const": "best"
                 },
                 "score_order": {
                   "const": "asc"
@@ -348,19 +303,13 @@
                 "score_min": {
                   "const": 1500
                 },
-                "play_count": {
-                  "properties": {
-                    "rpc": {
-                      "const": "kamereoru/time-attack-launch"
-                    }
-                  }
+                "score_max": {
+                  "const": 900719925468300
                 },
-                "submission": {
-                  "properties": {
-                    "rpc": {
-                      "const": "kamereoru/time-attack-complete"
-                    }
-                  }
+                "ranked_results": {
+                  "const": [
+                    "cleared"
+                  ]
                 }
               }
             }
@@ -482,6 +431,131 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "not": {
+          "properties": {
+            "submission_mode": {
+              "const": "verified"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ranking_entries": {
+            "items": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "play_count"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "submission"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "ranking_rpc"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "stats_rpc"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "ranking_entries": {
+            "contains": {
+              "properties": {
+                "mode_id": {
+                  "const": "chameleol_time_attack"
+                }
+              },
+              "required": [
+                "mode_id"
+              ]
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "game_id": {
+            "const": "chameleol"
+          }
+        }
+      }
     }
-  ]
+  ],
+  "$defs": {
+    "play_count": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "count_at",
+        "rpc",
+        "idempotency"
+      ],
+      "properties": {
+        "count_at": {
+          "const": "start"
+        },
+        "rpc": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotency": {
+          "const": true
+        },
+        "unregistered_rpc": {
+          "const": "start_faitofuraito_guest_play_v1"
+        }
+      }
+    },
+    "submission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rpc",
+        "automatic",
+        "idempotency",
+        "timeout_ms"
+      ],
+      "properties": {
+        "rpc": {
+          "type": "string",
+          "minLength": 1
+        },
+        "automatic": {
+          "const": true
+        },
+        "idempotency": {
+          "const": true
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 30000
+        }
+      }
+    },
+    "endpoint": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+/[a-z0-9_-]+$"
+    }
+  }
 }

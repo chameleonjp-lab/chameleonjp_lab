@@ -2,6 +2,27 @@
 const releaseUrl = 'https://chameleonjp-lab.github.io/chameleol/release.json';
 const integer = (value, min, max = Number.MAX_SAFE_INTEGER) =>
   Number.isSafeInteger(value) && value >= min && value <= max;
+const timeAttackMode = 'chameleol_time_attack';
+const timeAttackFamilies = { red: '赤系', green: '緑系', blue: '青系' };
+const detailPageSize = 100;
+let titleCatalog;
+let titleLoadAttempt = 0;
+
+function timeAttackTitles() {
+  if (!titleCatalog) {
+    const url = new URL('./i18n/chameleol-time-attack.js?v=20261121-ta-v1', import.meta.url);
+    // A failed dynamic import is cached by the browser for that URL.
+    if (titleLoadAttempt) url.searchParams.set('retry', String(titleLoadAttempt));
+    titleLoadAttempt++;
+    titleCatalog = import(url.href)
+      .then(({titles}) => new Map(titles.map(title => [title.id, title])))
+      .catch(error => {
+        titleCatalog = undefined;
+        throw error;
+      });
+  }
+  return titleCatalog;
+}
 
 export function createReader(fetchImpl = (...args) => fetch(...args)) {
   let resolving;
@@ -13,19 +34,23 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     return response.json();
   }
 
-  async function resolveBase() {
+  async function resolveRelease() {
     const release = await json(releaseUrl);
     if (release.env !== 'production' || !release.rankingApi) throw new Error('正式な集計元を確認できません');
     const url = new URL(release.rankingApi);
     if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) {
       throw new Error('集計元のURLが無効です');
     }
-    return url.href.replace(/\/$/, '');
+    return { base: url.href.replace(/\/$/, ''), timeAttackAvailable: release.timeAttack?.available === true };
   }
 
-  function currentBase() {
+  function currentRelease() {
     // Coalesce simultaneous requests. Each new read checks the current release.
-    return resolving ??= resolveBase().finally(() => { resolving = undefined; });
+    return resolving ??= resolveRelease().finally(() => { resolving = undefined; });
+  }
+
+  async function currentBase() {
+    return (await currentRelease()).base;
   }
 
   async function read(base, path) {
@@ -88,7 +113,6 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     return {version, rows: [...rows.values()]};
   }
   // The game preview stays at top 30; the experiment lab detail reads 100 at a time.
-  const detailPageSize = 100;
   // Retain the same API source and ranking version while reading the next page.
   async function rankingPage(previous = null) {
     if (previous && (!integer(previous.version, 0) ||
@@ -138,51 +162,78 @@ export function createReader(fetchImpl = (...args) => fetch(...args)) {
     return {version, rows, nextAfter, restarted};
   }
 
+  async function timeAttackAvailable() {
+    return (await currentRelease()).timeAttackAvailable;
+  }
 
-  // The time-attack competition is separate from the 50-building scores and Hall of Fame.
-  async function timeAttackBase(){
-    const release=await json(releaseUrl);
-    if(release.env!=='production'||!release.rankingApi||release.timeAttack?.available!==true){
-      throw new Error('タイムアタックのランキングは準備中です');
+  async function timeAttackBase() {
+    const {base, timeAttackAvailable} = await currentRelease();
+    if (!timeAttackAvailable) throw new Error('タイムアタックの集計は準備中です');
+    return base;
+  }
+
+  async function timeAttackStats() {
+    const response = await json(await timeAttackBase() + '/time-attack-stats');
+    if (response?.modeId !== timeAttackMode || (response.ok !== undefined && response.ok !== true) ||
+        !integer(response.totalPlays, 0) || !integer(response.participantCount, 0, response.totalPlays)) {
+      throw new Error('タイムアタックの集計値が無効です');
     }
-    const base=new URL(release.rankingApi);
-    if(base.protocol!=='https:'||base.username||base.password||base.search||base.hash)
-      throw Error('タイムアタックの集計元が無効です');
-    return base.href.replace(/\/$/,'');
-  }
-  async function timeAttackStats(){
-    const base=await timeAttackBase(),res=await read(base,'time-attack-stats');
-    if(res.modeId!=='chameleol_time_attack'||!integer(res.totalPlays,0)||
-      !integer(res.participantCount,0))throw Error('タイムアタック集計の形式が無効です');
-    return {totalPlays:res.totalPlays,participantCount:res.participantCount};
-  }
-  async function timeAttackPage(previous=null){
-    if(previous && (!integer(previous.version,0)||!integer(previous.nextAfter,1)||
-      typeof previous.base!=='string'))throw Error('タイムアタックの続き位置が無効です');
-    const liveBase=await timeAttackBase();
-    const changed=Boolean(previous&&previous.base!==liveBase);
-    const base=liveBase;
-    const prev=changed?null:previous;
-    const params=new URLSearchParams({limit:'100'});
-    if(prev){params.set('version',String(prev.version));params.set('after',String(prev.nextAfter));}
-    const page=await read(base,'time-attack-ranking?'+params);
-    if(page.modeId!=='chameleol_time_attack'||!integer(page.version,0)||
-      !Array.isArray(page.rows)||page.rows.length>100||typeof page.restarted!=='boolean'||
-      !integer(page.nameCount,0))throw Error('タイムアタック順位表の形式が無効です');
-    const restarted=changed||Boolean(prev&&page.restarted);
-    const start=!restarted&&prev?prev.nextAfter:0;
-    if(page.rows.some((row,i)=>!integer(row?.position,1)||row.position!==start+i+1||
-      !integer(row.rank,1,row.position)||typeof row.name!=='string'||
-      !integer(row.elapsedCs,1500,900719925468300)||
-      !['red','green','blue'].includes(row.family)||
-      (row.titleId!=null&&!/^ta\.title\.(0[1-9]|[1-4][0-9]|5[0-8])$/.test(row.titleId)))||
-      (page.nextAfter!==null&&(!page.rows.length||page.nextAfter!==page.rows.at(-1).position)))
-      throw Error('タイムアタックの順位または記録が無効です');
-    return {version:page.version,rows:page.rows,nextAfter:page.nextAfter,
-      restarted,base,nameCount:page.nameCount};
+    const {totalPlays, participantCount} = response;
+    return {modeId: timeAttackMode, totalPlays, participantCount};
   }
 
-  return {stats, rankingParticipantCount, ranking, rankingPage, hallOfFame, timeAttackStats, timeAttackPage};
+  async function timeAttackPage(previous = null) {
+    if (previous && (!integer(previous.version, 0) || !integer(previous.nextAfter, 1) ||
+        !integer(previous.nameCount, previous.nextAfter + 1) || typeof previous.base !== 'string' ||
+        !Array.isArray(previous.rows) || previous.rows.at(-1)?.position !== previous.nextAfter)) {
+      throw new Error('タイムアタックの続き位置が無効です');
+    }
+    const base = await timeAttackBase();
+    const cursor = previous?.base === base ? previous : null;
+    const query = new URLSearchParams({limit: String(detailPageSize)});
+    if (cursor) {
+      query.set('version', String(cursor.version));
+      query.set('after', String(cursor.nextAfter));
+    }
+    const [page, titles] = await Promise.all([
+      read(base, 'time-attack-ranking?' + query),
+      timeAttackTitles(),
+    ]);
+    const {modeId, version, rows, nameCount, nextAfter, restarted} = page;
+    const continuation = cursor && !restarted;
+    const from = continuation ? cursor.nextAfter : 0;
+    if (modeId !== timeAttackMode || !integer(version, 0) || !integer(nameCount, from) ||
+        typeof restarted !== 'boolean' || restarted !== Boolean(cursor && cursor.version !== version) ||
+        (continuation && nameCount !== cursor.nameCount) || !Array.isArray(rows) ||
+        rows.length !== Math.min(detailPageSize, nameCount - from)) {
+      throw new Error('タイムアタックの順位表の形式が無効です');
+    }
+    if (nextAfter !== (from + rows.length < nameCount ? from + rows.length : null)) {
+      throw new Error('タイムアタックの続き位置が無効です');
+    }
+    for (const [index, row] of rows.entries()) {
+      if (row?.position !== from + index + 1 || !integer(row.rank, 1, row.position) ||
+          typeof row.name !== 'string' || !row.name.trim() || !integer(row.elapsedCs, 1500, 900719925468300) ||
+          !Object.hasOwn(timeAttackFamilies, row.family) ||
+          typeof row.officialAt !== 'string' || !Number.isFinite(Date.parse(row.officialAt))) {
+        throw new Error('タイムアタックの順位表の値が無効です');
+      }
+      const title = titles.get(row.titleId);
+      if (row.elapsedCs > 60000 ? row.titleId !== null :
+        !title || row.elapsedCs < title.minCs || row.elapsedCs > title.maxCs) {
+        throw new Error('タイムアタックの称号が無効です');
+      }
+      const earlier = index === 0 ? (continuation ? cursor.rows.at(-1) : null) : rows[index - 1];
+      if ((earlier && row.elapsedCs < earlier.elapsedCs) ||
+          row.rank !== (earlier?.elapsedCs === row.elapsedCs ? earlier.rank : row.position)) {
+        throw new Error('タイムアタックの順位または並びが無効です');
+      }
+    }
+    return {modeId, version, rows, nameCount, nextAfter, restarted: Boolean(previous && (!cursor || restarted)), base};
+  }
+
+  return {stats, rankingParticipantCount, ranking, rankingPage, hallOfFame,
+    timeAttackAvailable, timeAttackStats, timeAttackPage};
 }
 
 export const reader = createReader();
@@ -218,6 +269,117 @@ export function showRetry(container, retry) {
   button.textContent = '再試行';
   button.addEventListener('click', retry, {once:true});
   container.replaceChildren('取得できませんでした。', button);
+}
+
+function formatTimeAttack(elapsedCs) {
+  const minutes = String(Math.floor(elapsedCs / 6000)).padStart(2, '0');
+  const seconds = String(Math.floor(elapsedCs / 100) % 60).padStart(2, '0');
+  const centiseconds = String(elapsedCs % 100).padStart(2, '0');
+  return `${minutes}:${seconds}.${centiseconds}`;
+}
+
+function timeAttackCell(tag, className, text) {
+  const cell = document.createElement(tag);
+  cell.className = className;
+  cell.textContent = text;
+  return cell;
+}
+
+export function createTimeAttackView({panel, reader}) {
+  const stats = panel.querySelector('.time-attack-stats');
+  const total = panel.querySelector('#timeAttackPlays');
+  const players = panel.querySelector('#timeAttackPlayers');
+  const statsError = panel.querySelector('#timeAttackStatsError');
+  const container = panel.querySelector('#timeAttackRanking');
+  const more = panel.querySelector('#timeAttackMore');
+  const status = panel.querySelector('#timeAttackPageStatus');
+  const controller = new AbortController();
+  const {signal} = controller;
+  let firstLoad = true;
+  let currentPage = null;
+  let catalog;
+
+  function refreshTitles() {
+    const locale = globalThis.LabI18n?.getLanguage() ?? 'ja';
+    for (const title of container.querySelectorAll('[data-time-attack-title]')) {
+      const data = catalog.get(title.dataset.timeAttackTitle);
+      title.textContent = data.labels[locale] ?? data.labels.ja;
+    }
+  }
+
+  async function loadStats() {
+    stats.hidden = false;
+    statsError.replaceChildren();
+    total.textContent = players.textContent = '読み込み中';
+    try {
+      const {totalPlays, participantCount} = await reader.timeAttackStats();
+      if (signal.aborted) return;
+      total.textContent = totalPlays.toLocaleString('ja-JP') + '回';
+      players.textContent = participantCount.toLocaleString('ja-JP') + '人';
+    } catch {
+      if (signal.aborted) return;
+      stats.hidden = true;
+      showRetry(statsError, loadStats);
+    }
+  }
+
+  async function loadRows() {
+    if (more.disabled) return;
+    more.disabled = true;
+    if (!currentPage) container.textContent = '読み込み中';
+    else status.textContent = '読み込み中';
+    try {
+      const [page, titles] = await Promise.all([reader.timeAttackPage(currentPage), timeAttackTitles()]);
+      if (signal.aborted) return;
+      catalog = titles;
+      if (!currentPage || page.restarted) container.replaceChildren();
+      if (currentPage && page.base !== currentPage.base) void loadStats();
+      currentPage = page;
+      container.dataset.version = String(page.version);
+      if (page.nameCount === 0) container.textContent = 'まだ記録がありません';
+      const fragment = document.createDocumentFragment();
+      for (const {rank, name, elapsedCs, family, titleId} of page.rows) {
+        const line = timeAttackCell('div', 'time-attack-row', '');
+        const title = timeAttackCell('span', 'time-attack-title', '30棟完走');
+        if (titleId) {
+          title.dataset.timeAttackTitle = titleId;
+          title.dataset.labNoTranslate = '';
+        }
+        line.append(
+          timeAttackCell('span', 'rank-no', rank.toLocaleString('ja-JP') + '位'),
+          timeAttackCell('bdi', 'rank-name', name),
+          timeAttackCell('span', 'rank-score time-attack-time', formatTimeAttack(elapsedCs)),
+          title,
+          timeAttackCell('span', 'time-attack-family', timeAttackFamilies[family]),
+        );
+        fragment.append(line);
+      }
+      container.append(fragment);
+      refreshTitles();
+      status.textContent = page.restarted ? '最新の順位表を表示しました。' : '';
+      more.hidden = page.nextAfter === null;
+      more.textContent = '次の100名を表示';
+    } catch {
+      if (signal.aborted) return;
+      status.textContent = '';
+      if (currentPage) showRetry(status, loadRows);
+      else showRetry(container, loadRows);
+    } finally {
+      more.disabled = false;
+    }
+  }
+
+  document.addEventListener('lab-language-change', refreshTitles, {signal});
+  more.addEventListener('click', loadRows, {signal});
+  return {
+    onTabChange(selected) {
+      if (!selected || !firstLoad) return;
+      firstLoad = false;
+      void loadStats();
+      void loadRows();
+    },
+    dispose() { controller.abort(); },
+  };
 }
 
 export function renderHallOfFame(container, page, append = false) {
