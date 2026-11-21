@@ -9,7 +9,7 @@
   />
   <link rel="icon" href="IMG_7589.JPG" type="image/jpeg" />
   <link rel="apple-touch-icon" href="IMG_7589.JPG" />
-  <link rel="stylesheet" href="./chameleol-hof.css?v=20261120-best100-hofmotion-goldtab" />
+  <link rel="stylesheet" href="./chameleol-hof.css?v=20261121-single-line-tabs" />
   <title>詳細ランキング｜カメレオンJPの実験場</title>
 
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -366,17 +366,17 @@
     .theme-chameleol-hof .ranking-switch {
       grid-template-columns: none;
       grid-auto-flow: column;
-      grid-auto-columns: minmax(0, 1fr);
+      grid-auto-columns: minmax(max-content, 1fr);
+      overflow-x: auto;
     }
 
-    .theme-chameleol-hof .ranking-tab {
-      min-width: 0;
-      height: 100%;
+    .theme-chameleol-hof .ranking-switch .ranking-tab {
       padding: 6px 4px;
-      overflow-wrap: anywhere;
+      font-size: clamp(13px, 3.35vw, 16px);
+      line-height: 1.25;
+      text-align: center;
+      white-space: nowrap;
     }
-
-    .theme-chameleol-hof #hallTab span { min-width: 0; }
 
     .time-attack-stats[hidden], #timeAttackTab[hidden] {
       display: none;
@@ -2571,7 +2571,7 @@
             >${escapeHtml(bestLabel)}</button>
             ${chameleol ? `
               <button class="ranking-tab" type="button" id="hallTab" role="tab"
-                aria-selected="false" aria-controls="hallPanel" data-ranking-tab="hall"><svg class="hall-tab-crown" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2.5 7.5 7.5 11 12 4.5 16.5 11 21.5 7.5 19.5 19H4.5Z"/><path d="M4.7 16.5h14.6M9.2 19h5.6" fill="none"/></svg><span>殿堂入り</span></button>
+                aria-selected="false" aria-controls="hallPanel" data-ranking-tab="hall">殿堂入り</button>
               <button class="ranking-tab" type="button" id="timeAttackTab" role="tab" hidden
                 aria-selected="false" aria-controls="timeAttackPanel" data-ranking-tab="timeAttack">タイムアタック</button>
             ` : ''}

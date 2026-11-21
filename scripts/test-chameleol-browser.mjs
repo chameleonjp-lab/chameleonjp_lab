@@ -207,7 +207,7 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('#totalPlayCount').textContent(),'4回');
     assert.equal(await page.locator('#playerCount').textContent(),'1人');
     assert.equal(await page.getByRole('tab').count(),2);
-    assert.equal(await page.locator('#hallTab .hall-tab-crown[aria-hidden="true"]').count(), 1);
+    assert.equal(await page.locator('#hallTab svg').count(), 0);
     assert.equal(await page.locator('#hallTab').evaluate(el => getComputedStyle(el).borderTopWidth), '2px');
     assert.equal(await page.locator('#hallTab').evaluate(el => getComputedStyle(el).borderTopColor), 'rgb(229, 184, 75)');
     await page.getByRole('tab', {name:'殿堂入り'}).click();
@@ -388,16 +388,33 @@ for (const engine of [chromium, webkit]) {
     await page.locator('#labLanguageSelect').selectOption('en');
     assert.equal(await page.locator('#timeAttackRanking .time-attack-title').first().textContent(), timeAttackTitles[0].labels.en);
     assert.equal(await page.locator('#timeAttackRanking .rank-name').first().textContent(), '<img src=x>');
-    await page.getByRole('tab', {name:'Time Attack'}).waitFor();
-    for (const [width, height] of [[360,750], [402,700], [430,900], [640,900], [874,402]]) {
-      await page.setViewportSize({width,height});
-      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
-        'Time Attack must fit ' + width + '×' + height);
-      const tabs = await page.getByRole('tab').evaluateAll(elements =>
-        elements.map(element => [element.offsetWidth, element.offsetHeight]));
-      assert.ok(tabs.every(([tabWidth, tabHeight]) => Math.abs(tabs[0][0] - tabWidth) <= 1 && tabs[0][1] === tabHeight));
+    for (const [language, label] of [['en', 'Time Attack'], ['ja', 'タイムアタック']]) {
+      await page.locator('#labLanguageSelect').selectOption(language);
+      await page.getByRole('tab', {name:label}).waitFor();
+      for (const [width, height] of [[320,640], [360,750], [402,700], [430,900], [640,900], [874,402]]) {
+        await page.setViewportSize({width,height});
+        const size = language + ' at ' + width + '×' + height;
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
+          'Time Attack must fit ' + size);
+        const tabs = await page.getByRole('tab').evaluateAll(elements => elements.map(element => {
+          const button = element.getBoundingClientRect();
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          const text = range.getBoundingClientRect();
+          return {
+            top: button.top,
+            height: button.height,
+            fontSize: getComputedStyle(element).fontSize,
+            textFits: range.getClientRects().length === 1 &&
+              text.left >= button.left && text.right <= button.right,
+            fullyVisible: button.right <= element.parentElement.getBoundingClientRect().right,
+          };
+        }));
+        assert.ok(tabs.every(tab => tab.textFits && tab.top === tabs[0].top && tab.height === tabs[0].height &&
+          tab.fontSize === tabs[0].fontSize), 'Ranking tabs must fit on one line with matching type and height ' + size);
+        if (language === 'ja') assert.ok(tabs.every(tab => tab.fullyVisible), 'All Japanese tabs must be visible ' + size);
+      }
     }
-    await page.locator('#labLanguageSelect').selectOption('ja');
     failNextAttackPage = true;
     await page.locator('#timeAttackMore').click();
     await page.locator('#timeAttackPageStatus').getByRole('button', {name:'再試行'}).waitFor();
