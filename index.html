@@ -1807,6 +1807,31 @@
       ["chameleol/", "social-card.jpg"],
       ["inubo/", "social-card.jpg"]
     ]);
+    const CODEBERG_THUMBNAIL_BASE = "https://chameleonjp.codeberg.page/";
+    // Keep each canonical Codeberg game link; reuse its verified public share image.
+    const CODEBERG_GAME_THUMBNAILS = new Map([
+      ["anatano_1byou/", "https://chameleonjp-lab.github.io/anatano_1byou/assets/social-preview.png"],
+      ["hito_wo_yurusuna/", "https://chameleonjp-lab.github.io/hito_wo_yurusuna/assets/social-preview.png"],
+      ["songen_wo_kakeyouka/", "https://chameleonjp-lab.github.io/songen_wo_kakeyouka/assets/social-card.png"],
+      ["binkarabin/", "https://chameleonjp-lab.github.io/binkarabin/assets/social-preview.png"],
+      ["uchikaeru/", "https://chameleonjp-lab.github.io/uchikaeru/assets/social-preview.png"],
+      ["bekutoru/", "https://chameleonjp-lab.github.io/bekutoru/assets/social-card.png"],
+      ["koroshine/", "https://chameleonjp-lab.github.io/koroshine/assets/social-preview.png"],
+      ["toremeshi/", "https://chameleonjp-lab.github.io/toremeshi/assets/social-card.png"],
+      ["kanijan/", "https://chameleonjp-lab.github.io/kanijan/assets/social-card.png"],
+      ["emojihiroi/", "https://chameleonjp-lab.github.io/emojihiroi/assets/social-preview.png"]
+    ]);
+
+    function thumbnailPathFor(gameUrl) {
+      if (typeof gameUrl !== "string") return undefined;
+      if (gameUrl.startsWith(GAME_THUMBNAIL_BASE)) {
+        return GAME_THUMBNAILS.get(gameUrl.slice(GAME_THUMBNAIL_BASE.length));
+      }
+      if (gameUrl.startsWith(CODEBERG_THUMBNAIL_BASE)) {
+        return CODEBERG_GAME_THUMBNAILS.get(gameUrl.slice(CODEBERG_THUMBNAIL_BASE.length));
+      }
+      return undefined;
+    }
     const DEFAULT_SORT_MODE = "newest";
     const sortLabels = {
       newest: "最近追加された順",
@@ -2571,9 +2596,7 @@
     }
 
     function loadGameThumbnail(card, game) {
-      if (!game.url?.startsWith(GAME_THUMBNAIL_BASE)) return;
-      const gamePath = game.url.slice(GAME_THUMBNAIL_BASE.length);
-      const thumbnailPath = GAME_THUMBNAILS.get(gamePath);
+      const thumbnailPath = thumbnailPathFor(game.url);
       if (!thumbnailPath) return;
 
       const content = card.querySelector(".accordion-content");
