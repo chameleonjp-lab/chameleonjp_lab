@@ -73,15 +73,21 @@ for (const engine of [chromium, webkit]) {
       const url = new URL(route.request().url());
       assert.equal(route.request().method(), 'GET');
       calls.push(url.href);
+      // Browser engines must see the same CORS policy for the synthetic API,
+      // including failures that are intentionally returned by this fixture.
+      const fulfill = options => route.fulfill(url.href.startsWith(api + '/') ? {
+        ...options,
+        headers: {...options.headers, 'access-control-allow-origin': base},
+      } : options);
       if (url.hostname === 'cdn.jsdelivr.net') {
         const body = '(' + catalogSdk.toString() + ')(' + JSON.stringify(listedGames) + ');';
-        return route.fulfill({contentType: 'application/javascript', body});
+        return fulfill({contentType: 'application/javascript', body});
       }
       if (url.pathname.startsWith('/chameleonjp_lab/i18n/')) {
         const asset = url.pathname.slice('/chameleonjp_lab/i18n/'.length);
         if (asset === 'chameleol-time-attack.js' && failNextAttackTitles) {
           failNextAttackTitles = false;
-          return route.fulfill({status:503});
+          return fulfill({status:503});
         }
         const allowed = new Set([
           'common.js', 'ranking.js', 'games-1.js', 'games-2.js', 'games-3.js',
@@ -89,7 +95,7 @@ for (const engine of [chromium, webkit]) {
           'runtime.js', 'language.css'
         ]);
         if (allowed.has(asset)) {
-          return route.fulfill({
+          return fulfill({
             contentType: asset.endsWith('.css') ? 'text/css' : 'application/javascript',
             body: await readFile(new URL('i18n/' + asset, output))
           });
@@ -99,11 +105,11 @@ for (const engine of [chromium, webkit]) {
         const file = url.pathname.split('/').pop() || 'index.html';
         const types = {'index.html':'text/html','ranking.html':'text/html','chameleol-ranking.js':'text/javascript','chameleol-hof.js':'text/javascript','chameleol-hof.css':'text/css','banner':'image/jpeg','IMG_7589.JPG':'image/jpeg'};
         if (Object.hasOwn(types,file)) {
-          return route.fulfill({contentType:types[file],body:await readFile(new URL(file,output))});
+          return fulfill({contentType:types[file],body:await readFile(new URL(file,output))});
         }
       }
       if (url.href === base+'/chameleol/release.json') {
-        return route.fulfill({json:{env:'production',rankingApi:api,
+        return fulfill({json:{env:'production',rankingApi:api,
           timeAttack:{available:timeAttackAvailable,enabled:false,
             rulesVersion:allColors?'kamereoru-time-attack-rules-v3':undefined}}});
       }
@@ -111,41 +117,41 @@ for (const engine of [chromium, webkit]) {
         assert.equal(url.searchParams.get('course'),allColors?'all':null);
         if (failNextAttackStats) {
           failNextAttackStats = false;
-          return route.fulfill({status:503});
+          return fulfill({status:503});
         }
-        return route.fulfill({json:{modeId:timeAttackMode,totalPlays:attackRows.length + 12,
+        return fulfill({json:{modeId:timeAttackMode,totalPlays:attackRows.length + 12,
           participantCount:attackRows.length}});
       }
       if (url.href.startsWith(api + '/time-attack-ranking?')) {
         assert.equal(url.searchParams.get('course'),allColors?'all':null);
         if (failNextAttackPage) {
           failNextAttackPage = false;
-          return route.fulfill({status:503});
+          return fulfill({status:503});
         }
-        return route.fulfill({json:{...timeAttackPageResponse(attackRows, url.searchParams, timeAttackVersion),
+        return fulfill({json:{...timeAttackPageResponse(attackRows, url.searchParams, timeAttackVersion),
           course:allColors?'all':undefined}});
       }
       if (url.href === api+'/stats') {
         if (failNextStats) {
           failNextStats = false;
-          return route.fulfill({status:503});
+          return fulfill({status:503});
         }
-        return route.fulfill({json:{ok:true,totalPlays,clearerCount:rankingRows === acceptanceRows ? 1 : rankingRows.length}});
+        return fulfill({json:{ok:true,totalPlays,clearerCount:rankingRows === acceptanceRows ? 1 : rankingRows.length}});
       }
       if (url.href.startsWith(api+'/ranking?')) {
         if (url.searchParams.get('limit') === '1') {
           if (failNextParticipantCount) {
             failNextParticipantCount = false;
-            return route.fulfill({status:503});
+            return fulfill({status:503});
           }
           // The normal ranking excludes Hall members in the deployed database.
-          return route.fulfill({json:{ok:true,nameCount:rankingRows === acceptanceRows ? 1 : rankingRows.length}});
+          return fulfill({json:{ok:true,nameCount:rankingRows === acceptanceRows ? 1 : rankingRows.length}});
         }
         const after = Number(url.searchParams.get('after') || 0);
         const limit = Number(url.searchParams.get('limit'));
         if (after) assert.equal(url.searchParams.get('version'),'17');
         const selected = rankingRows.slice(after,after+limit);
-        return route.fulfill({json:{ok:true,version:17,restarted:false,rows:selected,
+        return fulfill({json:{ok:true,version:17,restarted:false,rows:selected,
           nextAfter:after+limit < rankingRows.length ? after+limit : null}});
       }
       if (url.pathname.endsWith('/hall-of-fame')) {
@@ -156,13 +162,13 @@ for (const engine of [chromium, webkit]) {
           const offset = Number(after || 0);
           const selected = hallRows.slice(offset, offset + 50);
           const nextAfter = offset + selected.length < hallRows.length ? offset + selected.length : null;
-          return route.fulfill({json:{ok:true,version,rows:selected,nextAfter,restarted:false}});
+          return fulfill({json:{ok:true,version,rows:selected,nextAfter,restarted:false}});
         }
         const rows = !totalPlays ? [] : after
           ? [{ordinal:2, name:'後からクリア', average:9876}] : [{ordinal:1, name:'最初の<クリア>', average:9543}];
-        return route.fulfill({json:{ok:true, version, rows, nextAfter:rows.length && !after ? 1 : null, restarted:false}});
+        return fulfill({json:{ok:true, version, rows, nextAfter:rows.length && !after ? 1 : null, restarted:false}});
       }
-      return route.fulfill({status:503,body:'Offline fixture'});
+      return fulfill({status:503,body:'Offline fixture'});
     });
     await page.goto(base+'/chameleonjp_lab/index.html');
     // The language picker changes only presentation and restores Japanese exactly.
@@ -517,6 +523,8 @@ for (const engine of [chromium, webkit]) {
       await page.getByRole('button', {name: '再試行'}).click({timeout: 5000});
       await page.waitForFunction(() => document.querySelector('#totalPlayCount')?.textContent === '0回');
       await page.locator('#bestRanking').getByText('まだ記録がありません').waitFor();
+      await page.locator('#hallRanking').getByText('まだ殿堂入りした方はいません').waitFor({state: 'attached'});
+      await page.waitForFunction(() => document.querySelector('#rankingParticipantCount')?.textContent === '0人');
     } finally {
       resumeSdk.resolve();
       await page.waitForLoadState('load');
