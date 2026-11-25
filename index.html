@@ -18,7 +18,7 @@
   <script src="./i18n/ranking.js?v=20261121-ta-v1"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261121-inubo"></script>
+  <script src="./i18n/games-3.js?v=20261125-ikagetto-catch"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/runtime.js?v=20261120-15lang"></script>
 
@@ -491,6 +491,15 @@
       color: var(--text-main);
       font-weight: 700;
       overflow-wrap: anywhere;
+    }
+
+    .rank-catch {
+      display: block;
+      margin-top: 3px;
+      color: var(--text-sub);
+      font-size: .8rem;
+      font-weight: 400;
+      line-height: 1.4;
     }
 
     .rank-score {
@@ -1724,6 +1733,29 @@
         "statsSlugs": [
           "inubo"
         ]
+      },
+      {
+        "displayOrder": 64,
+        "slug": "ikagetto",
+        "title": "イカゲット",
+        "url": "https://chameleonjp-lab.github.io/ikagetto/",
+        "description": "夜の海へ出港し、巨大なダイオウイカを釣り上げよう。釣ったイカは観察、解体、アヒージョ作りまで楽しめます。",
+        "shareText": "大きいイカを釣って自慢しよう\n#イカゲット\nhttps://chameleonjp-lab.github.io/ikagetto/",
+        "releaseDate": "2026-11-25",
+        "topRanking": "best",
+        "scoreOrder": "desc",
+        "scoreUnit": "点",
+        "scoreScale": 1,
+        "scoreDecimals": 0,
+        "scoreLabel": "釣りスコア",
+        "firstScoreLabel": "初回スコア",
+        "bestScoreLabel": "釣り",
+        "isActive": true,
+        "rankingSlug": "ikagetto",
+        "detailSlug": "ikagetto",
+        "statsSlugs": [
+          "ikagetto"
+        ]
       }
 ];
 
@@ -1820,7 +1852,8 @@
       ["faitofuraito/", "social-card-eed6ea12da6e1c73.png"],
       ["takkeu/", "og-takkeu-v1.png"],
       ["chameleol/", "social-card.jpg"],
-      ["inubo/", "social-card.jpg"]
+      ["inubo/", "social-card.jpg"],
+      ["ikagetto/", "assets/ikagetto-share-v1.jpg"]
     ]);
     const CODEBERG_THUMBNAIL_BASE = "https://chameleonjp.codeberg.page/";
     // Keep each canonical Codeberg game link; reuse its verified public share image.
@@ -1987,6 +2020,19 @@
       return supabaseClient;
     }
 
+    async function requestIkagettoRanking(name, args) {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
+        method: "POST",
+        headers: { apikey: getSupabasePublishableKey(), "content-type": "application/json" },
+        credentials: "omit",
+        redirect: "error",
+        body: JSON.stringify(args),
+        signal: AbortSignal.timeout(SUPABASE_REST_TIMEOUT_MS)
+      });
+      if (!response.ok) throw new Error(`Ikagetto ranking request failed: HTTP ${response.status}`);
+      return response.json();
+    }
+
     async function fetchSingleGameStats(slug) {
       const normalizedSlug = cleanText(slug);
       if (!normalizedSlug) return { totalPlayCount: 0, playerCount: 0 };
@@ -1997,6 +2043,21 @@
         } catch { return null; }
       }
       if (singleStatsCache.has(normalizedSlug)) return singleStatsCache.get(normalizedSlug);
+      if (normalizedSlug === "ikagetto") {
+        try {
+          const data = await requestIkagettoRanking("ikagetto_stats_v1", {});
+          const row = Array.isArray(data) ? (data.length === 1 ? data[0] : null) : data;
+          if (![row?.total_play_count, row?.player_count].every(value => Number.isSafeInteger(value) && value >= 0)) {
+            return null;
+          }
+          const stats = normalizeStats(row);
+          singleStatsCache.set(normalizedSlug, stats);
+          return stats;
+        } catch (error) {
+          console.error("ikagetto_stats_v1 error:", error);
+          return null;
+        }
+      }
       if (normalizedSlug === "inubo") {
         try {
           const { inuboStats } = await import("./inubo-data.js");
@@ -2072,7 +2133,8 @@
       }
       const playerCount = Number(stats?.playerCount || 0);
 
-      if (game.slug !== "inubo" && totalPlayCount <= 0 && playerCount <= 0) {
+      if (game.slug === "ikagetto" && !stats) return false;
+      if (game.slug !== "inubo" && game.slug !== "ikagetto" && totalPlayCount <= 0 && playerCount <= 0) {
         setStatsComingSoon(game);
         return false;
       }
@@ -2543,7 +2605,10 @@
     }
 
     function buildShareMessage(item) {
-      const shareText = cleanText(item.shareText) || `${item.title || ""}\n${item.description || ""}`.trim();
+      let shareText = cleanText(item.shareText) || `${item.title || ""}\n${item.description || ""}`.trim();
+      if (item.slug === "ikagetto" && window.LabI18n) {
+        shareText = shareText.split("\n").map(line => window.LabI18n.t(line)).join("\n");
+      }
       const url = cleanText(item.url);
       if (url && shareText.includes(url)) {
         return shareText;
@@ -2644,8 +2709,10 @@
 
     function statsHtml(game) {
       const grouped = isGroupedGame(game);
-      const playLabel = game.slug === "chameleol" ? "通常モードのプレイ回数" : grouped ? "合計プレイ回数（合算）" : "合計プレイ回数";
-      const playerLabel = game.slug === "chameleol" ? "通常モードの初クリア人数（登録名単位）" : game.slug === "faitofuraito"
+      const playLabel = game.slug === "ikagetto" ? "釣りのプレイ回数"
+        : game.slug === "chameleol" ? "通常モードのプレイ回数" : grouped ? "合計プレイ回数（合算）" : "合計プレイ回数";
+      const playerLabel = game.slug === "ikagetto" ? "漁師登録"
+        : game.slug === "chameleol" ? "通常モードの初クリア人数（登録名単位）" : game.slug === "faitofuraito"
         ? "登録名（モード別合計）"
         : grouped ? "参加人数（合算）" : "参加人数";
       return `
@@ -2798,7 +2865,7 @@
         playersEl.textContent = "取得できませんでした";
         return null;
       }
-      if (game.slug === "inubo" && !stats) {
+      if ((game.slug === "inubo" || game.slug === "ikagetto") && !stats) {
         playsEl.textContent = playersEl.textContent = "取得できませんでした";
         return null;
       }
@@ -2812,7 +2879,7 @@
         : "まだ記録がありません";
     }
 
-    function setRankingComingSoon(game) {
+    function setRankingComingSoon(game, failed = false) {
       const rankingSection = document.getElementById(`ranking-section-${game.slug}`);
       const rankingEl = document.getElementById(`ranking-${game.slug}`);
       const rankingNote = document.getElementById(`ranking-note-${game.slug}`);
@@ -2820,10 +2887,10 @@
       const detailButton = document.getElementById(`detail-${game.slug}`);
 
       if (rankingSection) rankingSection.classList.add("coming");
-      if (rankingEl) rankingEl.innerHTML = `<div class="coming-soon">coming soon</div>`;
-      if (rankingNote) rankingNote.textContent = "準備中";
+      if (rankingEl) rankingEl.innerHTML = `<div class="coming-soon">${failed ? "取得できませんでした" : "coming soon"}</div>`;
+      if (rankingNote) rankingNote.textContent = failed ? "" : "準備中";
       if (badge) {
-        badge.textContent = "ランキング coming soon";
+        badge.textContent = failed ? "取得できませんでした" : "ランキング coming soon";
         badge.classList.remove("ready");
         badge.classList.add("soon");
       }
@@ -2850,6 +2917,22 @@
       }
     }
 
+    function ikagettoCatchText(length, weight, elapsed) {
+      const template = "全長 {length} m ／ 重さ {weight} kg ／ 時間 {time}秒";
+      const i18n = window.LabI18n;
+      const formatter = new Intl.NumberFormat(i18n?.getLanguage() || "ja", { maximumFractionDigits: 1 });
+      const values = { length, weight, time: elapsed / 1000 };
+      return (i18n?.t(template) || template).replace(/\{(length|weight|time)\}/g,
+        (_, key) => formatter.format(values[key]));
+    }
+
+    document.addEventListener("lab-language-change", () => {
+      document.querySelectorAll("#ranking-ikagetto .rank-catch").forEach(label => {
+        const { length, weight, elapsed } = label.dataset;
+        label.textContent = ikagettoCatchText(length, weight, elapsed);
+      });
+    });
+
     async function loadTopRanking(game, stats = null) {
       const rankingEl = document.getElementById(`ranking-${game.slug}`);
       if (!rankingEl) return false;
@@ -2868,23 +2951,41 @@
         }
       }
 
+      const isIkagetto = game.slug === "ikagetto";
       if (isKeyUnset) {
         setRankingComingSoon(game);
         return false;
       }
 
-      await waitForSupabaseSetup();
-
-      if (!supabaseClient) {
-        setRankingComingSoon(game);
-        return false;
+      if (!isIkagetto) {
+        await waitForSupabaseSetup();
+        if (!supabaseClient) {
+          setRankingComingSoon(game);
+          return false;
+        }
       }
 
       const isFirstRanking = game.topRanking === "first";
-      const functionName = isFirstRanking ? "get_first_try_ranking" : "get_best_score_ranking";
+      const functionName = isIkagetto ? "ikagetto_fishing_board_v2"
+        : isFirstRanking ? "get_first_try_ranking" : "get_best_score_ranking";
       try {
         let data;
-        if (game.slug === "inubo") {
+        if (isIkagetto) {
+          const rows = await requestIkagettoRanking(functionName, { p_limit: 3 });
+          if (!Array.isArray(rows) || rows.length > 3 || rows.some(row =>
+            !Number.isInteger(row?.rank) || row.rank < 1 || row.rank > 3 ||
+            typeof row.display_name !== "string" || !row.display_name.trim() ||
+            !Number.isSafeInteger(row.score) || row.score < 0 || row.score > 50000
+          )) {
+            throw new Error("Invalid Ikagetto ranking rows");
+          }
+          data = rows.map(row => ({
+            rank_no: row.rank, display_name: row.display_name, best_score: row.score,
+            catch: Number.isInteger(row.length_meters) && row.length_meters >= 1 && row.length_meters <= 30 &&
+              Number.isInteger(row.weight_kg) && row.weight_kg >= 1 && row.weight_kg <= 10000 &&
+              Number.isInteger(row.elapsed_ms) && row.elapsed_ms >= 0 ? row : null
+          }));
+        } else if (game.slug === "inubo") {
           const { inuboBoard } = await import("./inubo-data.js");
           const rows = await inuboBoard("total", 3);
           data = rows.map(row => ({ rank_no: row.rank, display_name: row.display_name, best_score: row.value }));
@@ -2907,11 +3008,16 @@
 
         rankingEl.innerHTML = visibleRows.map((row) => {
           const score = isFirstRanking ? row.first_score : row.best_score;
+          let measurements = "";
+          if (isIkagetto && row.catch) {
+            const { length_meters, weight_kg, elapsed_ms } = row.catch;
+            measurements = `<span class="rank-catch" data-length="${length_meters}" data-weight="${weight_kg}" data-elapsed="${elapsed_ms}">${escapeHtml(ikagettoCatchText(length_meters, weight_kg, elapsed_ms))}</span>`;
+          }
 
           return `
             <div class="rank-row">
               <div class="rank-no">${escapeHtml(row.rank_no)}位</div>
-              <div class="rank-name">${escapeHtml(row.display_name)}</div>
+              <div class="rank-name">${escapeHtml(row.display_name)}${measurements}</div>
               <div class="rank-score">${escapeHtml(scoreText(score, game))}</div>
             </div>
           `;
@@ -2921,7 +3027,7 @@
         return true;
       } catch (error) {
         console.error(`${functionName} error:`, getRankingSlug(game), error);
-        setRankingComingSoon(game);
+        setRankingComingSoon(game, isIkagetto);
         return false;
       }
     }
