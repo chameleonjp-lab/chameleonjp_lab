@@ -3414,7 +3414,7 @@
         pageLeadEl.textContent = page.description;
         document.documentElement.dataset.labSourceTitle = title;
         document.title = window.LabI18n.t(title);
-        const { mountIkagettoRanking } = await import("./ikagetto-ranking.js?v=20261125-pages");
+        const { mountIkagettoRanking } = await import("./ikagetto-ranking.js?v=20261126-colossal");
         mountIkagettoRanking(contentAreaEl, {
           gameUrl: page.url,
           apiUrl: SUPABASE_URL,

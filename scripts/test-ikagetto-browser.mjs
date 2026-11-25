@@ -64,12 +64,12 @@ for (const engine of [chromium, webkit]) {
           const count = Math.min(1001 - args.p_offset, args.p_limit);
           return route.fulfill({ json: Array.from({ length: count }, (_, index) => {
             const entry = args.p_offset + index + 1;
-            const sample = entry === 1 ? { length_meters: 27, weight_kg: 4512, elapsed_ms: 65683 }
-              : entry === 2 ? { length_meters: 13, weight_kg: 400, elapsed_ms: 0 } : {};
+            const sample = entry === 1 ? { length_meters: 50, weight_kg: 45000, elapsed_ms: 166000 }
+              : entry === 3 ? { length_meters: 13, weight_kg: 400, elapsed_ms: 0 } : {};
             return {
-              rank: entry === 501 ? 500 : entry,
+              rank: entry === 2 ? 1 : entry === 501 ? 500 : entry,
               display_name: entry === 1 ? 'A<&>' : `Fisher ${entry}`,
-              score: 50001 - (entry === 501 ? 500 : entry),
+              score: entry <= 2 ? 80000 : 50001 - (entry === 501 ? 500 : entry),
               has_more: args.p_offset + count < 1001,
               ...sample
             };
@@ -78,8 +78,8 @@ for (const engine of [chromium, webkit]) {
         assert.equal(rpc, 'ikagetto_fishing_board_v2');
         assert.deepEqual(args, { p_limit: 3 });
         return route.fulfill({ json: outcome === 'empty' ? [] : [
-          { rank: 1, display_name: 'A<&>', score: 48000, length_meters: 27, weight_kg: 4512, elapsed_ms: 65683 },
-          { rank: 1, display_name: 'B', score: 48000 }
+          { rank: 1, display_name: 'A<&>', score: 80000, length_meters: 50, weight_kg: 45000, elapsed_ms: 166000 },
+          { rank: 1, display_name: 'B', score: 80000 }
         ] });
       }
       if (!url.href.startsWith(base.href)) return route.abort();
@@ -115,12 +115,12 @@ for (const engine of [chromium, webkit]) {
     await card.locator('.rank-name').first().filter({ hasText: 'A<&>' }).waitFor();
     const measurements = card.locator('.rank-catch');
     assert.equal(await measurements.count(), 1);
-    assert.equal(await measurements.textContent(), 'Length 27 m / Weight 4,512 kg / Time 65.7 s');
+    assert.equal(await measurements.textContent(), 'Length 50 m / Weight 45,000 kg / Time 166 s');
     await page.locator('#labLanguageSelect').selectOption('ja');
-    assert.equal(await measurements.textContent(), '全長 27 m ／ 重さ 4,512 kg ／ 時間 65.7秒');
+    assert.equal(await measurements.textContent(), '全長 50 m ／ 重さ 45,000 kg ／ 時間 166秒');
     await page.locator('#labLanguageSelect').selectOption('en');
     assert.deepEqual(await card.locator('.rank-no').allTextContents(), ['Rank 1', 'Rank 1']);
-    assert.match(await card.locator('.rank-score').first().textContent(), /48,000/);
+    assert.match(await card.locator('.rank-score').first().textContent(), /80,000/);
     assert.match(await card.locator('#plays-ikagetto').textContent(), /^7\D/);
     assert.match(await card.locator('#players-ikagetto').textContent(), /^2\D/);
     await card.locator('#detail-ikagetto').click();
@@ -131,8 +131,10 @@ for (const engine of [chromium, webkit]) {
     await rows.last().getByText('Fisher 500', { exact: true }).waitFor();
     assert.equal(await rows.count(), 500);
     assert.equal(await rows.first().locator('.player-name').textContent(), 'A<&>');
-    assert.equal(await rows.first().locator('.ikagetto-catch').textContent(), 'Length 27 m / Weight 4,512 kg / Time 65.7 s');
-    assert.equal(await rows.nth(1).locator('.ikagetto-catch').textContent(), 'Length 13 m / Weight 400 kg / Time 0 s');
+    assert.equal(await rows.first().locator('.ikagetto-catch').textContent(), 'Length 50 m / Weight 45,000 kg / Time 166 s');
+    assert.deepEqual(await rows.locator('.ikagetto-score').allTextContents().then(scores => scores.slice(0, 2)), ['80,000 pts', '80,000 pts']);
+    assert.equal(await rows.nth(1).locator('.ikagetto-catch').count(), 0);
+    assert.equal(await rows.nth(2).locator('.ikagetto-catch').textContent(), 'Length 13 m / Weight 400 kg / Time 0 s');
     assert.equal(await page.locator('#ikagetto-plays').textContent(), '7');
     assert.equal(await page.locator('#ikagetto-players').textContent(), '2');
     assert.equal(await page.getByRole('button', { name: 'Next page' }).count(), 2);
