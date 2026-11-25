@@ -2975,14 +2975,14 @@
           if (!Array.isArray(rows) || rows.length > 3 || rows.some(row =>
             !Number.isInteger(row?.rank) || row.rank < 1 || row.rank > 3 ||
             typeof row.display_name !== "string" || !row.display_name.trim() ||
-            !Number.isSafeInteger(row.score) || row.score < 0 || row.score > 50000
+            !Number.isSafeInteger(row.score) || row.score < 0 || row.score > 80000
           )) {
             throw new Error("Invalid Ikagetto ranking rows");
           }
           data = rows.map(row => ({
             rank_no: row.rank, display_name: row.display_name, best_score: row.score,
-            catch: Number.isInteger(row.length_meters) && row.length_meters >= 1 && row.length_meters <= 30 &&
-              Number.isInteger(row.weight_kg) && row.weight_kg >= 1 && row.weight_kg <= 10000 &&
+            catch: Number.isInteger(row.length_meters) && row.length_meters >= 1 && row.length_meters <= 50 &&
+              Number.isInteger(row.weight_kg) && row.weight_kg >= 1 && row.weight_kg <= 45000 &&
               Number.isInteger(row.elapsed_ms) && row.elapsed_ms >= 0 ? row : null
           }));
         } else if (game.slug === "inubo") {

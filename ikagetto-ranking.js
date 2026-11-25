@@ -7,14 +7,15 @@ const pageSize = 500;
 const fetchTimeout = 8000;
 const catchLabel = '全長 {length} m ／ 重さ {weight} kg ／ 時間 {time}秒';
 
-function parseBoard(data, offset) {
+function parseBoard(data, offset, modeKey) {
   if (!Array.isArray(data) || data.length > pageSize) throw new Error('Invalid Ikagetto board');
+  const maxScore = modeKey === 'fishing' ? 80000 : 50000;
   const hasMore = data[0]?.has_more ?? false;
   let previousRank = 0;
   for (const [index, row] of data.entries()) {
     if (!Number.isSafeInteger(row?.rank) || row.rank < 1 || row.rank < previousRank || row.rank > offset + index + 1 ||
         typeof row.display_name !== 'string' || !row.display_name.trim() ||
-        !Number.isSafeInteger(row.score) || row.score < 0 || row.score > 50000 ||
+        !Number.isSafeInteger(row.score) || row.score < 0 || row.score > maxScore ||
         typeof row.has_more !== 'boolean' || row.has_more !== hasMore) {
       throw new Error('Invalid Ikagetto ranking row');
     }
@@ -163,6 +164,7 @@ export function mountIkagettoRanking(root, { gameUrl, apiUrl, apiKey, share }) {
 
   async function loadPage(offset, focusHeading = false) {
     pending?.abort();
+    const modeKey = mode.key;
     const controller = new AbortController();
     pending = controller;
     const timer = setTimeout(() => controller.abort(), fetchTimeout);
@@ -172,9 +174,9 @@ export function mountIkagettoRanking(root, { gameUrl, apiUrl, apiKey, share }) {
     list.setAttribute('aria-busy', 'true');
     renderNavigation();
     try {
-      const data = await request('ikagetto_board_page_v3', { p_mode: mode.key, p_offset: offset, p_limit: pageSize }, controller.signal);
+      const data = await request('ikagetto_board_page_v3', { p_mode: modeKey, p_offset: offset, p_limit: pageSize }, controller.signal);
       if (pending !== controller) return;
-      shown = parseBoard(data, offset);
+      shown = parseBoard(data, offset, modeKey);
       renderRows();
       status.hidden = Boolean(shown.rows.length);
       status.textContent = shown.rows.length ? '' : 'まだ記録がありません';
