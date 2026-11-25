@@ -49,10 +49,10 @@ for (const engine of [chromium, webkit]) {
           }
           return route.fulfill({ json: [{ total_play_count: 7, player_count: 2, fishing: 2, butcher: 5, cooking: 6 }] });
         }
-        assert.equal(rpc, 'ikagetto_board_v1');
-        assert.deepEqual(args, { p_mode: 'fishing', p_limit: 3 });
+        assert.equal(rpc, 'ikagetto_fishing_board_v2');
+        assert.deepEqual(args, { p_limit: 3 });
         return route.fulfill({ json: outcome === 'empty' ? [] : [
-          { rank: 1, display_name: 'A<&>', score: 48000 },
+          { rank: 1, display_name: 'A<&>', score: 48000, length_meters: 27, weight_kg: 4512, elapsed_ms: 65683 },
           { rank: 1, display_name: 'B', score: 48000 }
         ] });
       }
@@ -86,7 +86,13 @@ for (const engine of [chromium, webkit]) {
     outcome = 'scores';
     await toggle.click();
     await toggle.click();
-    await card.locator('.rank-name').getByText('A<&>', { exact: true }).waitFor();
+    await card.locator('.rank-name').first().filter({ hasText: 'A<&>' }).waitFor();
+    const measurements = card.locator('.rank-catch');
+    assert.equal(await measurements.count(), 1);
+    assert.equal(await measurements.textContent(), 'Length 27 m / Weight 4,512 kg / Time 65.7 s');
+    await page.locator('#labLanguageSelect').selectOption('ja');
+    assert.equal(await measurements.textContent(), '全長 27 m ／ 重さ 4,512 kg ／ 時間 65.7秒');
+    await page.locator('#labLanguageSelect').selectOption('en');
     assert.deepEqual(await card.locator('.rank-no').allTextContents(), ['Rank 1', 'Rank 1']);
     assert.match(await card.locator('.rank-score').first().textContent(), /48,000/);
     assert.match(await card.locator('#plays-ikagetto').textContent(), /^7\D/);
@@ -101,7 +107,7 @@ for (const engine of [chromium, webkit]) {
     assert.match(await card.locator('#plays-ikagetto').textContent(), /^0\D/);
     assert.match(await card.locator('#players-ikagetto').textContent(), /^0\D/);
     assert.equal(calls.filter(({ rpc }) => rpc === 'ikagetto_stats_v1').length, 3);
-    assert.equal(calls.filter(({ rpc }) => rpc === 'ikagetto_board_v1').length, 3);
+    assert.equal(calls.filter(({ rpc }) => rpc === 'ikagetto_fishing_board_v2').length, 3);
 
     active = false;
     await page.goto(home.href);

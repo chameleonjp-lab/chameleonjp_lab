@@ -18,7 +18,7 @@
   <script src="./i18n/ranking.js?v=20261121-ta-v1"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261125-ikagetto"></script>
+  <script src="./i18n/games-3.js?v=20261125-ikagetto-catch"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/runtime.js?v=20261120-15lang"></script>
 
@@ -491,6 +491,15 @@
       color: var(--text-main);
       font-weight: 700;
       overflow-wrap: anywhere;
+    }
+
+    .rank-catch {
+      display: block;
+      margin-top: 3px;
+      color: var(--text-sub);
+      font-size: .8rem;
+      font-weight: 400;
+      line-height: 1.4;
     }
 
     .rank-score {
@@ -2908,6 +2917,22 @@
       }
     }
 
+    function ikagettoCatchText(length, weight, elapsed) {
+      const template = "全長 {length} m ／ 重さ {weight} kg ／ 時間 {time}秒";
+      const i18n = window.LabI18n;
+      const formatter = new Intl.NumberFormat(i18n?.getLanguage() || "ja", { maximumFractionDigits: 1 });
+      const values = { length, weight, time: elapsed / 1000 };
+      return (i18n?.t(template) || template).replace(/\{(length|weight|time)\}/g,
+        (_, key) => formatter.format(values[key]));
+    }
+
+    document.addEventListener("lab-language-change", () => {
+      document.querySelectorAll("#ranking-ikagetto .rank-catch").forEach(label => {
+        const { length, weight, elapsed } = label.dataset;
+        label.textContent = ikagettoCatchText(length, weight, elapsed);
+      });
+    });
+
     async function loadTopRanking(game, stats = null) {
       const rankingEl = document.getElementById(`ranking-${game.slug}`);
       if (!rankingEl) return false;
@@ -2941,12 +2966,12 @@
       }
 
       const isFirstRanking = game.topRanking === "first";
-      const functionName = isIkagetto ? "ikagetto_board_v1"
+      const functionName = isIkagetto ? "ikagetto_fishing_board_v2"
         : isFirstRanking ? "get_first_try_ranking" : "get_best_score_ranking";
       try {
         let data;
         if (isIkagetto) {
-          const rows = await requestIkagettoRanking(functionName, { p_mode: "fishing", p_limit: 3 });
+          const rows = await requestIkagettoRanking(functionName, { p_limit: 3 });
           if (!Array.isArray(rows) || rows.length > 3 || rows.some(row =>
             !Number.isInteger(row?.rank) || row.rank < 1 || row.rank > 3 ||
             typeof row.display_name !== "string" || !row.display_name.trim() ||
@@ -2954,7 +2979,12 @@
           )) {
             throw new Error("Invalid Ikagetto ranking rows");
           }
-          data = rows.map(row => ({ rank_no: row.rank, display_name: row.display_name, best_score: row.score }));
+          data = rows.map(row => ({
+            rank_no: row.rank, display_name: row.display_name, best_score: row.score,
+            catch: Number.isInteger(row.length_meters) && row.length_meters >= 1 && row.length_meters <= 30 &&
+              Number.isInteger(row.weight_kg) && row.weight_kg >= 1 && row.weight_kg <= 10000 &&
+              Number.isInteger(row.elapsed_ms) && row.elapsed_ms >= 0 ? row : null
+          }));
         } else if (game.slug === "inubo") {
           const { inuboBoard } = await import("./inubo-data.js");
           const rows = await inuboBoard("total", 3);
@@ -2978,11 +3008,16 @@
 
         rankingEl.innerHTML = visibleRows.map((row) => {
           const score = isFirstRanking ? row.first_score : row.best_score;
+          let measurements = "";
+          if (isIkagetto && row.catch) {
+            const { length_meters, weight_kg, elapsed_ms } = row.catch;
+            measurements = `<span class="rank-catch" data-length="${length_meters}" data-weight="${weight_kg}" data-elapsed="${elapsed_ms}">${escapeHtml(ikagettoCatchText(length_meters, weight_kg, elapsed_ms))}</span>`;
+          }
 
           return `
             <div class="rank-row">
               <div class="rank-no">${escapeHtml(row.rank_no)}位</div>
-              <div class="rank-name">${escapeHtml(row.display_name)}</div>
+              <div class="rank-name">${escapeHtml(row.display_name)}${measurements}</div>
               <div class="rank-score">${escapeHtml(scoreText(score, game))}</div>
             </div>
           `;

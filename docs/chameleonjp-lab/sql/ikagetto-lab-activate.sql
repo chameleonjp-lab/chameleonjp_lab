@@ -6,7 +6,7 @@ LOCK TABLE public.games IN SHARE ROW EXCLUSIVE MODE;
 DO $$
 BEGIN
   IF to_regprocedure('public.ikagetto_stats_v1()') IS NULL OR
-     to_regprocedure('public.ikagetto_board_v1(text,integer)') IS NULL THEN
+     to_regprocedure('public.ikagetto_fishing_board_v2(integer)') IS NULL THEN
     RAISE EXCEPTION 'Ikagetto ranking functions are unavailable';
   END IF;
   IF EXISTS (SELECT 1 FROM public.games WHERE display_order = 64 AND game_slug <> 'ikagetto') THEN
