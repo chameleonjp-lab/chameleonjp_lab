@@ -842,6 +842,27 @@
       "submission_mode": "verified",
       "score_min": 0,
       "score_max": 2147483647
+    },
+    {
+      "display_order": 64,
+      "game_slug": "ikagetto",
+      "title": "イカゲット",
+      "game_url": "https://chameleonjp-lab.github.io/ikagetto/",
+      "description": "夜の海へ出港し、巨大なダイオウイカを釣り上げよう。釣ったイカは観察、解体、アヒージョ作りまで楽しめます。",
+      "share_text": "大きいイカを釣って自慢しよう\n#イカゲット\nhttps://chameleonjp-lab.github.io/ikagetto/",
+      "release_date": "2026-11-25",
+      "top_ranking_type": "best",
+      "score_order": "desc",
+      "score_unit": "点",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_label": "釣りスコア",
+      "first_score_label": "初回スコア",
+      "best_score_label": "釣り",
+      "is_active": true,
+      "submission_mode": "verified",
+      "score_min": 0,
+      "score_max": 50000
     }
   ]
 }

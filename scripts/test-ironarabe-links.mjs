@@ -10,12 +10,12 @@ export const OLD_IRONARABE_URL = 'https://chameleonjp.codeberg.page/ironarabe/';
 
 // Data fingerprints from 88ad6a8 plus the reviewed Iroate URL-only migration. Only the
 // exact Ironarabe URL is normalized; every other URL and field stays covered.
-// The Chameleol and Inubo additions were checked against every prior catalog row.
+// The Chameleol, Inubo and Ikagetto additions were checked against every prior catalog row.
 // Literal fingerprints keep this check usable in a shallow checkout.
 const baseline = {
-  'catalog/games.json': { hash: 'b20765d0eea07e7f88484c0862345638f5d3c2ea52df3bead12ab547b980ce11', occurrences: 2 },
-  'index.html': { hash: '4bf423dcb009cbb31651a985b18cb6e2e2e0eeab24a6f4fe1b10166122c02ae5', occurrences: 2 },
-  'ranking.html': { hash: 'd95390a06ce91aa09e29317e9a34a3ef57528a03eb1d170dd8af7e30222d7a3a', occurrences: 4 }
+  'catalog/games.json': { hash: '25fa074c4c0f874002c6136844fded71b5b2b5f21af8b8749898b06aa7b34758', occurrences: 2 },
+  'index.html': { hash: '2a91eb87483ac7d217eb0eb646e07ba80cc08a13be6bc19e25f767395f4e64af', occurrences: 2 },
+  'ranking.html': { hash: 'b9d1cf269f29b20b562c251994d755c4850bdc3347192f99eafdd8b607c5b544', occurrences: 4 }
 };
 
 function inlineArray(source, marker) {

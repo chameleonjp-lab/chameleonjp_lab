@@ -19,7 +19,7 @@
   <script src="./i18n/ranking.js?v=20261121-ta-all"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261120-15lang"></script>
+  <script src="./i18n/games-3.js?v=20261125-ikagetto"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/hall.js?v=20261120-15lang"></script>
   <script src="./i18n/runtime.js?v=20261120-15lang"></script>
@@ -2014,6 +2014,36 @@
             "difficultyLabel": ""
           }
         ]
+      },
+      {
+        "pageSlug": "ikagetto",
+        "title": "イカゲット",
+        "url": "https://chameleonjp-lab.github.io/ikagetto/",
+        "description": "夜の海へ出港し、巨大なダイオウイカを釣り上げよう。釣ったイカは観察、解体、アヒージョ作りまで楽しめます。",
+        "shareText": "大きいイカを釣って自慢しよう\n#イカゲット\nhttps://chameleonjp-lab.github.io/ikagetto/",
+        "defaultDifficultyKey": "main",
+        "difficulties": [
+          {
+            "displayOrder": 64,
+            "slug": "ikagetto",
+            "title": "イカゲット",
+            "url": "https://chameleonjp-lab.github.io/ikagetto/",
+            "description": "夜の海へ出港し、巨大なダイオウイカを釣り上げよう。釣ったイカは観察、解体、アヒージョ作りまで楽しめます。",
+            "shareText": "大きいイカを釣って自慢しよう\n#イカゲット\nhttps://chameleonjp-lab.github.io/ikagetto/",
+            "releaseDate": "2026-11-25",
+            "topRanking": "best",
+            "scoreOrder": "desc",
+            "scoreUnit": "点",
+            "scoreScale": 1,
+            "scoreDecimals": 0,
+            "scoreLabel": "釣りスコア",
+            "firstScoreLabel": "初回スコア",
+            "bestScoreLabel": "釣り",
+            "isActive": true,
+            "key": "main",
+            "difficultyLabel": ""
+          }
+        ]
       }
 ];
 
@@ -3333,8 +3363,11 @@
 
     async function init() {
       const params = new URLSearchParams(window.location.search);
-      if (normalizeGameSlug(params.get("game")) === "inubo") {
-        const url = new URL("./inubo-ranking.html", window.location.href);
+      const gameSlug = normalizeGameSlug(params.get("game"));
+      const dedicatedRanking = gameSlug === "ikagetto" ? "https://chameleonjp-lab.github.io/ikagetto/ranking.html"
+        : gameSlug === "inubo" ? "./inubo-ranking.html" : null;
+      if (dedicatedRanking) {
+        const url = new URL(dedicatedRanking, window.location.href);
         if (params.has("lang")) url.searchParams.set("lang", params.get("lang"));
         window.location.replace(url);
         return;
