@@ -19,7 +19,7 @@
   <script src="./i18n/ranking.js?v=20261121-ta-all"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261125-ikagetto"></script>
+  <script src="./i18n/games-3.js?v=20261125-ikagetto-pages"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/hall.js?v=20261120-15lang"></script>
   <script src="./i18n/runtime.js?v=20261120-15lang"></script>
@@ -754,6 +754,38 @@
     #bestRanking .rank-name, #hallRanking .rank-name { overflow-wrap: anywhere; }
     #hallRanking .rank-row { grid-template-columns: auto minmax(0, 1fr); }
     #hallMore { margin-top: .8em; }
+    .ikagetto-stats { margin-top: 0; }
+    .ranking-switch.ikagetto-switch { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .ikagetto-switch .ranking-tab { overflow-wrap: anywhere; }
+    .ikagetto-entry {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+    .ikagetto-score {
+      text-align: end;
+      color: var(--button-bg);
+    }
+    .ikagetto-catch {
+      margin: 0;
+      color: var(--text-sub);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+    #ikagetto-rows { margin-top: 12px; }
+    .ikagetto-retry { margin-top: 12px; }
+    .ikagetto-pages {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 6px;
+      margin-top: 16px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .ikagetto-pages[hidden] { display: none; }
+    .ikagetto-pages .button {
+      padding-inline: 8px;
+      overflow-wrap: anywhere;
+    }
   </style>
 </head>
 
@@ -2444,7 +2476,10 @@
     }
 
     function buildShareMessage(page) {
-      const shareText = cleanText(page.shareText) || `${page.title || ""}\n${page.description || ""}`.trim();
+      let shareText = cleanText(page.shareText) || `${page.title || ""}\n${page.description || ""}`.trim();
+      if (page.pageSlug === "ikagetto" && window.LabI18n) {
+        shareText = shareText.split("\n").map(line => window.LabI18n.t(line)).join("\n");
+      }
       const url = cleanText(page.url);
       if (url && shareText.includes(url)) {
         return shareText;
@@ -3364,15 +3399,30 @@
     async function init() {
       const params = new URLSearchParams(window.location.search);
       const gameSlug = normalizeGameSlug(params.get("game"));
-      const dedicatedRanking = gameSlug === "ikagetto" ? "https://chameleonjp-lab.github.io/ikagetto/ranking.html"
-        : gameSlug === "inubo" ? "./inubo-ranking.html" : null;
-      if (dedicatedRanking) {
-        const url = new URL(dedicatedRanking, window.location.href);
+      if (gameSlug === "inubo") {
+        const url = new URL("./inubo-ranking.html", window.location.href);
         if (params.has("lang")) url.searchParams.set("lang", params.get("lang"));
         window.location.replace(url);
         return;
       }
       if (isKeyUnset) keyNoticeEl.style.display = "block";
+
+      if (gameSlug === "ikagetto") {
+        const page = findPageBySlug(gameSlug);
+        const title = `${page.title} 詳細ランキング`;
+        pageTitleEl.textContent = title;
+        pageLeadEl.textContent = page.description;
+        document.documentElement.dataset.labSourceTitle = title;
+        document.title = window.LabI18n.t(title);
+        const { mountIkagettoRanking } = await import("./ikagetto-ranking.js?v=20261125-pages");
+        mountIkagettoRanking(contentAreaEl, {
+          gameUrl: page.url,
+          apiUrl: SUPABASE_URL,
+          apiKey: getSupabasePublishableKey(),
+          share: () => shareGame(page)
+        });
+        return;
+      }
 
       const resolved = await resolveGameFromUrl();
 
