@@ -16,3 +16,9 @@ window.LabI18nRows = (window.LabI18nRows || []).concat([["難易度切り替え"
 ["30棟完走","30 buildings cleared","30 edificios completados","30 prédios concluídos","通过30栋建筑","30 bâtiments terminés","30 Gebäude geschafft","건물 30채 완료","Пройдено 30 зданий","30 edifici completati","通過30棟建築","30 gedung dituntaskan","30 bina tamamlandı","Đã vượt qua 30 tòa nhà","ผ่านครบ 30 อาคาร"],
 ["最新の順位表を表示しました。","Showing the latest leaderboard.","Se muestra la clasificación más reciente.","Mostrando o ranking mais recente.","已显示最新排行榜。","Le classement le plus récent est affiché.","Die aktuelle Rangliste wird angezeigt.","최신 순위표를 표시했습니다.","Показана актуальная таблица результатов.","È visualizzata la classifica più recente.","已顯示最新排行榜。","Menampilkan peringkat terbaru.","En güncel sıralama gösteriliyor.","Đang hiển thị bảng xếp hạng mới nhất.","แสดงตารางอันดับล่าสุดแล้ว"]
 ]);
+
+// Detail page shown while Jungle Gym Tag has no published leaderboard.
+window.LabI18nRows.push(
+  ["ジャングルジム鬼ごっこ 詳細ランキング","Jungle Gym Tag Rankings","Clasificación de Pilla-pilla en el parque","Classificação de Pega-pega no trepa-trepa","攀爬架捉人详细排行榜","Classement de Chat perché au portique","Rangliste für Klettergerüst-Fangen","정글짐 술래잡기 상세 순위표","Рейтинг «Догонялки на лазалке»","Classifica di Acchiapparella sulle sbarre","攀爬架鬼抓人詳細排行榜","Peringkat Kejar-kejaran di arena panjat","Tırmanma parkında ebe sıralaması","Bảng xếp hạng Đuổi bắt trên giàn leo","อันดับวิ่งไล่จับบนโครงปีน"],
+  ["ランキングの集計は準備中です。","Rankings aren’t available yet.","La clasificación aún no está disponible.","A classificação ainda não está disponível.","排行榜尚未开放。","Le classement n’est pas encore disponible.","Die Rangliste ist noch nicht verfügbar.","순위표는 아직 준비 중입니다.","Рейтинг пока недоступен.","La classifica non è ancora disponibile.","排行榜尚未開放。","Peringkat belum tersedia.","Sıralama henüz hazır değil.","Bảng xếp hạng chưa mở.","ยังไม่เปิดแสดงอันดับ"]
+);
