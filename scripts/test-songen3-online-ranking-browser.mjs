@@ -27,6 +27,8 @@ for (const engine of [chromium, webkit]) {
     const calls = [];
     const errors = [];
     let failNextPage = true;
+    let gameIsPublic = true;
+    let catalogUnavailable = false;
     let releaseRecord;
     const recordResponse = new Promise(resolve => { releaseRecord = resolve; });
     let delayRecord = true;
@@ -36,12 +38,17 @@ for (const engine of [chromium, webkit]) {
       const url = new URL(request.url());
       if (url.hostname === 'cdn.jsdelivr.net') {
         const sdk = `window.supabase = {createClient:()=>({from(){
-          const query={select:()=>query,eq:()=>query,order:async()=>({data:${JSON.stringify([game])}})};
+          const query={
+            select:()=>query,eq:()=>query,
+            order:async()=>${catalogUnavailable ? '({error:new Error("Catalog unavailable")})' : '({data:' + JSON.stringify(gameIsPublic ? [game] : []) + '})'},
+            maybeSingle:async()=>({data:${JSON.stringify(gameIsPublic ? game : null)}})
+          };
           return query;
         }})};`;
         return route.fulfill({ body: sdk, contentType: 'text/javascript' });
       }
       if (url.hostname.endsWith('.supabase.co')) {
+        if (url.pathname === '/rest/v1/games') return route.fulfill({ status: 503 });
         const rpc = url.pathname.split('/').at(-1);
         const args = request.postDataJSON();
         assert.match(request.headers().apikey, /^sb_publishable_/);
@@ -133,7 +140,18 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await record.locator('.player-name').textContent(), sample.display_name);
     assert.deepEqual(errors, []);
     assert.ok(calls.some(({ args }) => args.p_limit === 3));
-    console.log(`${engine.name()}: online-only link, three tabs, scores, ties, pagination, retry, and stale response verified`);
+    gameIsPublic = false;
+    const callsBeforeHold = calls.length;
+    await page.goto(detail.href);
+    await page.locator('.not-found-card').waitFor({ timeout: 5000 });
+    assert.equal(await page.getByRole('tab').count(), 0);
+    assert.equal(calls.length, callsBeforeHold);
+
+    catalogUnavailable = true;
+    await page.goto(base.href);
+    await page.locator('#game-chameleol').waitFor({ timeout: 8000 });
+    assert.equal(await page.locator(`#game-${slug}`).count(), 0);
+    console.log(`${engine.name()}: rankings and the publication hold verified`);
   } finally {
     await browser.close();
   }
