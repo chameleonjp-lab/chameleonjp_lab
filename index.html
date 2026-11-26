@@ -3163,7 +3163,10 @@
     async function init() {
       GAMES = GAMES.map(withVerifiedPlayUrl);
       if (isKeyUnset) keyNoticeEl.style.display = "block";
-      await loadGamesFromSupabase();
+      const catalogLoaded = await loadGamesFromSupabase();
+      if (!catalogLoaded) {
+        GAMES = GAMES.filter(game => game.slug !== "songen_wo_kakeyouka3_online");
+      }
       renderCards();
       setupSortControls();
       applySortStatus();

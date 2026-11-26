@@ -3586,6 +3586,10 @@
       }
 
       const isSongen3 = gameSlug === "songen_wo_kakeyouka3_online";
+      if (isSongen3 && !(await fetchGameRow(gameSlug).catch(() => null))) {
+        renderNotFound();
+        return;
+      }
       const isMedjed = gameSlug === "medjedshin_ha_mamotteru";
       if (isSongen3 || isMedjed || gameSlug === "junglegym_onigokko") {
         const page = findPageBySlug(gameSlug);
