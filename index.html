@@ -2964,7 +2964,6 @@
       const rankingEl = document.getElementById(`ranking-${game.slug}`);
       const rankingNote = document.getElementById(`ranking-note-${game.slug}`);
       const badge = document.getElementById(`ranking-badge-${game.slug}`);
-      const detailButton = document.getElementById(`detail-${game.slug}`);
 
       if (rankingSection) rankingSection.classList.add("coming");
       if (rankingEl) rankingEl.innerHTML = `<div class="coming-soon">${failed ? "取得できませんでした" : "coming soon"}</div>`;
@@ -2974,16 +2973,12 @@
         badge.classList.remove("ready");
         badge.classList.add("soon");
       }
-      if (detailButton) {
-        detailButton.outerHTML = detailButtonHtml(game);
-      }
     }
 
     function setRankingReady(game, hasEntries = true) {
       const rankingSection = document.getElementById(`ranking-section-${game.slug}`);
       const rankingNote = document.getElementById(`ranking-note-${game.slug}`);
       const badge = document.getElementById(`ranking-badge-${game.slug}`);
-      const detailButton = document.getElementById(`detail-${game.slug}`);
 
       if (rankingSection) rankingSection.classList.remove("coming");
       if (rankingNote) rankingNote.textContent = hasEntries ? "1〜3位" : "記録待ち";
@@ -2991,9 +2986,6 @@
         badge.textContent = hasEntries ? "ランキング表示中" : "ランキング準備済み";
         badge.classList.remove("soon");
         badge.classList.add("ready");
-      }
-      if (detailButton) {
-        detailButton.outerHTML = detailButtonHtml(game);
       }
     }
 
