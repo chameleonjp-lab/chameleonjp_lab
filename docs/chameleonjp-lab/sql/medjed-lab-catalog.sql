@@ -18,9 +18,9 @@ INSERT INTO public.games
    score_decimals, score_label, first_score_label, best_score_label, score_min, score_max)
 VALUES
   ('medjedshin_ha_mamotteru', 'メジェド神は守ってる',
-   'https://chameleonjp-lab.github.io/Medjedshin_ha_mamotteru/',
+   'https://chameleonjp-lab.github.io/medjedshin_ha_mamotteru/',
    '冥界で死者たちの行進を守れ！40ウェーブの3Dアクション。',
-   E'メジェド神は守ってる\n冥界で死者たちの行進を守れ！40ウェーブの3Dアクション。\n#メジェド神は守ってる\nhttps://chameleonjp-lab.github.io/Medjedshin_ha_mamotteru/',
+   E'メジェド神は守ってる\n冥界で死者たちの行進を守れ！40ウェーブの3Dアクション。\n#メジェド神は守ってる\nhttps://chameleonjp-lab.github.io/medjedshin_ha_mamotteru/',
    66, true, DATE '2026-11-26', 'verified', 'best', 'desc', '点', 1, 0,
    'スコア', '初回スコア', '自己ベスト', 0, 2147483647)
 ON CONFLICT (game_slug) DO NOTHING;
