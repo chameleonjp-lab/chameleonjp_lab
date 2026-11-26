@@ -19,7 +19,7 @@
   <script src="./i18n/ranking.js?v=20261126-junglegym-live"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261126-medjed"></script>
+  <script src="./i18n/games-3.js?v=20261127-songen3"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/hall.js?v=20261120-15lang"></script>
   <script src="./i18n/runtime.js?v=20261120-15lang"></script>
@@ -449,6 +449,53 @@
     #jungle-board .detail-row {
       grid-template-columns: max-content minmax(0, 1fr) max-content;
       align-items: center;
+    }
+
+    .ranking-switch.songen3-tabs {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .songen3-tabs .ranking-tab {
+      padding: 6px 4px;
+      overflow-wrap: anywhere;
+    }
+
+    .songen3-board {
+      padding: 0;
+      list-style: none;
+    }
+
+    .songen3-board .songen3-row-main {
+      grid-template-columns: minmax(36px, auto) minmax(0, 1fr) fit-content(40%);
+    }
+
+    .songen3-score, .songen3-metrics {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .songen3-score {
+      color: var(--button-bg);
+      text-align: right;
+    }
+
+    .songen3-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      padding-top: 6px;
+      border-top: 1px solid var(--line);
+    }
+
+    .songen3-board dt {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .songen3-board dd {
+      margin: 0;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
     }
 
     .ranking-list {
@@ -2146,6 +2193,36 @@
             "difficultyLabel": ""
           }
         ]
+      },
+      {
+        "pageSlug": "songen_wo_kakeyouka3_online",
+        "title": "尊厳を賭けようか3（オンライン対戦）",
+        "url": "https://chameleonjp-lab.github.io/songen_wo_kakeyouka3/",
+        "description": "部屋を作って友だちを招き、オンラインで1対1の対戦をしよう。",
+        "shareText": "尊厳を賭けようか3でオンライン対戦！\n#尊厳を賭けようか3\nhttps://chameleonjp-lab.github.io/songen_wo_kakeyouka3/",
+        "defaultDifficultyKey": "main",
+        "difficulties": [
+          {
+            "displayOrder": 67,
+            "slug": "songen_wo_kakeyouka3_online",
+            "title": "尊厳を賭けようか3（オンライン対戦）",
+            "url": "https://chameleonjp-lab.github.io/songen_wo_kakeyouka3/",
+            "description": "部屋を作って友だちを招き、オンラインで1対1の対戦をしよう。",
+            "shareText": "尊厳を賭けようか3でオンライン対戦！\n#尊厳を賭けようか3\nhttps://chameleonjp-lab.github.io/songen_wo_kakeyouka3/",
+            "releaseDate": "2026-11-27",
+            "topRanking": "best",
+            "scoreOrder": "desc",
+            "scoreUnit": "点",
+            "scoreScale": 1,
+            "scoreDecimals": 0,
+            "scoreLabel": "スコア",
+            "firstScoreLabel": "初回スコア",
+            "bestScoreLabel": "ベストスコア",
+            "isActive": true,
+            "key": "main",
+            "difficultyLabel": ""
+          }
+        ]
       }
 ];
 
@@ -2548,7 +2625,7 @@
 
     function buildShareMessage(page) {
       let shareText = cleanText(page.shareText) || `${page.title || ""}\n${page.description || ""}`.trim();
-      if (page.pageSlug === "ikagetto" && window.LabI18n) {
+      if ((page.pageSlug === "ikagetto" || page.pageSlug === "songen_wo_kakeyouka3_online") && window.LabI18n) {
         shareText = shareText.split("\n").map(line => window.LabI18n.t(line)).join("\n");
       }
       const url = cleanText(page.url);
@@ -3467,6 +3544,19 @@
       loadDisqualifiedEntries(hydratedGame, token);
     }
 
+    async function requestDedicatedRanking(name, args = {}) {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
+        method: "POST",
+        headers: { apikey: getSupabasePublishableKey(), "content-type": "application/json" },
+        credentials: "omit",
+        redirect: "error",
+        body: JSON.stringify(args),
+        signal: AbortSignal.timeout(8000)
+      });
+      if (!response.ok) throw new Error("Ranking request failed");
+      return response.json();
+    }
+
     async function init() {
       const params = new URLSearchParams(window.location.search);
       const gameSlug = normalizeGameSlug(params.get("game"));
@@ -3495,31 +3585,22 @@
         return;
       }
 
-      if (gameSlug === "junglegym_onigokko" || gameSlug === "medjedshin_ha_mamotteru") {
-        const isMedjed = gameSlug === "medjedshin_ha_mamotteru";
+      const isSongen3 = gameSlug === "songen_wo_kakeyouka3_online";
+      const isMedjed = gameSlug === "medjedshin_ha_mamotteru";
+      if (isSongen3 || isMedjed || gameSlug === "junglegym_onigokko") {
         const page = findPageBySlug(gameSlug);
         const title = `${page.title} 詳細ランキング`;
         pageTitleEl.textContent = title;
         pageLeadEl.textContent = page.description;
         document.documentElement.dataset.labSourceTitle = title;
         document.title = window.LabI18n.t(title);
-        const { mountJungleGymRanking, mountMedjedRanking } = await import("./junglegym-ranking.js?v=20261126-medjed");
-        const mountRanking = isMedjed ? mountMedjedRanking : mountJungleGymRanking;
+        const mountRanking = isSongen3
+          ? (await import("./songen3-online-ranking.js?v=20261127-v1")).mountSongen3OnlineRanking
+          : (await import("./junglegym-ranking.js?v=20261126-medjed"))[isMedjed ? "mountMedjedRanking" : "mountJungleGymRanking"];
         mountRanking(contentAreaEl, {
           gameUrl: page.url,
           share: () => shareGame(page),
-          request: async (name, args = {}) => {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
-              method: "POST",
-              headers: { apikey: getSupabasePublishableKey(), "content-type": "application/json" },
-              credentials: "omit",
-              redirect: "error",
-              body: JSON.stringify(args),
-              signal: AbortSignal.timeout(8000)
-            });
-            if (!response.ok) throw new Error("Ranking request failed");
-            return response.json();
-          }
+          request: requestDedicatedRanking
         });
         return;
       }

@@ -18,7 +18,7 @@
   <script src="./i18n/ranking.js?v=20261126-junglegym-live"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261126-medjed"></script>
+  <script src="./i18n/games-3.js?v=20261127-songen3"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/runtime.js?v=20261120-15lang"></script>
 
@@ -1802,6 +1802,29 @@
         "statsSlugs": [
           "medjedshin_ha_mamotteru"
         ]
+      },
+      {
+        "displayOrder": 67,
+        "slug": "songen_wo_kakeyouka3_online",
+        "title": "尊厳を賭けようか3（オンライン対戦）",
+        "url": "https://chameleonjp-lab.github.io/songen_wo_kakeyouka3/",
+        "description": "部屋を作って友だちを招き、オンラインで1対1の対戦をしよう。",
+        "shareText": "尊厳を賭けようか3でオンライン対戦！\n#尊厳を賭けようか3\nhttps://chameleonjp-lab.github.io/songen_wo_kakeyouka3/",
+        "releaseDate": "2026-11-27",
+        "topRanking": "best",
+        "scoreOrder": "desc",
+        "scoreUnit": "点",
+        "scoreScale": 1,
+        "scoreDecimals": 0,
+        "scoreLabel": "スコア",
+        "firstScoreLabel": "初回スコア",
+        "bestScoreLabel": "ベストスコア",
+        "isActive": true,
+        "rankingSlug": "songen_wo_kakeyouka3_online",
+        "detailSlug": "songen_wo_kakeyouka3_online",
+        "statsSlugs": [
+          "songen_wo_kakeyouka3_online"
+        ]
       }
 ];
 
@@ -1901,7 +1924,8 @@
       ["inubo/", "social-card.jpg"],
       ["ikagetto/", "assets/ikagetto-share-v1.jpg"],
       ["junglegym_onigokko/", "assets/junglegym-social-v1.jpg"],
-      ["medjedshin_ha_mamotteru/", "assets/social-card-v1.jpg"]
+      ["medjedshin_ha_mamotteru/", "assets/social-card-v1.jpg"],
+      ["songen_wo_kakeyouka3/", "assets/social-card.png"]
     ]);
     const CODEBERG_THUMBNAIL_BASE = "https://chameleonjp.codeberg.page/";
     // Keep each canonical Codeberg game link; reuse its verified public share image.
@@ -2084,7 +2108,8 @@
     const DEDICATED_STATS = new Map([
       ["ikagetto", "ikagetto_stats_v1"],
       ["junglegym_onigokko", "junglegym_stats_v1"],
-      ["medjedshin_ha_mamotteru", "medjed_stats_v1"]
+      ["medjedshin_ha_mamotteru", "medjed_stats_v1"],
+      ["songen_wo_kakeyouka3_online", "songen3_online_stats_v1"]
     ]);
 
     async function fetchSingleGameStats(slug) {
@@ -2661,7 +2686,7 @@
 
     function buildShareMessage(item) {
       let shareText = cleanText(item.shareText) || `${item.title || ""}\n${item.description || ""}`.trim();
-      if (item.slug === "ikagetto" && window.LabI18n) {
+      if ((item.slug === "ikagetto" || item.slug === "songen_wo_kakeyouka3_online") && window.LabI18n) {
         shareText = shareText.split("\n").map(line => window.LabI18n.t(line)).join("\n");
       }
       const url = cleanText(item.url);
@@ -2939,7 +2964,6 @@
       const rankingEl = document.getElementById(`ranking-${game.slug}`);
       const rankingNote = document.getElementById(`ranking-note-${game.slug}`);
       const badge = document.getElementById(`ranking-badge-${game.slug}`);
-      const detailButton = document.getElementById(`detail-${game.slug}`);
 
       if (rankingSection) rankingSection.classList.add("coming");
       if (rankingEl) rankingEl.innerHTML = `<div class="coming-soon">${failed ? "取得できませんでした" : "coming soon"}</div>`;
@@ -2949,16 +2973,12 @@
         badge.classList.remove("ready");
         badge.classList.add("soon");
       }
-      if (detailButton) {
-        detailButton.outerHTML = detailButtonHtml(game);
-      }
     }
 
     function setRankingReady(game, hasEntries = true) {
       const rankingSection = document.getElementById(`ranking-section-${game.slug}`);
       const rankingNote = document.getElementById(`ranking-note-${game.slug}`);
       const badge = document.getElementById(`ranking-badge-${game.slug}`);
-      const detailButton = document.getElementById(`detail-${game.slug}`);
 
       if (rankingSection) rankingSection.classList.remove("coming");
       if (rankingNote) rankingNote.textContent = hasEntries ? "1〜3位" : "記録待ち";
@@ -2966,9 +2986,6 @@
         badge.textContent = hasEntries ? "ランキング表示中" : "ランキング準備済み";
         badge.classList.remove("soon");
         badge.classList.add("ready");
-      }
-      if (detailButton) {
-        detailButton.outerHTML = detailButtonHtml(game);
       }
     }
 
@@ -3009,12 +3026,13 @@
       const isIkagetto = game.slug === "ikagetto";
       const isJungleGym = game.slug === "junglegym_onigokko";
       const isMedjed = game.slug === "medjedshin_ha_mamotteru";
+      const isSongen3 = game.slug === "songen_wo_kakeyouka3_online";
       if (isKeyUnset) {
         setRankingComingSoon(game);
         return false;
       }
 
-      if (!isIkagetto && !isJungleGym && !isMedjed) {
+      if (!isIkagetto && !isJungleGym && !isMedjed && !isSongen3) {
         await waitForSupabaseSetup();
         if (!supabaseClient) {
           setRankingComingSoon(game);
@@ -3053,6 +3071,14 @@
             !Number.isSafeInteger(row.score) || row.score < 0
           )) throw new Error("Invalid Medjed ranking rows");
           data = rows.map(row => ({ rank_no: row.rank, display_name: row.display_name, best_score: row.score }));
+        } else if (isSongen3) {
+          const rows = await requestGameRanking("songen3_online_board_v1", { p_tab: "best", p_offset: 0, p_limit: 3 });
+          if (!Array.isArray(rows) || rows.length > 3 || rows.some(row =>
+            !Number.isInteger(row?.rank) || row.rank < 1 || row.rank > 3 ||
+            typeof row.display_name !== "string" || !row.display_name.trim() ||
+            !Number.isSafeInteger(row.best_score)
+          )) throw new Error("Invalid Songen 3 online ranking rows");
+          data = rows.map(row => ({ rank_no: row.rank, display_name: row.display_name, best_score: row.best_score }));
         } else if (game.slug === "inubo") {
           const { inuboBoard } = await import("./inubo-data.js");
           const rows = await inuboBoard("total", 3);

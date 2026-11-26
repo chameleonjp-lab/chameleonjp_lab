@@ -122,3 +122,11 @@ npm run test:browser
 ```
 
 ブラウザ試験は外部通信をmockにし、本番スコアを送信しません。既存の `scripts/check-public-rankings.mjs` は読取専用API確認です。
+
+## 尊厳を賭けようか3のオンライン対戦
+
+作品識別子は `songen_wo_kakeyouka3_online` です。対戦画面からは [詳細ランキング](https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=songen_wo_kakeyouka3_online) を開きます。ベストスコアを最初に表示し、戦績とソンカケptへ切り替えられます。
+
+Supabaseに登録と集計のSQLを適用します。対戦サーバーは `record_songen3_online_event` に `{ "p_event": { … } }` を送り、対戦サーバーに保存した `RANKING_API_KEY` を `apikey` ヘッダーで渡します。公開画面は公開キーで `songen3_online_stats_v1` と `songen3_online_board_v1` を読み取ります。 [登録と集計のSQL](docs/chameleonjp-lab/sql/songen3-online-ranking-v1.sql)
+
+同じ試合・席・イベント種別の同じ内容は再送できます。その組に以前と異なる内容が届くと `409` が返ります。本番で導入を確認するときは、公開キーで `songen3_online_stats_v1` に `{}` を送り、プレイ回数と名前付きで参加した人数を確認します。`npm test` と `npm run test:browser` では試験用の記録を使います。
