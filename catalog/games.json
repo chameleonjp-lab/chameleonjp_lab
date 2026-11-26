@@ -863,6 +863,27 @@
       "submission_mode": "verified",
       "score_min": 0,
       "score_max": 50000
+    },
+    {
+      "display_order": 65,
+      "game_slug": "junglegym_onigokko",
+      "title": "ジャングルジム鬼ごっこ",
+      "game_url": "https://chameleonjp-lab.github.io/junglegym_onigokko/",
+      "description": "カラフルなジャングルジムを登り降りしながら、鬼から逃げてスコアを競おう。",
+      "share_text": "ジャングルジム鬼ごっこで遊ぼう！\n#ジャングルジム鬼ごっこ\nhttps://chameleonjp-lab.github.io/junglegym_onigokko/",
+      "release_date": "2026-11-26",
+      "top_ranking_type": "best",
+      "score_order": "desc",
+      "score_unit": "pt",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_label": "スコア",
+      "first_score_label": "初回スコア",
+      "best_score_label": "自己ベスト",
+      "is_active": true,
+      "submission_mode": "verified",
+      "score_min": 1,
+      "score_max": 1000
     }
   ]
 }

@@ -16,10 +16,10 @@
 
   <link rel="stylesheet" href="./i18n/language.css?v=20261120-15lang" />
   <script src="./i18n/common.js?v=20261120-15lang"></script>
-  <script src="./i18n/ranking.js?v=20261126-junglegym"></script>
+  <script src="./i18n/ranking.js?v=20261126-junglegym-live"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261125-ikagetto-pages"></script>
+  <script src="./i18n/games-3.js?v=20261126-junglegym"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/hall.js?v=20261120-15lang"></script>
   <script src="./i18n/runtime.js?v=20261120-15lang"></script>
@@ -439,6 +439,16 @@
       margin: 4px 0 14px;
       color: var(--text-muted);
       font-size: 13px;
+    }
+
+    #jungle-board {
+      padding: 0;
+      list-style: none;
+    }
+
+    #jungle-board .detail-row {
+      grid-template-columns: max-content minmax(0, 1fr) max-content;
+      align-items: center;
     }
 
     .ranking-list {
@@ -2076,6 +2086,36 @@
             "difficultyLabel": ""
           }
         ]
+      },
+      {
+        "pageSlug": "junglegym_onigokko",
+        "title": "ジャングルジム鬼ごっこ",
+        "url": "https://chameleonjp-lab.github.io/junglegym_onigokko/",
+        "description": "カラフルなジャングルジムを登り降りしながら、鬼から逃げてスコアを競おう。",
+        "shareText": "ジャングルジム鬼ごっこで遊ぼう！\n#ジャングルジム鬼ごっこ\nhttps://chameleonjp-lab.github.io/junglegym_onigokko/",
+        "defaultDifficultyKey": "normal",
+        "difficulties": [
+          {
+            "displayOrder": 65,
+            "slug": "junglegym_onigokko",
+            "title": "ジャングルジム鬼ごっこ",
+            "url": "https://chameleonjp-lab.github.io/junglegym_onigokko/",
+            "description": "カラフルなジャングルジムを登り降りしながら、鬼から逃げてスコアを競おう。",
+            "shareText": "ジャングルジム鬼ごっこで遊ぼう！\n#ジャングルジム鬼ごっこ\nhttps://chameleonjp-lab.github.io/junglegym_onigokko/",
+            "releaseDate": "2026-11-26",
+            "topRanking": "best",
+            "scoreOrder": "desc",
+            "scoreUnit": "pt",
+            "scoreScale": 1,
+            "scoreDecimals": 0,
+            "scoreLabel": "スコア",
+            "firstScoreLabel": "初回スコア",
+            "bestScoreLabel": "自己ベスト",
+            "isActive": true,
+            "key": "normal",
+            "difficultyLabel": "ふつう"
+          }
+        ]
       }
 ];
 
@@ -3424,28 +3464,36 @@
         return;
       }
 
-      const resolved = await resolveGameFromUrl();
+      if (gameSlug === "junglegym_onigokko") {
+        const page = findPageBySlug(gameSlug);
+        const title = `${page.title} 詳細ランキング`;
+        pageTitleEl.textContent = title;
+        pageLeadEl.textContent = page.description;
+        document.documentElement.dataset.labSourceTitle = title;
+        document.title = window.LabI18n.t(title);
+        const { mountJungleGymRanking } = await import("./junglegym-ranking.js?v=1");
+        mountJungleGymRanking(contentAreaEl, {
+          gameUrl: page.url,
+          share: () => shareGame(page),
+          request: async (name, args = {}) => {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
+              method: "POST",
+              headers: { apikey: getSupabasePublishableKey(), "content-type": "application/json" },
+              credentials: "omit",
+              redirect: "error",
+              body: JSON.stringify(args),
+              signal: AbortSignal.timeout(8000)
+            });
+            if (!response.ok) throw new Error("Ranking request failed");
+            return response.json();
+          }
+        });
+        return;
+      }
 
+      const resolved = await resolveGameFromUrl();
       if (!resolved || !resolved.page || !resolved.difficulty) {
-        if (gameSlug === "junglegym_onigokko") {
-          const title = "ジャングルジム鬼ごっこ 詳細ランキング";
-          const gameUrl = new URL("https://chameleonjp-lab.github.io/junglegym_onigokko/");
-          const language = params.get("lang");
-          if (language) gameUrl.searchParams.set("lang", language);
-          pageTitleEl.textContent = title;
-          pageLeadEl.textContent = "ランキングの集計は準備中です。";
-          document.documentElement.dataset.labSourceTitle = title;
-          document.title = window.LabI18n.t(title);
-          contentAreaEl.innerHTML = `
-            <section class="summary-card">
-              <div class="actions">
-                <a class="button link-callout" href="${escapeHtml(gameUrl.href)}">ゲームで遊ぶ</a>
-              </div>
-            </section>
-          `;
-        } else {
-          renderNotFound();
-        }
+        renderNotFound();
         return;
       }
 

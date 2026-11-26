@@ -15,6 +15,14 @@ window.LabI18nRows = (window.LabI18nRows || []).concat([["難易度切り替え"
 ["緑系","Green group","Gama verde","Grupo verde","绿色系","Gamme verte","Grüne Farbreihe","초록 계열","Зелёная группа","Gruppo verde","綠色系","Kelompok hijau","Yeşil grup","Nhóm màu xanh lá","กลุ่มสีเขียว"],
 ["30棟完走","30 buildings cleared","30 edificios completados","30 prédios concluídos","通过30栋建筑","30 bâtiments terminés","30 Gebäude geschafft","건물 30채 완료","Пройдено 30 зданий","30 edifici completati","通過30棟建築","30 gedung dituntaskan","30 bina tamamlandı","Đã vượt qua 30 tòa nhà","ผ่านครบ 30 อาคาร"],
 ["最新の順位表を表示しました。","Showing the latest leaderboard.","Se muestra la clasificación más reciente.","Mostrando o ranking mais recente.","已显示最新排行榜。","Le classement le plus récent est affiché.","Die aktuelle Rangliste wird angezeigt.","최신 순위표를 표시했습니다.","Показана актуальная таблица результатов.","È visualizzata la classifica più recente.","已顯示最新排行榜。","Menampilkan peringkat terbaru.","En güncel sıralama gösteriliyor.","Đang hiển thị bảng xếp hạng mới nhất.","แสดงตารางอันดับล่าสุดแล้ว"]
+,
+["ふつう","Normal","Normal","Normal","普通","Normal","Normal","보통","Обычный","Normale","普通","Normal","Normal","Thường","ปกติ"],
+["むずかしい","Hard","Difícil","Difícil","困难","Difficile","Schwer","어려움","Сложный","Difficile","困難","Sulit","Zor","Khó","ยาก"],
+["鬼むず","Extreme","Extremo","Extremo","极难","Extrême","Extrem","극한","Экстремальный","Estremo","極難","Ekstrem","Aşırı zor","Cực khó","ยากสุด"],
+["前へ","Previous","Anterior","Anterior","上一页","Précédent","Zurück","이전","Назад","Indietro","上一頁","Sebelumnya","Önceki","Trước","ก่อนหน้า"],
+["次へ","Next","Siguiente","Próximo","下一页","Suivant","Weiter","다음","Далее","Avanti","下一頁","Selanjutnya","Sonraki","Tiếp","ถัดไป"],
+["記録はまだありません","No scores yet","Aún no hay récords","Ainda não há recordes","暂无成绩","Aucun score pour le moment","Noch keine Ergebnisse","아직 기록이 없습니다","Пока нет результатов","Nessun punteggio","暫無成績","Belum ada skor","Henüz skor yok","Chưa có điểm","ยังไม่มีคะแนน"],
+["pt","pt","pt","pt","pt","pt","pt","pt","pt","pt","pt","pt","pt","pt","pt"]
 ]);
 
 // Detail page shown while Jungle Gym Tag has no published leaderboard.
