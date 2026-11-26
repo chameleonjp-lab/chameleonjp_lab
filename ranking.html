@@ -19,7 +19,7 @@
   <script src="./i18n/ranking.js?v=20261126-junglegym-live"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261126-junglegym"></script>
+  <script src="./i18n/games-3.js?v=20261126-medjed"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/hall.js?v=20261120-15lang"></script>
   <script src="./i18n/runtime.js?v=20261120-15lang"></script>
@@ -2116,6 +2116,36 @@
             "difficultyLabel": "ふつう"
           }
         ]
+      },
+      {
+        "pageSlug": "medjedshin_ha_mamotteru",
+        "title": "メジェド神は守ってる",
+        "url": "https://chameleonjp-lab.github.io/Medjedshin_ha_mamotteru/",
+        "description": "冥界で死者たちの行進を守れ！40ウェーブの3Dアクション。",
+        "shareText": "メジェド神は守ってる\n冥界で死者たちの行進を守れ！40ウェーブの3Dアクション。\n#メジェド神は守ってる\nhttps://chameleonjp-lab.github.io/Medjedshin_ha_mamotteru/",
+        "defaultDifficultyKey": "main",
+        "difficulties": [
+          {
+            "displayOrder": 66,
+            "slug": "medjedshin_ha_mamotteru",
+            "title": "メジェド神は守ってる",
+            "url": "https://chameleonjp-lab.github.io/Medjedshin_ha_mamotteru/",
+            "description": "冥界で死者たちの行進を守れ！40ウェーブの3Dアクション。",
+            "shareText": "メジェド神は守ってる\n冥界で死者たちの行進を守れ！40ウェーブの3Dアクション。\n#メジェド神は守ってる\nhttps://chameleonjp-lab.github.io/Medjedshin_ha_mamotteru/",
+            "releaseDate": "2026-11-26",
+            "topRanking": "best",
+            "scoreOrder": "desc",
+            "scoreUnit": "点",
+            "scoreScale": 1,
+            "scoreDecimals": 0,
+            "scoreLabel": "スコア",
+            "firstScoreLabel": "初回スコア",
+            "bestScoreLabel": "自己ベスト",
+            "isActive": true,
+            "key": "main",
+            "difficultyLabel": ""
+          }
+        ]
       }
 ];
 
@@ -3464,15 +3494,17 @@
         return;
       }
 
-      if (gameSlug === "junglegym_onigokko") {
+      if (gameSlug === "junglegym_onigokko" || gameSlug === "medjedshin_ha_mamotteru") {
+        const isMedjed = gameSlug === "medjedshin_ha_mamotteru";
         const page = findPageBySlug(gameSlug);
         const title = `${page.title} 詳細ランキング`;
         pageTitleEl.textContent = title;
         pageLeadEl.textContent = page.description;
         document.documentElement.dataset.labSourceTitle = title;
         document.title = window.LabI18n.t(title);
-        const { mountJungleGymRanking } = await import("./junglegym-ranking.js?v=1");
-        mountJungleGymRanking(contentAreaEl, {
+        const { mountJungleGymRanking, mountMedjedRanking } = await import("./junglegym-ranking.js?v=20261126-medjed");
+        const mountRanking = isMedjed ? mountMedjedRanking : mountJungleGymRanking;
+        mountRanking(contentAreaEl, {
           gameUrl: page.url,
           share: () => shareGame(page),
           request: async (name, args = {}) => {

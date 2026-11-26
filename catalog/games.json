@@ -884,6 +884,27 @@
       "submission_mode": "verified",
       "score_min": 1,
       "score_max": 1000
+    },
+    {
+      "display_order": 66,
+      "game_slug": "medjedshin_ha_mamotteru",
+      "title": "メジェド神は守ってる",
+      "game_url": "https://chameleonjp-lab.github.io/Medjedshin_ha_mamotteru/",
+      "description": "冥界で死者たちの行進を守れ！40ウェーブの3Dアクション。",
+      "share_text": "メジェド神は守ってる\n冥界で死者たちの行進を守れ！40ウェーブの3Dアクション。\n#メジェド神は守ってる\nhttps://chameleonjp-lab.github.io/Medjedshin_ha_mamotteru/",
+      "release_date": "2026-11-26",
+      "top_ranking_type": "best",
+      "score_order": "desc",
+      "score_unit": "点",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_label": "スコア",
+      "first_score_label": "初回スコア",
+      "best_score_label": "自己ベスト",
+      "is_active": true,
+      "submission_mode": "verified",
+      "score_min": 0,
+      "score_max": 2147483647
     }
   ]
 }
