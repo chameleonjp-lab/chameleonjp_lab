@@ -905,6 +905,27 @@
       "submission_mode": "verified",
       "score_min": 0,
       "score_max": 2147483647
+    },
+    {
+      "display_order": 67,
+      "game_slug": "songen_wo_kakeyouka3_online",
+      "title": "尊厳を賭けようか3（オンライン対戦）",
+      "game_url": "https://chameleonjp-lab.github.io/songen_wo_kakeyouka3/",
+      "description": "部屋を作って友だちを招き、オンラインで1対1の対戦をしよう。",
+      "share_text": "尊厳を賭けようか3でオンライン対戦！\n#尊厳を賭けようか3\nhttps://chameleonjp-lab.github.io/songen_wo_kakeyouka3/",
+      "release_date": "2026-11-27",
+      "top_ranking_type": "best",
+      "score_order": "desc",
+      "score_unit": "点",
+      "score_scale": 1,
+      "score_decimals": 0,
+      "score_label": "スコア",
+      "first_score_label": "初回スコア",
+      "best_score_label": "ベストスコア",
+      "is_active": true,
+      "submission_mode": "verified",
+      "score_min": -2147483648,
+      "score_max": 2147483647
     }
   ]
 }

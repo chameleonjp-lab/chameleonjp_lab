@@ -55,6 +55,22 @@ await Promise.all(Array.from({ length: Math.min(4, games.length) }, async () => 
       summaries.push({ game_slug: "inubo", best_rows: best.length, time_rows: times.length, ...stats });
       continue;
     }
+    if (game.game_slug === "songen_wo_kakeyouka3_online") {
+      const stats = await request("rpc/songen3_online_stats_v1", {});
+      assert.equal(stats.length, 1, "Songen 3 online: expected one stats row");
+      const { total_play_count, player_count } = stats[0];
+      assert.ok([total_play_count, player_count].every(value => Number.isSafeInteger(value) && value >= 0),
+        "Songen 3 online: invalid totals");
+      const summary = { game_slug: game.game_slug, total_play_count, player_count };
+      for (const [tab, key] of [["best", "best_score"], ["record", "record_points"], ["points", "songen_points"]]) {
+        const rows = await request("rpc/songen3_online_board_v1", { p_tab: tab, p_offset: 0, p_limit: 100 });
+        assert.ok(rows.length <= 100 && rows.every(row => Number.isSafeInteger(row[key])), `Songen 3 online: invalid ${tab} rows`);
+        checkRanks(rows.map(row => ({ ...row, rank_no: row.rank })), key, "desc", `Songen 3 online ${tab}`);
+        summary[`${tab}_rows`] = rows.length;
+      }
+      summaries.push(summary);
+      continue;
+    }
     const body = { p_game_slug: game.game_slug, p_limit: 100 };
     // Sequential requests within each worker keep the total concurrency at four.
     const first = await request("rpc/get_first_try_ranking", body);

@@ -11,12 +11,12 @@ export const OLD_IRONARABE_URL = 'https://chameleonjp.codeberg.page/ironarabe/';
 // Data fingerprints from 88ad6a8 plus the reviewed Iroate URL-only migration. Only the
 // exact Ironarabe URL is normalized; every other URL and field stays covered.
 // The Chameleol, Inubo, Ikagetto, Jungle Gym Tag and Medjed additions were checked against every prior catalog row.
-// The Medjed URL casing change is included in these fingerprints.
+// The Medjed URL casing change and the verified Songen 3 Online addition are included.
 // Literal fingerprints keep this check usable in a shallow checkout.
 const baseline = {
-  'catalog/games.json': { hash: '98f3d716e2165b4bef8e68bda3aa7fe306eac7355efc796f63c5b41d8f493cc7', occurrences: 2 },
-  'index.html': { hash: 'ea647486dc2c86e5be70424ae3dfe5780d98d322ba55e448ff3602e84ee6d5d8', occurrences: 2 },
-  'ranking.html': { hash: '07e016919b0db29c3584a2fec3879431e7a11f1cdad3ab51eaebc82512ab65eb', occurrences: 4 }
+  'catalog/games.json': { hash: '3018a7c550dd47252b100b4653cc14ffb0f00a5c5c21cc0f527796bcc8184c76', occurrences: 2 },
+  'index.html': { hash: '78fb2898a4e7ac541b72657e1e1ba03e31ff656ee2fd482c6965a5b6434204d0', occurrences: 2 },
+  'ranking.html': { hash: '1820f67c30b92d6369bbc549af9624a78d902db0438a250a5f90567332336da0', occurrences: 4 }
 };
 
 function inlineArray(source, marker) {
