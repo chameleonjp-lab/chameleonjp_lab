@@ -459,24 +459,48 @@
             }
           },
           "else": {
-            "properties": {
-              "player_name": {
-                "properties": {
-                  "required_before_start": {
-                    "const": true
+            "if": {
+              "properties": { "game_id": { "const": "medjedshin_ha_mamotteru" } }
+            },
+            "then": {
+              "properties": {
+                "submission_mode": { "const": "verified" },
+                "player_name": {
+                  "required": ["required_for_ranking"],
+                  "properties": {
+                    "required_before_start": { "const": false },
+                    "required_for_ranking": { "const": true }
                   }
                 },
-                "not": {
-                  "required": [
-                    "required_for_ranking"
-                  ]
+                "play_count": {
+                  "properties": { "rpc": { "const": "medjed_start_v1" } },
+                  "not": { "required": ["unregistered_rpc"] }
+                },
+                "submission": {
+                  "properties": { "rpc": { "const": "medjed_finish_v1" } }
                 }
-              },
-              "play_count": {
-                "not": {
-                  "required": [
-                    "unregistered_rpc"
-                  ]
+              }
+            },
+            "else": {
+              "properties": {
+                "player_name": {
+                  "properties": {
+                    "required_before_start": {
+                      "const": true
+                    }
+                  },
+                  "not": {
+                    "required": [
+                      "required_for_ranking"
+                    ]
+                  }
+                },
+                "play_count": {
+                  "not": {
+                    "required": [
+                      "unregistered_rpc"
+                    ]
+                  }
                 }
               }
             }

@@ -18,7 +18,7 @@
   <script src="./i18n/ranking.js?v=20261126-junglegym-live"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261126-junglegym"></script>
+  <script src="./i18n/games-3.js?v=20261126-medjed"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/runtime.js?v=20261120-15lang"></script>
 
@@ -1779,6 +1779,29 @@
         "statsSlugs": [
           "junglegym_onigokko"
         ]
+      },
+      {
+        "displayOrder": 66,
+        "slug": "medjedshin_ha_mamotteru",
+        "title": "メジェド神は守ってる",
+        "url": "https://chameleonjp-lab.github.io/Medjedshin_ha_mamotteru/",
+        "description": "冥界で死者たちの行進を守れ！40ウェーブの3Dアクション。",
+        "shareText": "メジェド神は守ってる\n冥界で死者たちの行進を守れ！40ウェーブの3Dアクション。\n#メジェド神は守ってる\nhttps://chameleonjp-lab.github.io/Medjedshin_ha_mamotteru/",
+        "releaseDate": "2026-11-26",
+        "topRanking": "best",
+        "scoreOrder": "desc",
+        "scoreUnit": "点",
+        "scoreScale": 1,
+        "scoreDecimals": 0,
+        "scoreLabel": "スコア",
+        "firstScoreLabel": "初回スコア",
+        "bestScoreLabel": "自己ベスト",
+        "isActive": true,
+        "rankingSlug": "medjedshin_ha_mamotteru",
+        "detailSlug": "medjedshin_ha_mamotteru",
+        "statsSlugs": [
+          "medjedshin_ha_mamotteru"
+        ]
       }
 ];
 
@@ -1877,7 +1900,8 @@
       ["chameleol/", "social-card.jpg"],
       ["inubo/", "social-card.jpg"],
       ["ikagetto/", "assets/ikagetto-share-v1.jpg"],
-      ["junglegym_onigokko/", "assets/junglegym-social-v1.jpg"]
+      ["junglegym_onigokko/", "assets/junglegym-social-v1.jpg"],
+      ["Medjedshin_ha_mamotteru/", "assets/social-card-v1.jpg"]
     ]);
     const CODEBERG_THUMBNAIL_BASE = "https://chameleonjp.codeberg.page/";
     // Keep each canonical Codeberg game link; reuse its verified public share image.
@@ -2057,6 +2081,12 @@
       return response.json();
     }
 
+    const DEDICATED_STATS = new Map([
+      ["ikagetto", "ikagetto_stats_v1"],
+      ["junglegym_onigokko", "junglegym_stats_v1"],
+      ["medjedshin_ha_mamotteru", "medjed_stats_v1"]
+    ]);
+
     async function fetchSingleGameStats(slug) {
       const normalizedSlug = cleanText(slug);
       if (!normalizedSlug) return { totalPlayCount: 0, playerCount: 0 };
@@ -2067,10 +2097,9 @@
         } catch { return null; }
       }
       if (singleStatsCache.has(normalizedSlug)) return singleStatsCache.get(normalizedSlug);
-      if (normalizedSlug === "ikagetto" || normalizedSlug === "junglegym_onigokko") {
+      if (DEDICATED_STATS.has(normalizedSlug)) {
         try {
-          const rpc = normalizedSlug === "ikagetto" ? "ikagetto_stats_v1" : "junglegym_stats_v1";
-          const data = await requestGameRanking(rpc, {});
+          const data = await requestGameRanking(DEDICATED_STATS.get(normalizedSlug), {});
           const row = Array.isArray(data) ? (data.length === 1 ? data[0] : null) : data;
           if (![row?.total_play_count, row?.player_count].every(value => Number.isSafeInteger(value) && value >= 0)) {
             return null;
@@ -2158,8 +2187,8 @@
       }
       const playerCount = Number(stats?.playerCount || 0);
 
-      if ((game.slug === "ikagetto" || game.slug === "junglegym_onigokko") && !stats) return false;
-      if (game.slug !== "inubo" && game.slug !== "ikagetto" && game.slug !== "junglegym_onigokko" && totalPlayCount <= 0 && playerCount <= 0) {
+      if (DEDICATED_STATS.has(game.slug) && !stats) return false;
+      if (game.slug !== "inubo" && !DEDICATED_STATS.has(game.slug) && totalPlayCount <= 0 && playerCount <= 0) {
         setStatsComingSoon(game);
         return false;
       }
@@ -2890,7 +2919,7 @@
         playersEl.textContent = "取得できませんでした";
         return null;
       }
-      if ((game.slug === "inubo" || game.slug === "ikagetto" || game.slug === "junglegym_onigokko") && !stats) {
+      if ((game.slug === "inubo" || DEDICATED_STATS.has(game.slug)) && !stats) {
         playsEl.textContent = playersEl.textContent = "取得できませんでした";
         return null;
       }
@@ -2978,12 +3007,13 @@
 
       const isIkagetto = game.slug === "ikagetto";
       const isJungleGym = game.slug === "junglegym_onigokko";
+      const isMedjed = game.slug === "medjedshin_ha_mamotteru";
       if (isKeyUnset) {
         setRankingComingSoon(game);
         return false;
       }
 
-      if (!isIkagetto && !isJungleGym) {
+      if (!isIkagetto && !isJungleGym && !isMedjed) {
         await waitForSupabaseSetup();
         if (!supabaseClient) {
           setRankingComingSoon(game);
@@ -3013,6 +3043,14 @@
           }));
         } else if (isJungleGym) {
           const rows = await requestGameRanking("junglegym_board_v1", { p_mode: "normal", p_offset: 0, p_limit: 3 });
+          data = rows.map(row => ({ rank_no: row.rank, display_name: row.display_name, best_score: row.score }));
+        } else if (isMedjed) {
+          const rows = await requestGameRanking("medjed_board_v1", { p_offset: 0, p_limit: 3 });
+          if (!Array.isArray(rows) || rows.length > 3 || rows.some(row =>
+            !Number.isInteger(row?.rank) || row.rank < 1 || row.rank > 3 ||
+            typeof row.display_name !== "string" || !row.display_name.trim() ||
+            !Number.isSafeInteger(row.score) || row.score < 0
+          )) throw new Error("Invalid Medjed ranking rows");
           data = rows.map(row => ({ rank_no: row.rank, display_name: row.display_name, best_score: row.score }));
         } else if (game.slug === "inubo") {
           const { inuboBoard } = await import("./inubo-data.js");

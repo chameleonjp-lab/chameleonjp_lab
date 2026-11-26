@@ -10,12 +10,12 @@ export const OLD_IROATE_URL = 'https://chameleonjp.codeberg.page/iroate/';
 
 // Data fingerprints from main 419e25e68f3ee57f9e9d5030106d3fa418c43435. Only the
 // exact Iroate URL is normalized; every other URL and field stays covered.
-// The Chameleol, Inubo, Ikagetto and Jungle Gym Tag additions were checked against every prior catalog row.
+// The Chameleol, Inubo, Ikagetto, Jungle Gym Tag and Medjed additions were checked against every prior catalog row.
 // Literal fingerprints keep this check usable in a shallow checkout.
 const baseline = {
-  'catalog/games.json': { hash: '1f6f923705bb4e7d600e2080d3014d387df112a4bd7c5b7aa74842064f4ff796', occurrences: 2 },
-  'index.html': { hash: 'aebdcb5ff87277c3195ee40173fd338f05c7087bbdbdd10895a055024bb7ab94', occurrences: 2 },
-  'ranking.html': { hash: '6cd718f5d20eda97b18fed1d08631bbf567583837f207e466d43858eb489f756', occurrences: 4 }
+  'catalog/games.json': { hash: '50a09d4d5d83a091c58646def0485633a9aafdecfe8686c231f5d2e2a4f2e18c', occurrences: 2 },
+  'index.html': { hash: '249869300ead9e42dca37a0685230e9696829ad83540c520a25991ae6f769724', occurrences: 2 },
+  'ranking.html': { hash: 'be3d25fa3b224e70e66686fdf6eb0583aca6e60b6eb68998b16583b9583c3160', occurrences: 4 }
 };
 
 function inlineArray(source, marker) {
