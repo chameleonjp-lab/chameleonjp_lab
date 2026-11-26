@@ -90,7 +90,7 @@
           "const": 1
         },
         "max_length": {
-          "const": 20
+          "enum": [20, 24]
         },
         "storage_key": {
           "type": "string",
@@ -322,6 +322,14 @@
     {
       "if": {
         "properties": {
+          "player_name": { "properties": { "max_length": { "const": 24 } } }
+        }
+      },
+      "then": { "properties": { "game_id": { "const": "junglegym_onigokko" } } }
+    },
+    {
+      "if": {
+        "properties": {
           "game_id": {
             "const": "faitofuraito"
           }
@@ -408,24 +416,68 @@
           }
         },
         "else": {
-          "properties": {
-            "player_name": {
-              "properties": {
-                "required_before_start": {
-                  "const": true
-                }
+          "if": {
+            "properties": {
+              "game_id": {
+                "const": "junglegym_onigokko"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "submission_mode": {
+                "const": "verified"
               },
-              "not": {
+              "player_name": {
                 "required": [
                   "required_for_ranking"
-                ]
+                ],
+                "properties": {
+                    "max_length": { "const": 24 },
+                  "required_before_start": {
+                    "const": false
+                  },
+                  "required_for_ranking": {
+                    "const": true
+                  }
+                }
+              },
+              "play_count": {
+                "properties": {
+                  "rpc": {
+                    "const": "junglegym_start_v1"
+                  }
+                }
+              },
+              "submission": {
+                "properties": {
+                  "rpc": {
+                    "const": "junglegym_finish_v1"
+                  }
+                }
               }
-            },
-            "play_count": {
-              "not": {
-                "required": [
-                  "unregistered_rpc"
-                ]
+            }
+          },
+          "else": {
+            "properties": {
+              "player_name": {
+                "properties": {
+                  "required_before_start": {
+                    "const": true
+                  }
+                },
+                "not": {
+                  "required": [
+                    "required_for_ranking"
+                  ]
+                }
+              },
+              "play_count": {
+                "not": {
+                  "required": [
+                    "unregistered_rpc"
+                  ]
+                }
               }
             }
           }

@@ -15,10 +15,10 @@
 
   <link rel="stylesheet" href="./i18n/language.css?v=20261120-15lang" />
   <script src="./i18n/common.js?v=20261122-newest"></script>
-  <script src="./i18n/ranking.js?v=20261121-ta-v1"></script>
+  <script src="./i18n/ranking.js?v=20261126-junglegym-live"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261125-ikagetto-catch"></script>
+  <script src="./i18n/games-3.js?v=20261126-junglegym"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/runtime.js?v=20261120-15lang"></script>
 
@@ -1756,6 +1756,29 @@
         "statsSlugs": [
           "ikagetto"
         ]
+      },
+      {
+        "displayOrder": 65,
+        "slug": "junglegym_onigokko",
+        "title": "ジャングルジム鬼ごっこ",
+        "url": "https://chameleonjp-lab.github.io/junglegym_onigokko/",
+        "description": "カラフルなジャングルジムを登り降りしながら、鬼から逃げてスコアを競おう。",
+        "shareText": "ジャングルジム鬼ごっこで遊ぼう！\n#ジャングルジム鬼ごっこ\nhttps://chameleonjp-lab.github.io/junglegym_onigokko/",
+        "releaseDate": "2026-11-26",
+        "topRanking": "best",
+        "scoreOrder": "desc",
+        "scoreUnit": "pt",
+        "scoreScale": 1,
+        "scoreDecimals": 0,
+        "scoreLabel": "スコア",
+        "firstScoreLabel": "初回スコア",
+        "bestScoreLabel": "自己ベスト",
+        "isActive": true,
+        "rankingSlug": "junglegym_onigokko",
+        "detailSlug": "junglegym_onigokko",
+        "statsSlugs": [
+          "junglegym_onigokko"
+        ]
       }
 ];
 
@@ -1853,7 +1876,8 @@
       ["takkeu/", "og-takkeu-v1.png"],
       ["chameleol/", "social-card.jpg"],
       ["inubo/", "social-card.jpg"],
-      ["ikagetto/", "assets/ikagetto-share-v1.jpg"]
+      ["ikagetto/", "assets/ikagetto-share-v1.jpg"],
+      ["junglegym_onigokko/", "assets/junglegym-social-v1.jpg"]
     ]);
     const CODEBERG_THUMBNAIL_BASE = "https://chameleonjp.codeberg.page/";
     // Keep each canonical Codeberg game link; reuse its verified public share image.
@@ -2020,7 +2044,7 @@
       return supabaseClient;
     }
 
-    async function requestIkagettoRanking(name, args) {
+    async function requestGameRanking(name, args) {
       const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
         method: "POST",
         headers: { apikey: getSupabasePublishableKey(), "content-type": "application/json" },
@@ -2029,7 +2053,7 @@
         body: JSON.stringify(args),
         signal: AbortSignal.timeout(SUPABASE_REST_TIMEOUT_MS)
       });
-      if (!response.ok) throw new Error(`Ikagetto ranking request failed: HTTP ${response.status}`);
+      if (!response.ok) throw new Error(`Ranking request failed: HTTP ${response.status}`);
       return response.json();
     }
 
@@ -2043,9 +2067,10 @@
         } catch { return null; }
       }
       if (singleStatsCache.has(normalizedSlug)) return singleStatsCache.get(normalizedSlug);
-      if (normalizedSlug === "ikagetto") {
+      if (normalizedSlug === "ikagetto" || normalizedSlug === "junglegym_onigokko") {
         try {
-          const data = await requestIkagettoRanking("ikagetto_stats_v1", {});
+          const rpc = normalizedSlug === "ikagetto" ? "ikagetto_stats_v1" : "junglegym_stats_v1";
+          const data = await requestGameRanking(rpc, {});
           const row = Array.isArray(data) ? (data.length === 1 ? data[0] : null) : data;
           if (![row?.total_play_count, row?.player_count].every(value => Number.isSafeInteger(value) && value >= 0)) {
             return null;
@@ -2054,7 +2079,7 @@
           singleStatsCache.set(normalizedSlug, stats);
           return stats;
         } catch (error) {
-          console.error("ikagetto_stats_v1 error:", error);
+          console.error("Game stats error:", error);
           return null;
         }
       }
@@ -2133,8 +2158,8 @@
       }
       const playerCount = Number(stats?.playerCount || 0);
 
-      if (game.slug === "ikagetto" && !stats) return false;
-      if (game.slug !== "inubo" && game.slug !== "ikagetto" && totalPlayCount <= 0 && playerCount <= 0) {
+      if ((game.slug === "ikagetto" || game.slug === "junglegym_onigokko") && !stats) return false;
+      if (game.slug !== "inubo" && game.slug !== "ikagetto" && game.slug !== "junglegym_onigokko" && totalPlayCount <= 0 && playerCount <= 0) {
         setStatsComingSoon(game);
         return false;
       }
@@ -2865,7 +2890,7 @@
         playersEl.textContent = "取得できませんでした";
         return null;
       }
-      if ((game.slug === "inubo" || game.slug === "ikagetto") && !stats) {
+      if ((game.slug === "inubo" || game.slug === "ikagetto" || game.slug === "junglegym_onigokko") && !stats) {
         playsEl.textContent = playersEl.textContent = "取得できませんでした";
         return null;
       }
@@ -2952,12 +2977,13 @@
       }
 
       const isIkagetto = game.slug === "ikagetto";
+      const isJungleGym = game.slug === "junglegym_onigokko";
       if (isKeyUnset) {
         setRankingComingSoon(game);
         return false;
       }
 
-      if (!isIkagetto) {
+      if (!isIkagetto && !isJungleGym) {
         await waitForSupabaseSetup();
         if (!supabaseClient) {
           setRankingComingSoon(game);
@@ -2971,7 +2997,7 @@
       try {
         let data;
         if (isIkagetto) {
-          const rows = await requestIkagettoRanking(functionName, { p_limit: 3 });
+          const rows = await requestGameRanking(functionName, { p_limit: 3 });
           if (!Array.isArray(rows) || rows.length > 3 || rows.some(row =>
             !Number.isInteger(row?.rank) || row.rank < 1 || row.rank > 3 ||
             typeof row.display_name !== "string" || !row.display_name.trim() ||
@@ -2985,6 +3011,9 @@
               Number.isInteger(row.weight_kg) && row.weight_kg >= 1 && row.weight_kg <= 45000 &&
               Number.isInteger(row.elapsed_ms) && row.elapsed_ms >= 0 ? row : null
           }));
+        } else if (isJungleGym) {
+          const rows = await requestGameRanking("junglegym_board_v1", { p_mode: "normal", p_offset: 0, p_limit: 3 });
+          data = rows.map(row => ({ rank_no: row.rank, display_name: row.display_name, best_score: row.score }));
         } else if (game.slug === "inubo") {
           const { inuboBoard } = await import("./inubo-data.js");
           const rows = await inuboBoard("total", 3);
