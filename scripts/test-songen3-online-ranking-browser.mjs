@@ -13,6 +13,10 @@ const sample = {
   rank: 1, display_name: '<img src=x>', best_score: 2000, match_count: 10, wins: 6,
   losses: 3, draws: 1, record_points: 3000, total_score: 8000, songen_points: 2400
 };
+const negativePoints = {
+  rank: 2, display_name: 'Negative points', best_score: -150, match_count: 1, wins: 1,
+  losses: 0, draws: 0, record_points: 909, total_score: -150, songen_points: -14
+};
 const bestRows = Array.from({ length: 52 }, (_, index) => ({
   ...sample,
   display_name: index === 0 ? sample.display_name : `Player ${index + 1}`,
@@ -75,6 +79,7 @@ for (const engine of [chromium, webkit]) {
           await recordResponse;
           return route.fulfill({ json: [] });
         }
+        if (tab === 'points') return route.fulfill({ json: [sample, negativePoints] });
         return route.fulfill({ json: [sample] });
       }
       if (!url.href.startsWith(base.href)) return route.abort();
@@ -127,8 +132,10 @@ for (const engine of [chromium, webkit]) {
       response.request().postDataJSON().p_tab === 'record');
     releaseRecord();
     await finishOldRecord;
-    await points.getByText('Career score', { exact: true }).waitFor();
-    assert.deepEqual(await points.locator('dd').allTextContents(), ['2,400', '8,000', '3,000']);
+    await points.getByText('Negative points', { exact: true }).waitFor();
+    await points.getByText('Rank 2', { exact: true }).waitFor();
+    assert.deepEqual(await points.locator('dd').allTextContents(), ['2,400', '8,000', '3,000', '-14', '-150', '909']);
+    assert.deepEqual(await points.locator('.rank-no').allTextContents(), ['Rank 1', 'Rank 2']);
     assert.equal(await record.isVisible(), false);
 
     await page.getByRole('tab', { name: 'Match record' }).click();

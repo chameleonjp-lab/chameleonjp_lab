@@ -24,7 +24,7 @@ function validRow(row, tab) {
       !Number.isSafeInteger(row[tab.value])) return false;
   if (tab.id === 'best') return true;
   if (!Number.isSafeInteger(row.record_points) || row.record_points < 0 || row.record_points >= 10000) return false;
-  if (tab.id === 'points') return row.songen_points >= 0 && Number.isSafeInteger(row.total_score);
+  if (tab.id === 'points') return Number.isSafeInteger(row.total_score);
   return [row.match_count, row.wins, row.losses, row.draws].every(value => Number.isSafeInteger(value) && value >= 0) &&
     row.match_count > 0 && row.match_count === row.wins + row.losses + row.draws;
 }
