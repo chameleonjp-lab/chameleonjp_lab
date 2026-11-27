@@ -22,7 +22,7 @@
   <script src="./i18n/games-3.js?v=20261127-songen3"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/hall.js?v=20261120-15lang"></script>
-  <script src="./i18n/runtime.js?v=20261120-15lang"></script>
+  <script src="./i18n/runtime.js?v=20261127-ranking-pages"></script>
 
   <style>
     :root {
@@ -829,7 +829,7 @@
     }
     #ikagetto-rows { margin-top: 12px; }
     .ikagetto-retry { margin-top: 12px; }
-    .ikagetto-pages {
+    .ikagetto-pages, .ranking-pages {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: center;
@@ -838,8 +838,8 @@
       text-align: center;
       font-size: 14px;
     }
-    .ikagetto-pages[hidden] { display: none; }
-    .ikagetto-pages .button {
+    .ikagetto-pages[hidden], .ranking-pages[hidden] { display: none; }
+    .ikagetto-pages .button, .ranking-pages .button {
       padding-inline: 8px;
       overflow-wrap: anywhere;
     }
@@ -941,7 +941,7 @@
 
     const SUPABASE_URL = "https://mlpnjgezrnhdxsxolyzj.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_drzcy0v97knU6FgjqSgBHw_0A9XPdFM";
-    const DETAIL_LIMIT = 100;
+    const DETAIL_PAGE_SIZE = 500;
 
     const GAME_PAGES = [
       {
@@ -2877,6 +2877,7 @@
           <section class="ranking-card" id="firstPanel" role="tabpanel" aria-labelledby="firstTab">
             <h2 class="ranking-title">${escapeHtml(firstLabel)}ランキング</h2>
             <p class="ranking-sub">初めて遊んだときの記録だけを表示します。</p>
+            ${rankingPagerHtml()}
             <div class="ranking-list" id="firstRanking">
               <div class="loading">${escapeHtml(firstLabel)}ランキングを読み込み中です</div>
             </div>
@@ -2885,6 +2886,7 @@
           <section class="ranking-card" id="bestPanel" role="tabpanel" aria-labelledby="bestTab" hidden>
             <h2 class="ranking-title">${escapeHtml(bestLabel)}ランキング</h2>
             <p class="ranking-sub">これまでに出した一番良い記録だけを表示します。</p>
+            ${chameleol ? "" : rankingPagerHtml()}
             <div class="ranking-list" id="bestRanking" aria-live="polite">
               <div class="loading">${escapeHtml(bestLabel)}ランキングを読み込み中です</div>
             </div>
@@ -2953,6 +2955,7 @@
           <section class="ranking-card" id="playsPanel" role="tabpanel" aria-labelledby="playsTab" hidden>
             <h2 class="ranking-title">プレイ回数ランキング</h2>
             <p class="ranking-sub">プレイ回数が多い順に表示します。</p>
+            ${rankingPagerHtml()}
             <div class="ranking-list" id="playsRanking">
               <div class="loading">プレイ回数ランキングを読み込み中です</div>
             </div>
@@ -3180,26 +3183,6 @@
         : "まだ記録がありません";
     }
 
-    async function fetchFirstRanking(game) {
-      const { data, error } = await supabaseClient.rpc("get_first_try_ranking", {
-        p_game_slug: game.slug,
-        p_limit: DETAIL_LIMIT
-      });
-
-      if (error) throw error;
-      return Array.isArray(data) ? data : [];
-    }
-
-    async function fetchBestRanking(game) {
-      const { data, error } = await supabaseClient.rpc("get_best_score_ranking", {
-        p_game_slug: game.slug,
-        p_limit: DETAIL_LIMIT
-      });
-
-      if (error) throw error;
-      return Array.isArray(data) ? data : [];
-    }
-
     function buildFirstRankingRows(firstRows, game, stats) {
       if (!firstRows.length) return `<div class="empty">${emptyScoreRankingMessage(stats)}</div>`;
 
@@ -3310,16 +3293,6 @@
       }).join("");
     }
 
-    async function fetchPlayCountRanking(game) {
-      const { data, error } = await supabaseClient.rpc("get_play_count_ranking", {
-        p_game_slug: game.slug,
-        p_limit: DETAIL_LIMIT
-      });
-
-      if (error) throw error;
-      return Array.isArray(data) ? data : [];
-    }
-
     function buildPlayCountRankingRows(playRows, game, stats) {
       const guestCount = game.slug.startsWith("faitofuraito_")
         ? Number(stats?.unregisteredPlayCount || 0) : 0;
@@ -3357,21 +3330,74 @@
       `).join("") + guestRow;
     }
 
-    function showPlayCountRankingError(token) {
-      if (token !== currentLoadToken) return;
-      const playsRankingEl = document.getElementById("playsRanking");
-      if (playsRankingEl) playsRankingEl.innerHTML = `<div class="coming-soon">プレイ回数ランキングを取得できませんでした。</div>`;
+    function rankingPagerHtml() {
+      return `
+        <div class="ranking-pages" role="navigation" aria-label="ページ切り替え" data-ranking-pager hidden>
+          <button class="button secondary" type="button" data-rank-prev>前のページ</button>
+          <span data-rank-page aria-live="polite"></span>
+          <button class="button secondary" type="button" data-rank-next>次のページ</button>
+        </div>
+        <div class="ranking-sub" data-rank-status role="status"></div>
+        <button class="button secondary" type="button" data-rank-retry hidden>再試行</button>
+      `;
     }
 
-    function showDetailComingSoon(token) {
-      if (token !== currentLoadToken) return;
-      const firstRankingEl = document.getElementById("firstRanking");
-      const bestRankingEl = document.getElementById("bestRanking");
-      const playsRankingEl = document.getElementById("playsRanking");
+    function loadRankingPanel(container, game, tab, renderRows, stats, token) {
+      const panel = container.parentElement;
+      const pager = panel.querySelector("[data-ranking-pager]");
+      const previous = pager.querySelector("[data-rank-prev]");
+      const next = pager.querySelector("[data-rank-next]");
+      const pageLabel = pager.querySelector("[data-rank-page]");
+      const status = panel.querySelector("[data-rank-status]");
+      const retry = panel.querySelector("[data-rank-retry]");
+      let offset = 0;
+      let failedOffset = 0;
+      let hasMore = false;
+      let pending = false;
 
-      if (firstRankingEl) firstRankingEl.innerHTML = `<div class="coming-soon">coming soon</div>`;
-      if (bestRankingEl) bestRankingEl.innerHTML = `<div class="coming-soon">coming soon</div>`;
-      if (playsRankingEl) playsRankingEl.innerHTML = `<div class="coming-soon">プレイ回数ランキングを取得できませんでした。</div>`;
+      async function load(targetOffset) {
+        if (pending || token !== currentLoadToken) return;
+        pending = true;
+        previous.disabled = next.disabled = true;
+        retry.hidden = true;
+        status.textContent = targetOffset === 0 && pager.hidden ? "" : "読み込み中";
+        try {
+          await waitForSupabaseSetup();
+          if (token !== currentLoadToken) return;
+          if (!supabaseClient || isKeyUnset) throw new Error("Ranking client unavailable");
+          const { data, error } = await supabaseClient.rpc("lab_ranking_page_v1", {
+            p_game_slug: game.slug,
+            p_tab: tab,
+            p_offset: targetOffset,
+            p_limit: DETAIL_PAGE_SIZE + 1
+          });
+          if (token !== currentLoadToken) return;
+          if (error) throw error;
+          if (!Array.isArray(data) || data.length > DETAIL_PAGE_SIZE + 1) throw new Error("Invalid ranking page");
+          offset = targetOffset;
+          hasMore = data.length > DETAIL_PAGE_SIZE;
+          container.innerHTML = renderRows(data.slice(0, DETAIL_PAGE_SIZE), game, stats);
+          pageLabel.textContent = (offset / DETAIL_PAGE_SIZE + 1) + "ページ";
+          pager.hidden = offset === 0 && !hasMore;
+          status.textContent = "";
+        } catch (error) {
+          if (token !== currentLoadToken) return;
+          console.error("ranking page load error:", game.slug, tab, error);
+          failedOffset = targetOffset;
+          if (pager.hidden) container.replaceChildren();
+          status.textContent = "ランキングを取得できませんでした。";
+          retry.hidden = false;
+        } finally {
+          pending = false;
+          previous.disabled = offset === 0;
+          next.disabled = !hasMore;
+        }
+      }
+
+      previous.addEventListener("click", () => void load(offset - DETAIL_PAGE_SIZE));
+      next.addEventListener("click", () => void load(offset + DETAIL_PAGE_SIZE));
+      retry.addEventListener("click", () => void load(failedOffset));
+      return load(0);
     }
 
     async function loadRankings(game, token, stats = null) {
@@ -3437,43 +3463,12 @@
         await loadBest();
         return;
       }
-      if (isKeyUnset) {
-        showDetailComingSoon(token);
-        return;
-      }
-
-      await waitForSupabaseSetup();
-
-      if (!supabaseClient) {
-        showDetailComingSoon(token);
-        return;
-      }
-
-      try {
-        const [firstRows, bestRows] = await Promise.all([
-          fetchFirstRanking(game),
-          fetchBestRanking(game)
-        ]);
-
-        if (token !== currentLoadToken) return;
-
-        firstRankingEl.innerHTML = buildFirstRankingRows(firstRows, game, stats);
-        bestRankingEl.innerHTML = buildBestRankingRows(bestRows, game, stats);
-      } catch (error) {
-        console.error("ranking load error:", game.slug, error);
-        showDetailComingSoon(token);
-      }
-
-      try {
-        const playRows = await fetchPlayCountRanking(game);
-        if (token !== currentLoadToken) return;
-        if (playsRankingEl) playsRankingEl.innerHTML = buildPlayCountRankingRows(playRows, game, stats);
-      } catch (error) {
-        console.error("play count ranking load error:", game.slug, error);
-        showPlayCountRankingError(token);
-      }
+      await Promise.all([
+        loadRankingPanel(firstRankingEl, game, "first", buildFirstRankingRows, stats, token),
+        loadRankingPanel(bestRankingEl, game, "best", buildBestRankingRows, stats, token),
+        loadRankingPanel(playsRankingEl, game, "plays", buildPlayCountRankingRows, stats, token)
+      ]);
     }
-
 
     async function loadDisqualifiedEntries(game, token) {
       const sectionEl = document.getElementById("disqualifiedSection");

@@ -35,6 +35,7 @@ function sdkSource(games) {
       };
       return builder;
     }
+    let failSecondPage = true;
     async function rpc(name, args) {
       log('rpc', { name, args });
       const ranking = playerNames.map((display_name, i) => ({
@@ -44,7 +45,28 @@ function sdkSource(games) {
         play_count: [7, 7, 3][i]
       }));
       if (name === 'get_game_play_stats') return { data: [{ total_play_count: 17, player_count: 3 }], error: null };
-      if (['get_first_try_ranking', 'get_best_score_ranking', 'get_play_count_ranking'].includes(name)) {
+      if (name === 'lab_ranking_page_v1') {
+        const { p_tab: tab, p_offset: offset, p_limit: limit } = args;
+        if (new URLSearchParams(location.search).get('fixture') === 'pages' && tab === 'best') {
+          if (offset === 500 && failSecondPage) {
+            failSecondPage = false;
+            return { data: null, error: new Error('Temporary fixture failure') };
+          }
+          const players = Array.from({ length: 1001 }, (_, index) => {
+            const position = index + 1;
+            return {
+              rank_no: position === 501 ? 500 : position,
+              display_name: 'Player ' + position,
+              first_score: 3400 + position,
+              best_score: 2400 + (position === 501 ? 500 : position),
+              play_count: 1
+            };
+          });
+          return { data: players.slice(offset, offset + limit), error: null };
+        }
+        return { data: ranking.slice(offset, offset + limit), error: null };
+      }
+      if (name === 'get_best_score_ranking') {
         return { data: ranking.slice(0, args.p_limit), error: null };
       }
       if (name === 'get_disqualified_score_entries') return { data: [], error: null };
@@ -159,11 +181,45 @@ async function browserCase(browser, mode, helpers) {
       assert.equal(await page.locator('#playsPanel').isVisible(), true);
       const calls = await page.evaluate(() => window.__fixtureCalls);
       assert.ok(calls.some(call => call.operation === 'select' && call.filters.some(([key, value]) => key === 'game_slug' && value === 'ironarabe')));
-      for (const rpc of ['get_first_try_ranking', 'get_best_score_ranking', 'get_play_count_ranking']) {
-        assert.ok(calls.some(call => call.name === rpc && call.args.p_game_slug === 'ironarabe' && call.args.p_limit === 100), rpc);
+      for (const tab of ['first', 'best', 'plays']) {
+        assert.ok(calls.some(call => call.name === 'lab_ranking_page_v1' &&
+          call.args.p_game_slug === 'ironarabe' && call.args.p_tab === tab &&
+          call.args.p_offset === 0 && call.args.p_limit === 501), tab);
       }
+      assert.equal(await page.locator('#bestPanel [data-ranking-pager]').isVisible(), false);
+
+      await page.goto(`${origin}/ranking.html?game=ironarabe&fixture=pages`);
+      await page.locator('#bestTab').click();
+      const panel = page.locator('#bestPanel');
+      const previous = panel.locator('[data-rank-prev]');
+      const next = panel.locator('[data-rank-next]');
+      const pageLabel = panel.locator('[data-rank-page]');
+      await panel.getByText('Player 500', { exact: true }).waitFor();
+      assert.equal(await panel.locator('.detail-row').count(), 500);
+      assert.equal(await previous.isDisabled(), true);
+      await next.click();
+      const retry = panel.locator('[data-rank-retry]');
+      await retry.waitFor();
+      assert.equal(await pageLabel.textContent(), '1ページ');
+      assert.equal(await panel.locator('.rank-no').last().textContent(), '500位');
+      await retry.click();
+      await panel.getByText('Player 501', { exact: true }).waitFor();
+      assert.equal(await pageLabel.textContent(), '2ページ');
+      assert.equal(await panel.locator('.rank-no').first().textContent(), '500位');
+      assert.equal(await panel.locator('.detail-row').count(), 500);
+      await next.click();
+      await panel.getByText('Player 1001', { exact: true }).waitFor();
+      assert.equal(await panel.locator('.detail-row').count(), 1);
+      assert.equal(await next.isDisabled(), true);
+      await previous.click();
+      await panel.getByText('Player 501', { exact: true }).waitFor();
+      assert.equal(await pageLabel.textContent(), '2ページ');
+      await page.locator('#playsTab').click();
+      assert.deepEqual(await rowTexts('#playsRanking .player-name'), names);
+      assert.equal(await page.locator('#playsPanel [data-ranking-pager]').isVisible(), false);
     } else {
-      await page.waitForFunction(() => document.getElementById('firstRanking').textContent.includes('coming soon'));
+      await page.locator('#firstPanel [data-rank-retry]').waitFor({ state: 'attached' });
+      await page.waitForFunction(() => !document.querySelector('#firstPanel [data-rank-retry]').hidden);
       assert.equal(await page.locator('.detail-row').count(), 0);
       assert.equal(await page.evaluate(() => typeof window.supabase), 'undefined');
     }

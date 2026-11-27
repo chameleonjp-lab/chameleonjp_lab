@@ -38,8 +38,7 @@ function catalogSdk(games) {
     switch (name) {
       case 'get_game_play_stats': return {data:[{total_play_count:5,player_count:2}]};
       case 'get_best_score_ranking':
-      case 'get_first_try_ranking':
-      case 'get_play_count_ranking': return {data:[{rank_no:1,display_name:'対照',best_score:34,first_score:35,play_count:5}]};
+      case 'lab_ranking_page_v1': return {data:[{rank_no:1,display_name:'対照',best_score:34,first_score:35,play_count:5}]};
       case 'get_takkeu_abnormal_entries_v1':
       case 'get_disqualified_score_entries': return {data:[]};
       default: throw new Error('Unexpected RPC: ' + name);
