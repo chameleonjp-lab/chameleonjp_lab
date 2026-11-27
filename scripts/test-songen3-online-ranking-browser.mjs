@@ -133,6 +133,7 @@ for (const engine of [chromium, webkit]) {
     releaseRecord();
     await finishOldRecord;
     await points.getByText('Negative points', { exact: true }).waitFor();
+    await points.getByText('Rank 2', { exact: true }).waitFor();
     assert.deepEqual(await points.locator('dd').allTextContents(), ['2,400', '8,000', '3,000', '-14', '-150', '909']);
     assert.deepEqual(await points.locator('.rank-no').allTextContents(), ['Rank 1', 'Rank 2']);
     assert.equal(await record.isVisible(), false);
