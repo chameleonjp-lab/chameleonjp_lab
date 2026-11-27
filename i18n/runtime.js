@@ -96,6 +96,9 @@
     if ((m = source.match(/^第([\d,.]+)号 殿堂入り$/))) {
       return templatePart('殿堂入り') + ' #' + m[1];
     }
+    if ((m = source.match(/^(\d+)ページ$/))) {
+      return templatePart('{page}ページ').replace('{page}', m[1]);
+    }
     if ((m = source.match(/^(最高一致率|一致率)\s*([\d,.]+%)$/))) {
       return templatePart(m[1]) + ' ' + m[2];
     }

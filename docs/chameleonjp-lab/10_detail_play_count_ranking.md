@@ -37,11 +37,7 @@ play_count desc
 
 ## 4. 取得件数
 
-詳細ページでは、既存の初回・ベストランキングと同じく、最大100件を取得する。
-
-```js
-const DETAIL_LIMIT = 100;
-```
+共通の詳細ページでは、初回・ベストと同じく500件ずつ表示します。詳細ページは `lab_ranking_page_v1` に `p_tab: "plays"` を指定します。以下の `get_play_count_ranking` は従来の読み取り用の仕様です。
 
 ## 5. 追加するSupabase RPC
 

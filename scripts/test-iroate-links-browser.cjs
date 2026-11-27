@@ -45,7 +45,10 @@ function sdkSource(games) {
       }));
       // 17 named plays plus 3 anonymous starts; anonymous players have no ranking row.
       if (name === 'get_game_play_stats') return { data: [{ total_play_count: 20, player_count: 3 }], error: null };
-      if (['get_first_try_ranking', 'get_best_score_ranking', 'get_play_count_ranking'].includes(name)) {
+      if (name === 'lab_ranking_page_v1') {
+        return { data: ranking.slice(args.p_offset, args.p_offset + args.p_limit), error: null };
+      }
+      if (name === 'get_best_score_ranking') {
         return { data: ranking.slice(0, args.p_limit), error: null };
       }
       if (name === 'get_disqualified_score_entries') return { data: [], error: null };
@@ -160,11 +163,14 @@ async function browserCase(browser, mode, helpers) {
       assert.equal(await page.locator('#playsPanel').isVisible(), true);
       const calls = await page.evaluate(() => window.__fixtureCalls);
       assert.ok(calls.some(call => call.operation === 'select' && call.filters.some(([key, value]) => key === 'game_slug' && value === 'iroate')));
-      for (const rpc of ['get_first_try_ranking', 'get_best_score_ranking', 'get_play_count_ranking']) {
-        assert.ok(calls.some(call => call.name === rpc && call.args.p_game_slug === 'iroate' && call.args.p_limit === 100), rpc);
+      for (const tab of ['first', 'best', 'plays']) {
+        assert.ok(calls.some(call => call.name === 'lab_ranking_page_v1' &&
+          call.args.p_game_slug === 'iroate' && call.args.p_tab === tab &&
+          call.args.p_offset === 0 && call.args.p_limit === 501), tab);
       }
     } else {
-      await page.waitForFunction(() => document.getElementById('firstRanking').textContent.includes('coming soon'));
+      await page.locator('#firstPanel [data-rank-retry]').waitFor({ state: 'attached' });
+      await page.waitForFunction(() => !document.querySelector('#firstPanel [data-rank-retry]').hidden);
       assert.equal(await page.locator('.detail-row').count(), 0);
       assert.equal(await page.evaluate(() => typeof window.supabase), 'undefined');
     }
