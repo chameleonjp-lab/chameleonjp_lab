@@ -71,6 +71,7 @@ test('browser sends only a fresh start ID and slug, and retries with the same ID
   });
   const scope = {
     crypto: { randomUUID }, Date, AbortSignal, localStorage,
+    location: { origin: 'http://localhost:8000' },
     setTimeout: callback => timers.push(callback),
     fetch: async (_url, request) => {
       calls.push(JSON.parse(request.body));
@@ -78,6 +79,8 @@ test('browser sends only a fresh start ID and slug, and retries with the same ID
     },
   };
   runInNewContext(source.replace('export function', 'function'), scope);
+  scope.recordPlayStart('tomatoku_competition_v1');
+  scope.location.origin = 'https://chameleonjp-lab.github.io';
   scope.recordPlayStart('invalid slug');
   scope.recordPlayStart('tomatoku_competition_v1');
   await new Promise(setImmediate);

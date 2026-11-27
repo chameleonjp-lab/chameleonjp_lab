@@ -2,6 +2,7 @@
 const prefix = 'chameleonjp-lab:play-start:v1:';
 const api = 'https://mlpnjgezrnhdxsxolyzj.supabase.co/rest/v1/rpc/lab_record_play_start_v1';
 const publishableKey = 'sb_publishable_drzcy0v97knU6FgjqSgBHw_0A9XPdFM';
+const officialOrigin = 'https://chameleonjp-lab.github.io';
 const maxStored = 60;
 const expiresAfter = 7 * 24 * 60 * 60_000;
 const pending = new Map();
@@ -67,6 +68,7 @@ function flush() {
 }
 
 export function recordPlayStart(slug) {
+  if (globalThis.location?.origin !== officialOrigin) return;
   try {
     if (typeof slug !== 'string' || !/^[a-z0-9_]{1,80}$/.test(slug)) return;
     const play = { id: crypto.randomUUID(), slug, time: Date.now() };
@@ -79,7 +81,7 @@ export function recordPlayStart(slug) {
   }
 }
 
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && window.location.origin === officialOrigin) {
   window.addEventListener('online', flush);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') flush();
