@@ -138,7 +138,7 @@ begin
       select t.*, div(10000::numeric * t.wins, t.match_count::numeric + 10)::integer as record_points
       from totals as t
     ), points as (
-      select p.*, div(greatest(0, p.total_score)::numeric * p.record_points, 10000)::bigint as songen_points
+      select p.*, floor(p.total_score::numeric * p.record_points / 10000.0000)::bigint as songen_points
       from performance as p
     ), board as (
       select p.*, case p_tab

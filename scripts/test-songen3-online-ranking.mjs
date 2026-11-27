@@ -148,7 +148,8 @@ test('three tabs use exact integer points, ordinary scores, latest names and ran
       for (const [event, outcome, reason, score] of [
         [start(1, 1, playerId('B'), currentName), 'loss', 'heart', 2000],
         [start(20, 0, playerId('C'), '降参だけ'), 'win', 'forfeit', 99999],
-        [start(21, 0, playerId('D'), '負のスコア'), 'win', 'heart', -150]
+        [start(21, 0, playerId('D'), '負のスコア'), 'win', 'heart', -150],
+        [start(23, 0, playerId('F'), '小さな負のスコア'), 'win', 'heart', -1]
       ]) {
         await submit(db, event);
         await submit(db, result(event, outcome, reason, score));
@@ -158,27 +159,31 @@ test('three tabs use exact integer points, ordinary scores, latest names and ran
       await submit(db, start(22, 1));
     });
     await asRole(db, 'anon', async () => {
-      assert.deepEqual(await stats(db), { total_play_count: 16, player_count: 5 });
+      assert.deepEqual(await stats(db), { total_play_count: 17, player_count: 6 });
       const best = await board(db, 'best');
       assert.deepEqual(best.map(row => [row.rank, row.display_name, row.best_score]), [
-        [1, '同じ名前', 2000], [1, '同じ名前', 2000], [3, '負のスコア', -150]
+        [1, '同じ名前', 2000], [1, '同じ名前', 2000],
+        [3, '小さな負のスコア', -1], [4, '負のスコア', -150]
       ]);
       assert.deepEqual(await board(db, 'best', 0, 1), best.slice(0, 1));
       assert.deepEqual(await board(db, 'best', 1, 1), best.slice(1, 2));
-      assert.deepEqual(await board(db, 'best', 3, 1), []);
+      assert.deepEqual(await board(db, 'best', 4, 1), []);
       const records = await board(db, 'record');
       assert.deepEqual(records[0], {
         rank: 1, display_name: '同じ名前', best_score: 2000, match_count: 10,
         wins: 6, losses: 3, draws: 1, record_points: 3000, total_score: 8000, songen_points: 2400
       });
-      assert.deepEqual(records.slice(1).map(row => row.rank), [2, 2, 4]);
+      assert.deepEqual(records.slice(1).map(row => row.rank), [2, 2, 2, 5]);
       const forfeitOnly = records.find(row => row.display_name === '降参だけ');
       assert.equal(forfeitOnly.best_score, null);
       assert.equal(forfeitOnly.match_count, 1);
       assert.equal(forfeitOnly.record_points, 909);
       assert.equal(forfeitOnly.total_score, 0);
       const points = await board(db, 'points');
-      assert.deepEqual(points.map(row => [row.rank, row.songen_points]), [[1, 2400], [2, 0], [2, 0], [2, 0]]);
+      assert.deepEqual(points.map(row => [row.rank, row.songen_points]), [
+        [1, 2400], [2, 0], [2, 0], [4, -1], [5, -14]
+      ]);
+      assert.deepEqual(await board(db, 'points', 3, 2), points.slice(3));
     });
   } finally {
     await db.close();
