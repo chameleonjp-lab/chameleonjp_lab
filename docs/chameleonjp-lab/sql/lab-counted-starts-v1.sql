@@ -1,5 +1,5 @@
--- Install with no enabled games. Enable each mode after its new client is
--- deployed and verified. Only ordinary starts use this shared counter.
+-- Install with no enabled games. Verify each new client in isolation, then
+-- enable its mode immediately before deploying that client.
 begin;
 
 create table private.lab_counted_start_modes_v1 (
