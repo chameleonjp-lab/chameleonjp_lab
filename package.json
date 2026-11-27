@@ -2,7 +2,7 @@
   "name": "chameleonjp-lab",
   "private": true,
   "scripts": {
-    "test": "node scripts/test-lab-i18n.mjs && node scripts/validate-lab.mjs && node scripts/test-takkeu-abnormal-ranking.mjs && node scripts/test-ironarabe-links.mjs && node scripts/test-ironarabe-guest-db.mjs && node scripts/test-iroate-links.mjs && node scripts/test-build-pages.mjs && node scripts/test-common-score-receipt.mjs && node scripts/test-chameleol-ranking.mjs && node --test scripts/test-ranking-manifest.mjs scripts/test-time-attack-titles.mjs && node --test scripts/test-songen3-online-ranking.mjs scripts/test-lab-ranking-page.mjs",
+    "test": "node scripts/test-lab-i18n.mjs && node scripts/validate-lab.mjs && node scripts/test-takkeu-abnormal-ranking.mjs && node scripts/test-ironarabe-links.mjs && node scripts/test-ironarabe-guest-db.mjs && node scripts/test-iroate-links.mjs && node scripts/test-build-pages.mjs && node scripts/test-common-score-receipt.mjs && node scripts/test-chameleol-ranking.mjs && node --test scripts/test-ranking-manifest.mjs scripts/test-time-attack-titles.mjs && node --test scripts/test-songen3-online-ranking.mjs scripts/test-lab-ranking-page.mjs scripts/test-lab-counted-starts.mjs",
     "test:browser": "node scripts/test-ironarabe-links-browser.cjs && node scripts/test-iroate-links-browser.cjs && node scripts/test-chameleol-browser.mjs && node scripts/test-inubo-browser.mjs && node scripts/test-ikagetto-browser.mjs && node scripts/test-songen3-online-ranking-browser.mjs",
     "build": "node scripts/build-pages.mjs"
   },

@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 // Explicit allowlist: never publish repository metadata, tests, SQL or secrets.
-const rootFiles = ['index.html', 'ranking.html', 'terms.html', 'ikagetto-ranking.js', 'junglegym-ranking.js', 'songen3-online-ranking.js', 'inubo-ranking.html', 'inubo-ranking.js', 'inubo-data.js', 'chameleol-ranking.js', 'chameleol-hof.css', 'chameleol-hof.js', 'IMG_7589.JPG', 'banner'];
+const rootFiles = ['index.html', 'ranking.html', 'terms.html', 'play-start.js', 'ikagetto-ranking.js', 'junglegym-ranking.js', 'songen3-online-ranking.js', 'inubo-ranking.html', 'inubo-ranking.js', 'inubo-data.js', 'chameleol-ranking.js', 'chameleol-hof.css', 'chameleol-hof.js', 'IMG_7589.JPG', 'banner'];
 const translations = [
   'common.js', 'ranking.js', 'games-1.js', 'games-2.js', 'games-3.js',
   'extras.js', 'hall.js', 'chameleol-time-attack.js', 'terms-1.js', 'terms-2.js', 'terms-3.js',
