@@ -5,8 +5,15 @@ import { chromium, webkit } from 'playwright';
 const base = new URL('https://chameleonjp-lab.github.io/chameleonjp_lab/');
 const output = new URL('../dist/', import.meta.url);
 const { games } = JSON.parse(await readFile(new URL('../catalog/games.json', import.meta.url), 'utf8'));
+const legacySlug = 'songen_wo_kakeyouka3';
 const slug = 'songen_wo_kakeyouka3_online';
 const game = games.find(game => game.game_slug === slug);
+const previousSlugs = ['songen_wo_kakeyouka', 'songen_wo_kakeyouka2'];
+const catalogRows = [
+  ...games.filter(row => previousSlugs.includes(row.game_slug)),
+  { ...game, game_slug: legacySlug, display_order: 58 },
+  game
+];
 const detail = new URL(`ranking.html?game=${slug}&lang=en`, base);
 const types = { html: 'text/html', js: 'text/javascript', css: 'text/css' };
 const sample = {
@@ -33,6 +40,7 @@ for (const engine of [chromium, webkit]) {
     let failNextPage = true;
     let gameIsPublic = true;
     let catalogUnavailable = false;
+    let restCatalogAvailable = false;
     let releaseRecord;
     const recordResponse = new Promise(resolve => { releaseRecord = resolve; });
     let delayRecord = true;
@@ -44,7 +52,7 @@ for (const engine of [chromium, webkit]) {
         const sdk = `window.supabase = {createClient:()=>({from(){
           const query={
             select:()=>query,eq:()=>query,
-            order:async()=>${catalogUnavailable ? '({error:new Error("Catalog unavailable")})' : '({data:' + JSON.stringify(gameIsPublic ? [game] : []) + '})'},
+            order:async()=>${catalogUnavailable ? '({error:new Error("Catalog unavailable")})' : '({data:' + JSON.stringify(catalogRows) + '})'},
             maybeSingle:async()=>({data:${JSON.stringify(gameIsPublic ? game : null)}})
           };
           return query;
@@ -52,7 +60,9 @@ for (const engine of [chromium, webkit]) {
         return route.fulfill({ body: sdk, contentType: 'text/javascript' });
       }
       if (url.hostname.endsWith('.supabase.co')) {
-        if (url.pathname === '/rest/v1/games') return route.fulfill({ status: 503 });
+        if (url.pathname === '/rest/v1/games') {
+          return restCatalogAvailable ? route.fulfill({ json: catalogRows }) : route.fulfill({ status: 503 });
+        }
         const rpc = url.pathname.split('/').at(-1);
         const args = request.postDataJSON();
         assert.match(request.headers().apikey, /^sb_publishable_/);
@@ -66,7 +76,7 @@ for (const engine of [chromium, webkit]) {
         const { p_tab: tab, p_offset: offset, p_limit: limit } = args;
         assert.ok(['best', 'record', 'points'].includes(tab));
         assert.ok([0, 50].includes(offset));
-        assert.ok([3, 51].includes(limit));
+        assert.equal(limit, 51);
         if (tab === 'best') {
           if (failNextPage && offset === 50) {
             failNextPage = false;
@@ -87,14 +97,24 @@ for (const engine of [chromium, webkit]) {
       return route.fulfill({ body: await readFile(new URL(file, output)), contentType: types[file.split('.').at(-1)] ?? 'image/jpeg' });
     });
 
-    await page.goto(new URL('?lang=en', base).href);
-    await page.getByRole('button', { name: 'Dignity Duel 3 (Online Versus)' }).click();
-    const card = page.locator(`#game-${slug}`);
-    await card.locator('.rank-name').first().filter({ hasText: sample.display_name }).waitFor();
-    assert.equal(await card.locator('.rank-name img').count(), 0);
-    assert.equal(await card.locator(`#detail-${slug}`).getAttribute('href'), `/chameleonjp_lab/ranking.html?game=${slug}&lang=en`);
-    await card.locator(`#detail-${slug}`).click();
-    await page.waitForURL(detail.href);
+    async function checkCatalog(usingLocalCatalog = false) {
+      await page.goto(new URL('?lang=en', base).href);
+      for (const previousSlug of previousSlugs) {
+        await page.locator(`#game-${previousSlug}`).waitFor({ timeout: 8000 });
+      }
+      assert.equal(await page.locator('#game-chameleol').count(), usingLocalCatalog ? 1 : 0);
+      assert.equal(await page.locator(`#game-${slug}, #game-${legacySlug}`).count(), 0);
+    }
+
+    await checkCatalog();
+    catalogUnavailable = true;
+    restCatalogAvailable = true;
+    await checkCatalog();
+    restCatalogAvailable = false;
+    await checkCatalog(true);
+    assert.equal(calls.length, 0);
+
+    await page.goto(detail.href);
     const tabs = page.getByRole('tab');
     const best = page.locator('#songen3-panel-best');
     const record = page.locator('#songen3-panel-record');
@@ -146,7 +166,6 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('#songen3-play').getAttribute('href'), game.game_url);
     assert.equal(await record.locator('.player-name').textContent(), sample.display_name);
     assert.deepEqual(errors, []);
-    assert.ok(calls.some(({ args }) => args.p_limit === 3));
     gameIsPublic = false;
     const callsBeforeHold = calls.length;
     await page.goto(detail.href);
@@ -154,11 +173,7 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.getByRole('tab').count(), 0);
     assert.equal(calls.length, callsBeforeHold);
 
-    catalogUnavailable = true;
-    await page.goto(base.href);
-    await page.locator('#game-chameleol').waitFor({ timeout: 8000 });
-    assert.equal(await page.locator(`#game-${slug}`).count(), 0);
-    console.log(`${engine.name()}: rankings and the publication hold verified`);
+    console.log(`${engine.name()}: hidden catalog cards and direct rankings verified`);
   } finally {
     await browser.close();
   }
