@@ -107,7 +107,7 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('.game-card').count(), 1);
     await card.getByText('Fishing plays', { exact: true }).waitFor();
     await card.getByText('Registered fishers', { exact: true }).waitFor();
-    await card.getByRole('heading', { name: 'Fishing leaderboard' }).waitFor();
+    assert.equal(await card.locator('.ranking, .rank-row').count(), 0);
     await card.locator('.game-thumbnail').waitFor({ state: 'visible' });
     assert.equal(await card.locator('.game-thumbnail img').getAttribute('src'), thumbnail.href);
     assert.equal(await card.getByRole('link', { name: 'Play', exact: true }).getAttribute('href'), game.game_url);
@@ -118,21 +118,13 @@ for (const engine of [chromium, webkit]) {
     await share.click();
     assert.equal(await page.evaluate(() => window.sharedText), `大きいイカを釣って自慢しよう\n#イカゲット\n${game.game_url}`);
     await page.locator('#labLanguageSelect').selectOption('en');
-    await card.locator('#ranking-ikagetto').getByText('Could not load', { exact: true }).waitFor();
     await card.locator('#plays-ikagetto').filter({ hasText: 'Could not load' }).waitFor();
 
     outcome = 'scores';
     await toggle.click();
     await toggle.click();
-    await card.locator('.rank-name').first().filter({ hasText: 'A<&>' }).waitFor();
-    const measurements = card.locator('.rank-catch');
-    assert.equal(await measurements.count(), 1);
-    assert.equal(await measurements.textContent(), 'Length 50 m / Weight 45,000 kg / Time 166 s');
-    await page.locator('#labLanguageSelect').selectOption('ja');
-    assert.equal(await measurements.textContent(), '全長 50 m ／ 重さ 45,000 kg ／ 時間 166秒');
-    await page.locator('#labLanguageSelect').selectOption('en');
-    assert.deepEqual(await card.locator('.rank-no').allTextContents(), ['Rank 1', 'Rank 1']);
-    assert.match(await card.locator('.rank-score').first().textContent(), /80,000/);
+    await card.locator('#plays-ikagetto').filter({ hasText: '7' }).waitFor();
+    assert.ok(calls.every(({ rpc }) => rpc === 'ikagetto_stats_v1'));
     assert.match(await card.locator('#plays-ikagetto').textContent(), /^7\D/);
     assert.match(await card.locator('#players-ikagetto').textContent(), /^2\D/);
     await card.locator('#detail-ikagetto').click();
@@ -216,11 +208,11 @@ for (const engine of [chromium, webkit]) {
     outcome = 'empty';
     await page.goto(home.href);
     await toggle.click();
-    await card.locator('#ranking-ikagetto .empty').waitFor();
+    await card.locator('#plays-ikagetto').filter({ hasText: /^0/ }).waitFor();
     assert.match(await card.locator('#plays-ikagetto').textContent(), /^0\D/);
     assert.match(await card.locator('#players-ikagetto').textContent(), /^0\D/);
     assert.equal(calls.filter(({ rpc }) => rpc === 'ikagetto_stats_v1').length, 6);
-    assert.equal(calls.filter(({ rpc }) => rpc === 'ikagetto_fishing_board_v2').length, 3);
+    assert.equal(calls.filter(({ rpc }) => rpc === 'ikagetto_fishing_board_v2').length, 0);
     assert.ok(calls.some(({ rpc, args }) => rpc === 'ikagetto_board_page_v3' && args.p_mode === 'fishing' && args.p_offset === 1000));
 
     active = false;

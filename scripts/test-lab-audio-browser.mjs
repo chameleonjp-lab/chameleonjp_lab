@@ -72,7 +72,7 @@ for (const engine of [chromium, webkit]) {
     const gameCard = page.locator('#game-iroate');
     await gameCard.locator('[data-share]').tap();
     assert.deepEqual(await notes(), [79, 91, 86]);
-    for (const [selector, expected] of [['.actions a', [74, 77, 81]], ['.detail-link-wrap a', [81, 86]]]) {
+    for (const [selector, expected] of [['.actions > a', [74, 77, 81]], ['.detail-link-wrap a', [81, 86]]]) {
       const link = gameCard.locator(selector);
       await link.evaluate(el => el.addEventListener('click', e => e.preventDefault(), { once: true }));
       await link.tap();

@@ -131,10 +131,9 @@ for (const engine of [chromium, webkit]) {
     await thumbnailImage.waitFor();
     assert.equal(await thumbnailImage.getAttribute('src'), thumbnail.href);
     assert.equal(await card.getByRole('link', { name: 'Play', exact: true }).getAttribute('href'), game.game_url);
-    await card.locator('.rank-name').first().filter({ hasText: sample.display_name }).waitFor();
-    assert.equal(await card.locator('.rank-name img').count(), 0);
     await card.locator(`#plays-${slug}`).filter({ hasText: /^104 plays$/ }).waitFor();
-    assert.ok(calls.some(({ args }) => args.p_limit === 3));
+    assert.equal(await card.locator('.ranking, .rank-row').count(), 0);
+    assert.ok(!calls.some(({ rpc }) => rpc === 'songen3_online_board_v1'));
     await card.getByRole('link', { name: 'View Detailed Leaderboard' }).click();
     await page.waitForURL(detail.href);
     const tabs = page.getByRole('tab');

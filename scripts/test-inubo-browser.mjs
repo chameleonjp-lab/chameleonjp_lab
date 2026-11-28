@@ -59,6 +59,13 @@ for (const engine of [chromium, webkit]) {
     const cardOrder = () => page.locator('#gameList > .game-card').evaluateAll(cards => cards.map(card => card.id));
     const newestOrder = ['game-inubo', 'game-iroate', 'game-torani_yasashiku'];
     await page.waitForFunction(() => document.querySelector('#sortStatus').textContent.includes('Recently added'));
+    assert.equal(await page.locator('#gameCount').textContent(), String(newestOrder.length));
+    await page.locator('.hero-art').evaluate(image => image.decode());
+    await page.setViewportSize({ width: 320, height: 600 });
+    await page.locator('#labLanguageSelect').selectOption('pt-BR');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.locator('#labLanguageSelect').selectOption('en');
+    await page.setViewportSize({ width: 402, height: 700 });
     assert.equal(await sort.inputValue(), 'newest');
     assert.equal(await sort.locator('option:checked').textContent(), 'Recently added');
     assert.deepEqual(await cardOrder(), newestOrder);
@@ -85,8 +92,9 @@ for (const engine of [chromium, webkit]) {
     assert.ok(mobileLayout.titleBottom <= mobileLayout.thumbnail.top);
     assert.ok(mobileLayout.thumbnail.bottom <= mobileLayout.descriptionTop);
     assert.ok(mobileLayout.thumbnail.right <= mobileLayout.pageWidth);
-    await card.locator('.rank-name').getByText('A<&>', { exact: true }).waitFor();
-    assert.equal(await card.locator('.rank-no').count(), 2);
+    await card.locator('#plays-inubo').filter({ hasText: '5' }).waitFor();
+    assert.equal(await card.locator('.rank-no').count(), 0);
+    assert.ok(!calls.some(({ rpc }) => rpc === 'inubo_ranking_board'));
     assert.match(await card.locator('#plays-inubo').textContent(), /5/);
     assert.match(await card.locator('#players-inubo').textContent(), /3/);
     assert.equal(await card.getByRole('link', { name: 'Play', exact: true }).getAttribute('href'), game.game_url);
@@ -108,7 +116,7 @@ for (const engine of [chromium, webkit]) {
     await tigerThumbnail.waitFor({ state: 'visible' });
     assert.equal(await tigerThumbnail.getAttribute('href'), tigerPlayUrl);
     assert.equal(await tigerThumbnail.locator('img').getAttribute('src'), tigerThumbnailUrl);
-    assert.equal(await tiger.locator('.actions a.button').getAttribute('href'), tigerPlayUrl);
+    assert.equal(await tiger.locator('.actions > a.button').getAttribute('href'), tigerPlayUrl);
     const tigerDetail = new URL(await tiger.locator('#detail-torani_yasashiku').getAttribute('href'), base);
     assert.equal(tigerDetail.searchParams.get('game'), 'torani_yasashiku');
     await page.getByRole('button', { name: 'Inubo', exact: true }).click();
@@ -126,7 +134,7 @@ for (const engine of [chromium, webkit]) {
     await thumbnail.click();
     await page.waitForURL(game.game_url);
     assert.deepEqual(errors, []);
-    assert.ok(calls.some(({ rpc, body }) => rpc === 'inubo_ranking_board' && body.p_limit === 3 && body.p_metric === 'total'));
+    assert.ok(!calls.some(({ rpc, body }) => rpc === 'inubo_ranking_board' && body.p_limit === 3));
     console.log(engine.name() + ': newest order, linked thumbnails, Inubo play totals and ranking links passed');
   } finally {
     await browser.close();
