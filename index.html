@@ -18,7 +18,7 @@
   <script src="./i18n/ranking.js?v=20261126-junglegym-live"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261127-songen3"></script>
+  <script src="./i18n/games-3.js?v=20261128-galaxy-shark"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/runtime.js?v=20261120-15lang"></script>
 
@@ -1825,6 +1825,29 @@
         "statsSlugs": [
           "songen_wo_kakeyouka3_online"
         ]
+      },
+      {
+        "displayOrder": 68,
+        "slug": "galaxy_shark",
+        "title": "ギャラクシーシャーク",
+        "url": "https://chameleonjp-lab.github.io/galaxy_shark/",
+        "description": "獲物を食べてサメを育て、海から宇宙へ。最後は銀河を丸のみする3Dアクション。",
+        "shareText": "ギャラクシーシャーク\n獲物を食べてサメを育て、海から宇宙へ。最後は銀河を丸のみする3Dアクション。\n#ギャラクシーシャーク\nhttps://chameleonjp-lab.github.io/galaxy_shark/",
+        "releaseDate": "2026-11-28",
+        "topRanking": "best",
+        "scoreOrder": "desc",
+        "scoreUnit": "点",
+        "scoreScale": 1,
+        "scoreDecimals": 0,
+        "scoreLabel": "スコア",
+        "firstScoreLabel": "初回スコア",
+        "bestScoreLabel": "自己ベスト",
+        "isActive": true,
+        "rankingSlug": "galaxy_shark",
+        "detailSlug": "galaxy_shark",
+        "statsSlugs": [
+          "galaxy_shark"
+        ]
       }
 ];
 
@@ -1929,7 +1952,8 @@
       ["ikagetto/", "assets/ikagetto-share-v1.jpg"],
       ["junglegym_onigokko/", "assets/junglegym-social-v1.jpg"],
       ["medjedshin_ha_mamotteru/", "assets/social-card-v1.jpg"],
-      ["songen_wo_kakeyouka3/", "assets/social-card.png"]
+      ["songen_wo_kakeyouka3/", "assets/social-card.png"],
+      ["galaxy_shark/", "ogp.jpg"]
     ]);
     const CODEBERG_THUMBNAIL_BASE = "https://chameleonjp.codeberg.page/";
     // Keep each canonical Codeberg game link; reuse its verified public share image.
@@ -2690,7 +2714,7 @@
 
     function buildShareMessage(item) {
       let shareText = cleanText(item.shareText) || `${item.title || ""}\n${item.description || ""}`.trim();
-      if ((item.slug === "ikagetto" || item.slug === "songen_wo_kakeyouka3_online") && window.LabI18n) {
+      if ((item.slug === "ikagetto" || item.slug === "songen_wo_kakeyouka3_online" || item.slug === "galaxy_shark") && window.LabI18n) {
         shareText = shareText.split("\n").map(line => window.LabI18n.t(line)).join("\n");
       }
       const url = cleanText(item.url);
