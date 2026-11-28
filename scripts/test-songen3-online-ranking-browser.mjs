@@ -133,7 +133,7 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await card.getByRole('link', { name: 'Play', exact: true }).getAttribute('href'), game.game_url);
     await card.locator('.rank-name').first().filter({ hasText: sample.display_name }).waitFor();
     assert.equal(await card.locator('.rank-name img').count(), 0);
-    assert.equal(await card.locator(`#plays-${slug}`).textContent(), '104 plays');
+    await card.locator(`#plays-${slug}`).filter({ hasText: /^104 plays$/ }).waitFor();
     assert.ok(calls.some(({ args }) => args.p_limit === 3));
     await card.getByRole('link', { name: 'View Detailed Leaderboard' }).click();
     await page.waitForURL(detail.href);
