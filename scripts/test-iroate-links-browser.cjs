@@ -90,6 +90,9 @@ async function browserCase(browser, mode, helpers) {
       const request = route.request();
       const url = new URL(request.url());
       requests.push({ url: request.url(), method: request.method(), type: request.resourceType() });
+      if (url.origin === origin && url.pathname === '/lab-directory.css') {
+        return route.fulfill({ contentType: 'text/css', path: require.resolve('../lab-directory.css') });
+      }
       if (url.origin === origin && ['/index.html', '/ranking.html'].includes(url.pathname)) {
         return route.fulfill({ contentType: 'text/html; charset=utf-8', body: url.pathname === '/index.html' ? index.source : ranking.source });
       }
@@ -129,16 +132,13 @@ async function browserCase(browser, mode, helpers) {
     assert.equal(await card.getByRole('link', { name: '遊ぶ', exact: true }).getAttribute('href'), IROATE_URL);
     assert.match(await card.getByRole('link', { name: /詳細ランキング/ }).getAttribute('href'), /ranking\.html\?game=iroate$/);
     await checkShare('[data-share="iroate"]');
+    assert.equal(await card.locator('.ranking, .rank-row').count(), 0);
     if (mode === 'catalog') {
-      await page.locator('#ranking-iroate .rank-row').first().waitFor();
-      assert.deepEqual(await rowTexts('#ranking-iroate .rank-no'), ranks.map(rank => `${rank}位`));
-      assert.deepEqual(await rowTexts('#ranking-iroate .rank-name'), names);
-      assert.deepEqual(await rowTexts('#ranking-iroate .rank-score'), ['24.15秒', '24.15秒', '30.00秒']);
+      await card.locator('#plays-iroate').filter({ hasText: /^20回$/ }).waitFor();
       const calls = await page.evaluate(() => window.__fixtureCalls);
       assert.ok(calls.some(call => call.operation === 'select' && call.ordering === 'display_order' && call.filters.some(([key, value]) => key === 'is_active' && value === true)));
-      assert.ok(calls.some(call => call.name === 'get_best_score_ranking' && call.args.p_game_slug === 'iroate' && call.args.p_limit === 3));
-    } else {
-      await page.waitForFunction(() => document.getElementById('ranking-iroate').textContent.includes('coming soon'));
+      assert.ok(calls.some(call => call.name === 'get_game_play_stats' && call.args.p_game_slug === 'iroate'));
+      assert.ok(!calls.some(call => call.operation === 'rpc' && call.name !== 'get_game_play_stats'));
     }
 
     await page.goto(`${origin}/ranking.html?game=iroate`, { waitUntil: 'load' });

@@ -178,9 +178,10 @@ function validateRankingEmptyStateContracts() {
   const index = read("index.html");
   const ranking = read("ranking.html");
 
-  requireText(index, "完了スコア記録はまだありません", "トップの空ランキング説明");
-  requireText(index, "setRankingReady(game, false)", "トップの空ランキング状態");
-  requireText(index, "loadTopRanking(hydratedGame, stats)", "トップの統計とランキングの連携");
+  requireText(index, "detailButtonHtml(game)", "トップの詳細ランキングリンク");
+  if (/loadTopRanking|ranking-badge-|get_best_score_ranking|get_first_try_ranking/.test(index)) {
+    fail("トップページが順位表を取得または表示しています");
+  }
   requireText(ranking, "完了スコア記録はまだありません", "詳細の空ランキング説明");
   requireText(ranking, "loadRankings(hydratedGame, token, stats)", "詳細の統計とランキングの連携");
 }

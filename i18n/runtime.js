@@ -243,7 +243,8 @@
       select.appendChild(option);
     }
     bar.append(label, select);
-    main.prepend(bar);
+    const toolbar = document.querySelector('[data-lab-toolbar]');
+    (toolbar || main).prepend(bar);
     select.addEventListener('change', function () { setLocale(select.value); });
     apply();
     observer = new MutationObserver(scheduleApply);

@@ -102,7 +102,7 @@ for (const engine of [chromium, webkit]) {
       }
       if (url.pathname.startsWith('/chameleonjp_lab/')) {
         const file = url.pathname.split('/').pop() || 'index.html';
-        const types = {'lab-audio.js':'text/javascript','midnight-carousel.mp3':'audio/mpeg','index.html':'text/html','ranking.html':'text/html','chameleol-ranking.js':'text/javascript','chameleol-hof.js':'text/javascript','chameleol-hof.css':'text/css','banner':'image/jpeg','IMG_7589.JPG':'image/jpeg'};
+        const types = {'lab-directory.css':'text/css','arcade-at-dusk.webp':'image/webp','lab-audio.js':'text/javascript','midnight-carousel.mp3':'audio/mpeg','index.html':'text/html','ranking.html':'text/html','chameleol-ranking.js':'text/javascript','chameleol-hof.js':'text/javascript','chameleol-hof.css':'text/css','banner':'image/jpeg','IMG_7589.JPG':'image/jpeg'};
         if (Object.hasOwn(types,file)) {
           return fulfill({contentType:types[file],body:await readFile(new URL(file,output))});
         }
@@ -182,14 +182,14 @@ for (const engine of [chromium, webkit]) {
     await page.locator('#game-chameleol').getByRole('button',{name:'再試行'}).click();
     await page.waitForFunction(() => document.querySelector('#plays-chameleol')?.textContent === '4回');
     assert.equal(await page.locator('#players-chameleol').textContent(),'1人');
-    await page.locator('#ranking-chameleol .rank-row').first().waitFor();
+    assert.equal(await page.locator('#game-chameleol .rank-row').count(), 0);
     // A repeat open must reflect newly recorded games in the public overview.
     await page.locator('[data-accordion=chameleol]').click();
     totalPlays = 6;
     await page.locator('[data-accordion=chameleol]').click();
     await page.waitForFunction(() => document.querySelector('#plays-chameleol')?.textContent === '6回', null, {timeout:5000});
     totalPlays = 4;
-    assert.equal(await page.locator('#ranking-chameleol .rank-name').first().textContent(),'A<&>');
+    assert.ok(!calls.some(url => url.startsWith(api + '/ranking?')));
     await page.locator('#detail-chameleol').click();
     await page.waitForFunction(() => document.querySelectorAll('#bestRanking .rank-row').length === 2);
     assert.deepEqual(await page.locator('#bestRanking .rank-name').allTextContents(), ['A<&>', 'B']);
@@ -489,7 +489,7 @@ for (const engine of [chromium, webkit]) {
       await page.locator('[data-accordion=chameleol]').click();
       await pendingStats.promise;
       await page.locator('[data-accordion=iroate]').click();
-      await page.locator('#ranking-iroate .rank-name').getByText('対照').waitFor();
+      await page.locator('#plays-iroate').filter({ hasText: /^5回$/ }).waitFor();
       assert.equal(await page.locator('#plays-iroate').textContent(), '5回');
     } finally {
       finishStats.resolve();
@@ -498,8 +498,7 @@ for (const engine of [chromium, webkit]) {
     // Let the released request and rendering finish before navigating away.
     // The independence check above still runs while Chameleol is deliberately held.
     await page.waitForFunction(() =>
-      document.querySelector('#plays-chameleol')?.textContent === '0回' &&
-      document.querySelector('#ranking-chameleol')?.textContent === 'まだ記録がありません');
+      document.querySelector('#plays-chameleol')?.textContent === '0回');
     listedGames = [iroate, takkeu];
     await page.reload();
     await page.locator('[data-accordion=iroate]').waitFor();
