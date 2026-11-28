@@ -15,6 +15,7 @@ const catalogRows = [
   game
 ];
 const detail = new URL(`ranking.html?game=${slug}&lang=en`, base);
+const thumbnail = new URL('assets/social-card.png', game.game_url);
 const types = { html: 'text/html', js: 'text/javascript', css: 'text/css' };
 const sample = {
   rank: 1, display_name: '<img src=x>', best_score: 2000, match_count: 10, wins: 6,
@@ -49,10 +50,11 @@ for (const engine of [chromium, webkit]) {
       const request = route.request();
       const url = new URL(request.url());
       if (url.hostname === 'cdn.jsdelivr.net') {
+        const activeRows = catalogRows.filter(row => gameIsPublic || row.game_slug !== slug);
         const sdk = `window.supabase = {createClient:()=>({from(){
           const query={
             select:()=>query,eq:()=>query,
-            order:async()=>${catalogUnavailable ? '({error:new Error("Catalog unavailable")})' : '({data:' + JSON.stringify(catalogRows) + '})'},
+            order:async()=>${catalogUnavailable ? '({error:new Error("Catalog unavailable")})' : '({data:' + JSON.stringify(activeRows) + '})'},
             maybeSingle:async()=>({data:${JSON.stringify(gameIsPublic ? game : null)}})
           };
           return query;
@@ -76,6 +78,11 @@ for (const engine of [chromium, webkit]) {
         const { p_tab: tab, p_offset: offset, p_limit: limit } = args;
         assert.ok(['best', 'record', 'points'].includes(tab));
         assert.ok([0, 50].includes(offset));
+        if (limit === 3) {
+          assert.equal(tab, 'best');
+          assert.equal(offset, 0);
+          return route.fulfill({ json: bestRows.slice(0, limit) });
+        }
         assert.equal(limit, 51);
         if (tab === 'best') {
           if (failNextPage && offset === 50) {
@@ -92,6 +99,9 @@ for (const engine of [chromium, webkit]) {
         if (tab === 'points') return route.fulfill({ json: [sample, negativePoints] });
         return route.fulfill({ json: [sample] });
       }
+      if (url.href === thumbnail.href) {
+        return route.fulfill({ contentType: 'image/gif', body: Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64') });
+      }
       if (!url.href.startsWith(base.href)) return route.abort();
       const file = url.pathname.slice(base.pathname.length) || 'index.html';
       return route.fulfill({ body: await readFile(new URL(file, output)), contentType: types[file.split('.').at(-1)] ?? 'image/jpeg' });
@@ -103,7 +113,8 @@ for (const engine of [chromium, webkit]) {
         await page.locator(`#game-${previousSlug}`).waitFor({ timeout: 8000 });
       }
       assert.equal(await page.locator('#game-chameleol').count(), usingLocalCatalog ? 1 : 0);
-      assert.equal(await page.locator(`#game-${slug}, #game-${legacySlug}`).count(), 0);
+      assert.equal(await page.locator(`#game-${legacySlug}`).count(), 0);
+      assert.equal(await page.locator(`#game-${slug}`).count(), gameIsPublic ? 1 : 0);
     }
 
     await checkCatalog();
@@ -114,7 +125,18 @@ for (const engine of [chromium, webkit]) {
     await checkCatalog(true);
     assert.equal(calls.length, 0);
 
-    await page.goto(detail.href);
+    const card = page.locator(`#game-${slug}`);
+    await card.getByRole('button', { name: 'Dignity Duel 3 (Online Versus)' }).click();
+    const thumbnailImage = card.locator('.game-thumbnail img');
+    await thumbnailImage.waitFor();
+    assert.equal(await thumbnailImage.getAttribute('src'), thumbnail.href);
+    assert.equal(await card.getByRole('link', { name: 'Play', exact: true }).getAttribute('href'), game.game_url);
+    await card.locator('.rank-name').first().filter({ hasText: sample.display_name }).waitFor();
+    assert.equal(await card.locator('.rank-name img').count(), 0);
+    assert.equal(await card.locator(`#plays-${slug}`).textContent(), '104 plays');
+    assert.ok(calls.some(({ args }) => args.p_limit === 3));
+    await card.getByRole('link', { name: 'View Detailed Leaderboard' }).click();
+    await page.waitForURL(detail.href);
     const tabs = page.getByRole('tab');
     const best = page.locator('#songen3-panel-best');
     const record = page.locator('#songen3-panel-record');
@@ -172,8 +194,10 @@ for (const engine of [chromium, webkit]) {
     await page.locator('.not-found-card').waitFor({ timeout: 5000 });
     assert.equal(await page.getByRole('tab').count(), 0);
     assert.equal(calls.length, callsBeforeHold);
+    catalogUnavailable = false;
+    await checkCatalog();
 
-    console.log(`${engine.name()}: hidden catalog cards and direct rankings verified`);
+    console.log(`${engine.name()}: online card, legacy card exclusion, and detailed rankings verified`);
   } finally {
     await browser.close();
   }
