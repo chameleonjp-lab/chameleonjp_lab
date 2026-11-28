@@ -245,6 +245,11 @@
       overflow-wrap: anywhere;
     }
 
+    /* Keep accordion changes from pulling the viewport to newly inserted content. */
+    #gameList {
+      overflow-anchor: none;
+    }
+
     .accordion-toggle {
       width: 100%;
       display: grid;
@@ -2909,6 +2914,7 @@
           const card = document.getElementById(`game-${slug}`);
           const game = GAMES.find((item) => item.slug === slug);
           const isOpen = card.classList.contains("open");
+          const titleTop = button.getBoundingClientRect().top;
 
           document.querySelectorAll(".game-card.open").forEach((openCard) => {
             openCard.classList.remove("open");
@@ -2919,6 +2925,13 @@
           if (!isOpen) {
             card.classList.add("open");
             button.setAttribute("aria-expanded", "true");
+          }
+
+          // Closing a card above can move the clicked title. Keep it at its current screen position.
+          const titleShift = button.getBoundingClientRect().top - titleTop;
+          if (Math.abs(titleShift) >= 1) window.scrollBy({ top: titleShift, behavior: "instant" });
+
+          if (!isOpen) {
             loadGameThumbnail(card, game);
             ensureGameDataLoaded(game);
           }
