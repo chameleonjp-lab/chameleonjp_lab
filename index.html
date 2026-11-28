@@ -18,10 +18,10 @@
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
   <script src="./i18n/games-3.js?v=20261128-galaxy-shark"></script>
-  <script src="./i18n/extras.js?v=20261128-map"></script>
+  <script src="./i18n/extras.js?v=20261128-popular"></script>
   <script src="./i18n/runtime.js?v=20261128-directory"></script>
 
-  <link rel="stylesheet" href="./lab-directory.css?v=20261128-map" />
+  <link rel="stylesheet" href="./lab-directory.css?v=20261128-modal" />
   <script defer src="./lab-audio.js?v=20261128-map"></script>
 </head>
 
@@ -42,6 +42,7 @@
         <img class="hero-art" src="park-map.webp" width="1440" height="960" alt="" fetchpriority="high" />
         <button class="map-pin action" data-area="action" data-lab-cue="action" aria-pressed="false" disabled><i aria-hidden="true">ϟ</i><span>アクション</span></button>
         <button class="map-pin puzzle" data-area="puzzle" data-lab-cue="puzzle" aria-pressed="false" disabled><i aria-hidden="true">◇</i><span>パズル</span></button>
+        <button id="popularGames" class="map-pin popular" data-lab-cue="hall" aria-pressed="false" disabled><i aria-hidden="true">★</i><span>人気のゲーム</span></button>
         <button class="map-pin timing" data-area="timing" data-lab-cue="timing" aria-pressed="false" disabled><i aria-hidden="true">◎</i><span>タイミング</span></button>
       </div>
     </header>
@@ -75,6 +76,11 @@
       <div class="finder">
         <label class="search-field"><i aria-hidden="true"></i><input id="gameSearch" type="search" aria-label="ゲームを検索" placeholder="ゲーム名・遊び方で検索" autocomplete="off" /></label>
         <button type="button" id="clearFilters" data-lab-cue="setting" hidden>すべて表示</button>
+      </div>
+      <div id="popularInfo" hidden>
+        <p>直近1か月のプレイ回数トップ5</p>
+        <p id="popularStatus" role="status"></p>
+        <button class="button secondary" id="popularRetry" type="button" hidden>再試行</button>
       </div>
       <p class="empty-results" id="emptyResults" hidden>条件に合うゲームがありません。</p>
       <div class="sort-status" id="sortStatus" aria-live="polite">最近追加された順で表示しています。</div>
@@ -1352,8 +1358,13 @@
     }
 
     function sortGameCards() {
-      getSortedGames().forEach((game) => {
-        const card = document.getElementById(`game-${game.slug}`);
+      if (gameListEl.querySelector("dialog[open]")) {
+        sortAfterClose = true;
+        return;
+      }
+      const ordered = popularView ? Array.from(popularGames.keys()) : getSortedGames().map(game => game.slug);
+      ordered.forEach((slug) => {
+        const card = document.getElementById(`game-${slug}`);
         if (card) gameListEl.appendChild(card);
       });
       applyDirectoryFilters();
@@ -1829,6 +1840,8 @@
     }
 
     function showToast(message) {
+      const host = document.querySelector(".game-dialog[open]") || document.body;
+      if (toastEl.parentElement !== host) host.appendChild(toastEl);
       toastEl.textContent = message;
       toastEl.classList.add("show");
 
@@ -1866,14 +1879,17 @@
       textarea.style.userSelect = "text";
       textarea.style.webkitUserSelect = "text";
 
-      document.body.appendChild(textarea);
-      textarea.focus();
-      textarea.select();
-
-      const ok = document.execCommand("copy");
-      document.body.removeChild(textarea);
-
-      if (!ok) throw new Error("copy failed");
+      const previousFocus = document.activeElement;
+      const host = document.querySelector(".game-dialog[open]") || document.body;
+      host.appendChild(textarea);
+      try {
+        textarea.focus({ preventScroll: true });
+        textarea.select();
+        if (!document.execCommand("copy")) throw new Error("copy failed");
+      } finally {
+        textarea.remove();
+        previousFocus?.focus({ preventScroll: true });
+      }
     }
 
     async function shareItem(item) {
@@ -2037,6 +2053,76 @@
     const clearFilters = document.getElementById("clearFilters");
     const directoryTitle = document.getElementById("directoryTitle");
     let selectedArea = "";
+    let popularView = false;
+    let popularRequest = 0;
+    let popularGames = new Map();
+    let sortAfterClose = false;
+    const popularButton = document.getElementById("popularGames");
+    const popularStatus = document.getElementById("popularStatus");
+    const popularRetry = document.getElementById("popularRetry");
+
+    function monthlyLeaders(rows) {
+      if (!Array.isArray(rows) || rows.some(row => typeof row?.game_slug !== "string" ||
+        !Number.isSafeInteger(row.play_count) || row.play_count < 0)) throw new Error("Invalid monthly totals");
+      const byMode = new Map(rows.map(row => [row.game_slug, row.play_count]));
+      const works = new Map();
+      // The catalog may list multiple modes with one play URL. Give each work one place.
+      for (const game of getVisibleGames().sort(compareByAddedOrder)) {
+        const key = game.url || game.slug;
+        const work = works.get(key) || { game, modes: new Set() };
+        for (const slug of getStatsSlugs(game)) work.modes.add(slug);
+        works.set(key, work);
+      }
+      const entries = [...works.values()].map(({ game, modes }) => ({
+        game, plays: [...modes].reduce((sum, mode) => sum + (byMode.get(mode) || 0), 0)
+      })).filter(entry => entry.plays > 0);
+      entries.sort((a, b) => b.plays - a.plays || compareByAddedOrder(b.game, a.game) ||
+        a.game.slug.localeCompare(b.game.slug));
+      let rank = 0;
+      return new Map(entries.slice(0, 5).map((entry, i) => {
+        if (!i || entries[i - 1].plays !== entry.plays) rank = i + 1;
+        return [entry.game.slug, { plays: entry.plays, rank }];
+      }));
+    }
+
+    async function showPopularGames() {
+      const request = ++popularRequest;
+      popularView = true;
+      selectedArea = "";
+      searchInput.value = "";
+      popularGames.clear();
+      popularRetry.hidden = true;
+      popularStatus.textContent = "読み込み中…";
+      applyDirectoryFilters();
+      focusDirectory();
+      try {
+        const rows = await requestGameStats("lab_monthly_game_plays_v1", {});
+        if (request !== popularRequest) return;
+        popularGames = monthlyLeaders(rows);
+        popularStatus.textContent = popularGames.size ? "" : "この期間のプレイ記録はありません。";
+        sortGameCards();
+      } catch {
+        if (request !== popularRequest) return;
+        popularStatus.textContent = "人気のゲームを読み込めませんでした。";
+        popularRetry.hidden = false;
+      }
+    }
+
+    function leavePopularView() {
+      if (!popularView) return;
+      ++popularRequest;
+      popularView = false;
+      popularGames.clear();
+      currentSortMode = DEFAULT_SORT_MODE;
+      sortSelectEl.value = DEFAULT_SORT_MODE;
+      sortGameCards();
+      applySortStatus();
+    }
+
+    function focusDirectory() {
+      directoryTitle.focus({ preventScroll: true });
+      directoryTitle.scrollIntoView({ block: "start" });
+    }
 
     function artworkFor(game) {
       const path = thumbnailPathFor(game.url);
@@ -2069,26 +2155,33 @@
       const query = searchKey(searchInput.value);
       let visible = 0;
       for (const card of gameListEl.children) {
-        const matches = (!selectedArea || card.dataset.area === selectedArea) &&
+        const monthly = popularView && popularGames.get(card.dataset.slug);
+        const matches = popularView ? Boolean(monthly) : (!selectedArea || card.dataset.area === selectedArea) &&
           (!query || card.searchText.includes(query));
         card.hidden = !matches;
-        if (!matches) {
-          if (card.classList.contains("open")) {
-            card.classList.remove("open");
-            card.querySelector("[data-accordion]").setAttribute("aria-expanded", "false");
-          }
-          continue;
+        const badge = card.querySelector(".monthly-count");
+        badge.hidden = !monthly;
+        const opener = card.querySelector("[data-accordion]");
+        if (monthly) opener.setAttribute("aria-describedby", badge.id);
+        else opener.removeAttribute("aria-describedby");
+        if (!matches) continue;
+        if (monthly) {
+          badge.firstElementChild.textContent = String(monthly.rank) + "位";
+          badge.lastElementChild.textContent = formatNumber(monthly.plays) + "回";
         }
-        for (const columns of [2, 3, 4]) card.style.setProperty(`--col-${columns}`, visible % columns);
         visible++;
       }
       const count = document.getElementById("gameCount");
       count.textContent = String(visible);
-      count.hidden = false;
-      directoryTitle.textContent = selectedArea ? areas[selectedArea].label : "公開中ゲーム";
-      clearFilters.hidden = !selectedArea && !searchInput.value;
-      document.getElementById("emptyResults").hidden = visible > 0;
-      document.querySelectorAll(".map-pin").forEach(pin => {
+      count.hidden = popularView && !visible;
+      document.getElementById("popularInfo").hidden = !popularView;
+      document.querySelector(".search-field").hidden = popularView;
+      document.querySelector(".sort-row").hidden = popularView;
+      popularButton.setAttribute("aria-pressed", String(popularView));
+      directoryTitle.textContent = popularView ? "人気のゲーム" : selectedArea ? areas[selectedArea].label : "公開中ゲーム";
+      clearFilters.hidden = !popularView && !selectedArea && !searchInput.value;
+      document.getElementById("emptyResults").hidden = popularView || visible > 0;
+      document.querySelectorAll(".map-pin[data-area]").forEach(pin => {
         pin.setAttribute("aria-pressed", String(pin.dataset.area === selectedArea));
       });
     }
@@ -2107,18 +2200,26 @@
       gameListEl.addEventListener("error", event => {
         if (event.target.matches?.(".live-cover")) event.target.hidden = true;
       }, true);
-      document.querySelectorAll(".map-pin").forEach(pin => {
+      document.querySelectorAll(".map-pin[data-area]").forEach(pin => {
         pin.disabled = !gameListEl.querySelector(`[data-area="${pin.dataset.area}"]`);
         pin.addEventListener("click", () => {
+          leavePopularView();
           selectedArea = selectedArea === pin.dataset.area ? "" : pin.dataset.area;
           searchInput.value = "";
           applyDirectoryFilters();
-          directoryTitle.focus({ preventScroll: true });
-          directoryTitle.scrollIntoView({ block: "start" });
+          focusDirectory();
         });
       });
+      searchInput.value = "";
+      popularButton.disabled = false;
+      popularButton.addEventListener("click", () => {
+        if (popularView) { leavePopularView(); focusDirectory(); }
+        else showPopularGames();
+      });
+      popularRetry.addEventListener("click", showPopularGames);
       searchInput.addEventListener("input", applyDirectoryFilters);
       clearFilters.addEventListener("click", () => {
+        leavePopularView();
         selectedArea = "";
         searchInput.value = "";
         applyDirectoryFilters();
@@ -2135,15 +2236,15 @@
         const area = areaByGame.get(art.key) || "";
         const date = /^\d{4}-\d{2}-\d{2}$/.test(game.releaseDate) ? game.releaseDate : "";
         return `
-          <article class="game-card" id="game-${escapeHtml(game.slug)}" data-area="${area}">
+          <article class="game-card" id="game-${escapeHtml(game.slug)}" data-slug="${escapeHtml(game.slug)}" data-area="${area}">
             <h2 class="game-title">
               <button
                 class="accordion-toggle"
                 type="button"
                 data-accordion="${escapeHtml(game.slug)}"
                 aria-labelledby="title-${escapeHtml(game.slug)}"
-                aria-expanded="false"
-                aria-controls="content-${escapeHtml(game.slug)}"
+                aria-haspopup="dialog"
+                aria-controls="dialog-${escapeHtml(game.slug)}"
               >
                 ${posterHtml(game, art)}
                 <span class="game-caption">
@@ -2151,53 +2252,55 @@
                   <span class="accordion-title-text" id="title-${escapeHtml(game.slug)}">${escapeHtml(game.title)}</span>
                   ${date ? `<time class="release-date" datetime="${date}">${date.replaceAll("-", ".")}</time>` : ""}
                 </span>
-                <span class="accordion-icon" aria-hidden="true"></span>
+                <span class="monthly-count" id="monthly-${escapeHtml(game.slug)}" hidden><b></b><span></span></span>
               </button>
             </h2>
 
-            <div class="accordion-content" id="content-${escapeHtml(game.slug)}">
-              <p class="game-description">${escapeHtml(game.description || "説明は準備中です。")}</p>
-              ${statsHtml(game)}
+            <dialog class="game-dialog" id="dialog-${escapeHtml(game.slug)}" aria-labelledby="dialog-title-${escapeHtml(game.slug)}">
+              <header class="dialog-head">
+                <h2 id="dialog-title-${escapeHtml(game.slug)}">${escapeHtml(game.title)}</h2>
+                <button type="button" class="dialog-close" aria-label="ゲーム紹介を閉じる" data-lab-cue="close" autofocus>×</button>
+              </header>
+              <div class="accordion-content" id="content-${escapeHtml(game.slug)}">
+                <p class="game-description">${escapeHtml(game.description || "説明は準備中です。")}</p>
+                ${statsHtml(game)}
 
-              <div class="actions">
-                ${playButtonHtml(game)}
-                <div class="detail-link-wrap">${detailButtonHtml(game)}</div>
-                <button class="button secondary share-button" type="button" data-share="${escapeHtml(game.slug)}">シェア</button>
+                <div class="actions">
+                  ${playButtonHtml(game)}
+                  <div class="detail-link-wrap">${detailButtonHtml(game)}</div>
+                  <button class="button secondary share-button" type="button" data-share="${escapeHtml(game.slug)}">シェア</button>
+                </div>
               </div>
-            </div>
+            </dialog>
           </article>
         `;
       }).join("");
 
-      document.querySelectorAll("[data-accordion]").forEach((button) => {
-        button.addEventListener("click", () => {
-          const slug = button.dataset.accordion;
-          const card = document.getElementById(`game-${slug}`);
-          const game = GAMES.find((item) => item.slug === slug);
-          const isOpen = card.classList.contains("open");
-          const titleTop = button.getBoundingClientRect().top;
-
-          document.querySelectorAll(".game-card.open").forEach((openCard) => {
-            openCard.classList.remove("open");
-            const openButton = openCard.querySelector("[data-accordion]");
-            if (openButton) openButton.setAttribute("aria-expanded", "false");
-          });
-
-          if (!isOpen) {
-            card.classList.add("open");
-            button.setAttribute("aria-expanded", "true");
-          }
-
-          // Closing a card above can move the clicked title. Keep it at its current screen position.
-          const titleShift = button.getBoundingClientRect().top - titleTop;
-          if (Math.abs(titleShift) >= 1) window.scrollBy({ top: titleShift, behavior: "instant" });
-
-          if (!isOpen) {
-            loadGameThumbnail(card, game);
-            ensureGameDataLoaded(game);
-          }
+      for (const card of gameListEl.children) {
+        const opener = card.querySelector("[data-accordion]");
+        const dialog = card.querySelector("dialog");
+        opener.addEventListener("click", () => {
+          const game = GAMES.find(item => item.slug === card.dataset.slug);
+          dialog.showModal();
+          loadGameThumbnail(card, game);
+          ensureGameDataLoaded(game);
         });
-      });
+        dialog.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
+        let pressedBackdrop = false;
+        dialog.addEventListener("pointerdown", event => { pressedBackdrop = event.target === dialog; });
+        dialog.addEventListener("click", event => {
+          if (pressedBackdrop && event.target === dialog) dialog.close();
+          pressedBackdrop = false;
+        });
+        dialog.addEventListener("close", () => {
+          if (toastEl.parentElement === dialog) {
+            toastEl.classList.remove("show");
+            document.body.appendChild(toastEl);
+          }
+          if (sortAfterClose) { sortAfterClose = false; sortGameCards(); }
+          if (!card.hidden) opener.focus({ preventScroll: true });
+        });
+      }
 
       document.querySelectorAll("[data-share]").forEach((button) => {
         button.addEventListener("click", () => {

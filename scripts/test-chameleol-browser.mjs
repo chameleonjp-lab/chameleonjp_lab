@@ -184,7 +184,7 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await page.locator('#players-chameleol').textContent(),'1人');
     assert.equal(await page.locator('#game-chameleol .rank-row').count(), 0);
     // A repeat open must reflect newly recorded games in the public overview.
-    await page.locator('[data-accordion=chameleol]').click();
+    await page.locator('dialog[open] .dialog-close').click();
     totalPlays = 6;
     await page.locator('[data-accordion=chameleol]').click();
     await page.waitForFunction(() => document.querySelector('#plays-chameleol')?.textContent === '6回', null, {timeout:5000});
@@ -495,6 +495,7 @@ for (const engine of [chromium, webkit]) {
     try {
       await page.locator('[data-accordion=chameleol]').click();
       await pendingStats.promise;
+      await page.locator('dialog[open] .dialog-close').click();
       await page.locator('[data-accordion=iroate]').click();
       await page.locator('#plays-iroate').filter({ hasText: /^5回$/ }).waitFor();
       assert.equal(await page.locator('#plays-iroate').textContent(), '5回');
