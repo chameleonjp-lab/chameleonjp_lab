@@ -1828,10 +1828,9 @@
       }
 ];
 
-    // 詳細ランキングを公開したまま、実験場トップのカードだけを非表示にする。
+    // 旧版のカードを非表示にし、オンライン版と重複しないようにする。
     const HIDDEN_GAME_CARD_SLUGS = new Set([
-      "songen_wo_kakeyouka3",
-      "songen_wo_kakeyouka3_online"
+      "songen_wo_kakeyouka3"
     ]);
 
     // Supabaseへ接続できない場合も、非公開にしたゲームを固定一覧から表示しない。
