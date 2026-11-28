@@ -17,7 +17,7 @@
   <script src="./i18n/ranking.js?v=20261126-junglegym-live"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261128-galaxy-shark"></script>
+  <script src="./i18n/games-3.js?v=20261128-sabasaba"></script>
   <script src="./i18n/extras.js?v=20261128-popular"></script>
   <script src="./i18n/runtime.js?v=20261128-directory"></script>
 
@@ -932,6 +932,19 @@
         ]
       },
       {
+        "displayOrder": 36,
+        "slug": "sabasaba",
+        "title": "サバサバ",
+        "url": "https://chameleonjp-lab.github.io/sabasaba/",
+        "description": "敵を倒して強化し、ノーマルではボス撃破、エンドレスでは生き残りを目指すゲームです。",
+        "shareText": "サバサバ https://chameleonjp-lab.github.io/sabasaba/",
+        "releaseDate": "2026-08-20",
+        "isActive": true,
+        "detailSlug": "sabasaba",
+        "rankingSlug": "sabasaba_normal",
+        "statsSlugs": ["sabasaba_normal", "sabasaba_endless"]
+      },
+      {
             "displayOrder": 40,
             "slug": "paripari",
             "title": "パリパリ",
@@ -1140,6 +1153,8 @@
 ];
 
     // 旧版のカードを非表示にし、オンライン版と重複しないようにする。
+    const SABASABA_CARD = GAMES.find((game) => game.slug === "sabasaba");
+
     const HIDDEN_GAME_CARD_SLUGS = new Set([
       "songen_wo_kakeyouka3"
     ]);
@@ -1665,6 +1680,23 @@
         const slug = cleanText(row.game_slug);
         if (!slug || used.has(slug)) return;
 
+        if (SABASABA_CARD.statsSlugs.includes(slug)) {
+          const statsSlugs = SABASABA_CARD.statsSlugs.filter((mode) => bySlug.has(mode));
+          const base = rowToGame(bySlug.get(statsSlugs[0]));
+          games.push({
+            ...base,
+            slug: SABASABA_CARD.slug,
+            title: SABASABA_CARD.title,
+            description: SABASABA_CARD.description,
+            shareText: SABASABA_CARD.shareText,
+            detailSlug: SABASABA_CARD.detailSlug,
+            rankingSlug: base.slug,
+            statsSlugs
+          });
+          statsSlugs.forEach((mode) => used.add(mode));
+          return;
+        }
+
         if (slug === "faitofuraito_normal" || slug === "faitofuraito_easy") {
           const normal = bySlug.get("faitofuraito_normal") || row;
           const base = rowToGame(normal);
@@ -1962,7 +1994,7 @@
       const playLabel = game.slug === "ikagetto" ? "釣りのプレイ回数"
         : game.slug === "chameleol" ? "通常モードのプレイ回数" : grouped ? "合計プレイ回数（合算）" : "合計プレイ回数";
       const playerLabel = game.slug === "ikagetto" ? "漁師登録"
-        : game.slug === "chameleol" ? "通常モードの初クリア人数（登録名単位）" : game.slug === "faitofuraito"
+        : game.slug === "chameleol" ? "通常モードの初クリア人数（登録名単位）" : grouped && ["faitofuraito", "sabasaba"].includes(game.slug)
         ? "登録名（モード別合計）"
         : grouped ? "参加人数（合算）" : "参加人数";
       return `
