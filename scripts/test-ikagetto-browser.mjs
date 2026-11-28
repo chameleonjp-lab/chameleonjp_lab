@@ -23,6 +23,7 @@ for (const engine of [chromium, webkit]) {
     let active = true;
     let outcome = 'unavailable';
     let failNextPage = true;
+    let failHall = true;
     page.on('pageerror', error => errors.push(error.message));
     await page.route('**/*', async route => {
       const url = new URL(route.request().url());
@@ -48,6 +49,17 @@ for (const engine of [chromium, webkit]) {
             return route.fulfill({ json: [{ total_play_count: 0, player_count: 0, fishing: 0, butcher: 0, cooking: 0 }] });
           }
           return route.fulfill({ json: [{ total_play_count: 7, player_count: 2, fishing: 2, butcher: 5, cooking: 6 }] });
+        }
+        if (rpc === 'ikagetto_hall_of_fame_v1') {
+          assert.deepEqual(args, { p_offset: 0, p_limit: 500 });
+          if (failHall) {
+            failHall = false;
+            return route.fulfill({ status: 503 });
+          }
+          return route.fulfill({ json: [
+            { rank: 1, display_name: '<Fisher 1>', score: 74000, length_meters: 50, weight_kg: 41000, elapsed_ms: 166100, has_more: false },
+            { rank: 2, display_name: 'Fisher 2', score: 80000, length_meters: 50, weight_kg: 45000, elapsed_ms: 160000, has_more: false }
+          ] });
         }
         if (rpc === 'ikagetto_board_page_v3') {
           assert.equal(args.p_limit, 500);
@@ -176,13 +188,38 @@ for (const engine of [chromium, webkit]) {
     await rows.getByText('Cook A', { exact: true }).waitFor();
     assert.equal(new URL(page.url()).searchParams.get('source'), 'game');
 
+    assert.equal(calls.filter(({ rpc }) => rpc === 'ikagetto_hall_of_fame_v1').length, 0);
+    await page.setViewportSize({ width: 402, height: 700 });
+    const hallTab = page.getByRole('tab', { name: '殿堂入り', exact: true });
+    const tabBox = await hallTab.boundingBox();
+    const cookingBox = await page.getByRole('tab', { name: '料理', exact: true }).boundingBox();
+    assert.ok(tabBox.y >= cookingBox.y + cookingBox.height, 'hall below the three modes');
+    await page.getByRole('tab', { name: '料理', exact: true }).focus();
+    await page.keyboard.press('ArrowRight');
+    await page.locator('#ikagetto-status').filter({ hasText: '取得できませんでした' }).waitFor();
+    assert.equal(await hallTab.getAttribute('aria-selected'), 'true');
+    await page.locator('#ikagetto-retry').click();
+    await rows.getByText('<Fisher 1>', { exact: true }).waitFor();
+    assert.deepEqual(await rows.locator('.rank-no').allTextContents(), ['1人目', '2人目']);
+    assert.deepEqual(await rows.locator('.ikagetto-score').allTextContents(), ['74,000点', '80,000点']);
+    assert.equal(await page.locator('#ikagetto-panel').getAttribute('data-mode'), 'hall');
+    await page.locator('#labLanguageSelect').selectOption('en');
+    await page.getByRole('tab', { name: 'Hall of Fame', exact: true, selected: true }).waitFor();
+    assert.deepEqual(await rows.locator('.rank-no').allTextContents(), ['No. 1', 'No. 2']);
+    assert.equal(await rows.first().locator('.ikagetto-catch').textContent(), 'Length 50 m / Weight 41,000 kg / Time 166.1 s');
+    assert.equal(new URL(page.url()).searchParams.get('mode'), 'hall');
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 402);
+    await page.reload();
+    await rows.getByText('<Fisher 1>', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('tab', { name: 'Hall of Fame', exact: true }).getAttribute('aria-selected'), 'true');
+
     outcome = 'empty';
     await page.goto(home.href);
     await toggle.click();
     await card.locator('#ranking-ikagetto .empty').waitFor();
     assert.match(await card.locator('#plays-ikagetto').textContent(), /^0\D/);
     assert.match(await card.locator('#players-ikagetto').textContent(), /^0\D/);
-    assert.equal(calls.filter(({ rpc }) => rpc === 'ikagetto_stats_v1').length, 5);
+    assert.equal(calls.filter(({ rpc }) => rpc === 'ikagetto_stats_v1').length, 6);
     assert.equal(calls.filter(({ rpc }) => rpc === 'ikagetto_fishing_board_v2').length, 3);
     assert.ok(calls.some(({ rpc, args }) => rpc === 'ikagetto_board_page_v3' && args.p_mode === 'fishing' && args.p_offset === 1000));
 
@@ -191,7 +228,7 @@ for (const engine of [chromium, webkit]) {
     await page.waitForFunction(() => document.querySelector('#sortStatus').textContent.includes('Recently added'));
     assert.equal(await card.count(), 0);
     assert.deepEqual(errors, []);
-    console.log(`${engine.name()}: Ikagetto card, 3 hosted modes, 1,001 paginated rows, metrics, ties, locale and retry passed`);
+    console.log(`${engine.name()}: Ikagetto card, three rankings and Hall of Fame, 1,001 paginated rows, metrics, ties, locale and retry passed`);
   } finally {
     await browser.close();
   }

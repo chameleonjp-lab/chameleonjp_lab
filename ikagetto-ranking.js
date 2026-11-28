@@ -1,7 +1,8 @@
 const modes = [
   { key: 'fishing', label: '釣り', heading: '釣りランキング' },
   { key: 'butcher', label: '解体', heading: '解体ランキング' },
-  { key: 'cooking', label: '料理', heading: '料理ランキング' }
+  { key: 'cooking', label: '料理', heading: '料理ランキング' },
+  { key: 'hall', label: '殿堂入り', heading: '殿堂入り' }
 ];
 const pageSize = 500;
 const fetchTimeout = 8000;
@@ -9,14 +10,18 @@ const catchLabel = '全長 {length} m ／ 重さ {weight} kg ／ 時間 {time}�
 
 function parseBoard(data, offset, modeKey) {
   if (!Array.isArray(data) || data.length > pageSize) throw new Error('Invalid Ikagetto board');
-  const maxScore = modeKey === 'fishing' ? 80000 : 50000;
+  const hall = modeKey === 'hall';
+  const maxScore = modeKey === 'fishing' || hall ? 80000 : 50000;
   const hasMore = data[0]?.has_more ?? false;
   let previousRank = 0;
   for (const [index, row] of data.entries()) {
     if (!Number.isSafeInteger(row?.rank) || row.rank < 1 || row.rank < previousRank || row.rank > offset + index + 1 ||
         typeof row.display_name !== 'string' || !row.display_name.trim() ||
         !Number.isSafeInteger(row.score) || row.score < 0 || row.score > maxScore ||
-        typeof row.has_more !== 'boolean' || row.has_more !== hasMore) {
+        typeof row.has_more !== 'boolean' || row.has_more !== hasMore ||
+        (hall && (row.rank !== offset + index + 1 || row.length_meters !== 50 ||
+          !Number.isSafeInteger(row.weight_kg) || row.weight_kg < 1 || row.weight_kg > 45000 ||
+          !Number.isSafeInteger(row.elapsed_ms) || row.elapsed_ms < 0))) {
       throw new Error('Invalid Ikagetto ranking row');
     }
     previousRank = row.rank;
@@ -65,6 +70,7 @@ export function mountIkagettoRanking(root, { gameUrl, apiUrl, apiKey, share }) {
     <section class="ranking-area">
       <section class="ranking-card" id="ikagetto-panel" role="tabpanel">
         <h2 class="ranking-title" id="ikagetto-heading" tabindex="-1"></h2>
+        <p class="ikagetto-hall-intro" id="ikagetto-hall-intro" hidden>全長50mのイカを釣り上げた方を、初回達成順に掲載しています。</p>
         <p class="loading" id="ikagetto-status" role="status"></p>
         <button class="button secondary ikagetto-retry" type="button" id="ikagetto-retry" hidden>再試行</button>
         ${pagination}
@@ -106,18 +112,20 @@ export function mountIkagettoRanking(root, { gameUrl, apiUrl, apiKey, share }) {
   function renderRows() {
     const language = i18n.getLanguage();
     const number = new Intl.NumberFormat(language, { maximumFractionDigits: 1 });
+    const hall = mode.key === 'hall';
     const fragment = document.createDocumentFragment();
     for (const row of shown.rows) {
-      const rank = ['ja', 'zh-Hans', 'zh-Hant', 'ko'].includes(language)
+      let rank = ['ja', 'zh-Hans', 'zh-Hant', 'ko'].includes(language)
         ? `${number.format(row.rank)}${i18n.t('位')}`
         : `${i18n.t('順位')} ${number.format(row.rank)}`;
+      if (hall) rank = i18n.t('{number}人目').replace('{number}', number.format(row.rank));
       const item = element('div', 'detail-row');
       const line = element('div', 'detail-main ikagetto-entry');
       line.append(element('span', 'rank-no', rank), element('bdi', 'player-name', row.display_name),
         element('strong', 'ikagetto-score', numberWithUnit(row.score, '点', number)));
       item.append(line);
       const { length_meters: length, weight_kg: weight, elapsed_ms: elapsed } = row;
-      if (mode.key === 'fishing' && [length, weight].every(value => Number.isSafeInteger(value) && value > 0) &&
+      if ((mode.key === 'fishing' || hall) && [length, weight].every(value => Number.isSafeInteger(value) && value > 0) &&
           Number.isSafeInteger(elapsed) && elapsed >= 0) {
         const values = { length, weight, time: elapsed / 1000 };
         const caption = i18n.t(catchLabel).replace(/\{(length|weight|time)\}/g, (_, key) => number.format(values[key]));
@@ -174,7 +182,10 @@ export function mountIkagettoRanking(root, { gameUrl, apiUrl, apiKey, share }) {
     list.setAttribute('aria-busy', 'true');
     renderNavigation();
     try {
-      const data = await request('ikagetto_board_page_v3', { p_mode: modeKey, p_offset: offset, p_limit: pageSize }, controller.signal);
+      const args = { p_offset: offset, p_limit: pageSize };
+      const data = modeKey === 'hall'
+        ? await request('ikagetto_hall_of_fame_v1', args, controller.signal)
+        : await request('ikagetto_board_page_v3', { ...args, p_mode: modeKey }, controller.signal);
       if (pending !== controller) return;
       shown = parseBoard(data, offset, modeKey);
       renderRows();
@@ -212,6 +223,8 @@ export function mountIkagettoRanking(root, { gameUrl, apiUrl, apiKey, share }) {
       button.tabIndex = selected ? 0 : -1;
     }
     panel.setAttribute('aria-labelledby', `ikagetto-tab-${mode.key}`);
+    panel.dataset.mode = mode.key;
+    get('hall-intro').hidden = mode.key !== 'hall';
     heading.textContent = mode.heading;
     shown = { offset: 0, rows: [], hasMore: false };
     list.replaceChildren();
