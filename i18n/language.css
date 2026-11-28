@@ -20,8 +20,9 @@
   font: inherit;
   font-size: 12px;
   font-weight: 700;
-  color: var(--text-main, #f6fff9);
-  background: var(--card-bg, #14382b);
+  color-scheme: light;
+  color: #271f34;
+  background: #fff9f0;
   border: 1px solid var(--sub-button-border, #6fbf93);
   border-radius: 10px;
   min-height: 38px;
