@@ -15,7 +15,7 @@ const catalogRows = [
   game
 ];
 const detail = new URL(`ranking.html?game=${slug}&lang=en`, base);
-const thumbnail = new URL('assets/social-card.png', game.game_url);
+const thumbnail = new URL('assets/social-duel-20261127.jpg', game.game_url);
 const types = { html: 'text/html', js: 'text/javascript', css: 'text/css' };
 const sample = {
   rank: 1, display_name: '<img src=x>', best_score: 2000, match_count: 10, wins: 6,
