@@ -13,6 +13,9 @@
   // Notes in MIDI pitch, spacing in seconds. A slight pitch drop gives the
   // wooden latch and ticket punch a different attack from the pitched bells.
   const cues = {
+    action:   { wave: 'triangle', notes: [55, 62, 74], step: .037, tail: .11 },
+    puzzle:   { wave: 'sine', notes: [83, 90, 95], step: .062, tail: .19 },
+    timing:   { wave: 'triangle', notes: [79, 67, 79], step: .082, tail: .048 },
     open:     { wave: 'triangle', notes: [62, 69, 77], step: .052, tail: .13 },
     close:    { wave: 'triangle', notes: [62, 50], step: .046, tail: .075, drop: 5 },
     play:     { wave: 'triangle', notes: [74, 77, 81], step: .055, tail: .17 },

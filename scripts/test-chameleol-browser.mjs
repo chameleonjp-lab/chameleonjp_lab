@@ -102,7 +102,7 @@ for (const engine of [chromium, webkit]) {
       }
       if (url.pathname.startsWith('/chameleonjp_lab/')) {
         const file = url.pathname.split('/').pop() || 'index.html';
-        const types = {'lab-directory.css':'text/css','arcade-at-dusk.webp':'image/webp','lab-audio.js':'text/javascript','midnight-carousel.mp3':'audio/mpeg','index.html':'text/html','ranking.html':'text/html','chameleol-ranking.js':'text/javascript','chameleol-hof.js':'text/javascript','chameleol-hof.css':'text/css','banner':'image/jpeg','IMG_7589.JPG':'image/jpeg'};
+        const types = {'lab-directory.css':'text/css','arcade-at-dusk.webp':'image/webp','park-map.webp':'image/webp','game-posters.webp':'image/webp','lab-audio.js':'text/javascript','midnight-carousel.mp3':'audio/mpeg','index.html':'text/html','ranking.html':'text/html','chameleol-ranking.js':'text/javascript','chameleol-hof.js':'text/javascript','chameleol-hof.css':'text/css','banner':'image/jpeg','IMG_7589.JPG':'image/jpeg'};
         if (Object.hasOwn(types,file)) {
           return fulfill({contentType:types[file],body:await readFile(new URL(file,output))});
         }
@@ -364,6 +364,13 @@ for (const engine of [chromium, webkit]) {
     await page.waitForURL(url => !url.searchParams.has('tab'));
     assert.equal(await page.locator('#timeAttackTab').isVisible(), false);
     assert.equal(await page.locator('#bestTab').getAttribute('aria-selected'), 'true');
+
+    // The unavailable-tab redirect selects Best before its independent requests finish.
+    // Complete this fixture before changing its data or navigating away in WebKit.
+    await page.locator('#bestRanking').getByText('まだ記録がありません').waitFor();
+    await page.locator('#hallRanking').getByText('まだ殿堂入りした方はいません').waitFor({state:'attached'});
+    await page.waitForFunction(() => document.querySelector('#rankingParticipantCount')?.textContent === '0人'
+      && document.querySelector('#totalPlayCount')?.textContent === '0回');
 
     timeAttackAvailable = true;
     failNextAttackStats = failNextAttackTitles = true;

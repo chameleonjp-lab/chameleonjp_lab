@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
   />
   <link rel="icon" href="IMG_7589.JPG" type="image/jpeg" />
   <link rel="apple-touch-icon" href="IMG_7589.JPG" />
@@ -18,11 +18,11 @@
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
   <script src="./i18n/games-3.js?v=20261128-galaxy-shark"></script>
-  <script src="./i18n/extras.js?v=20261120-15lang"></script>
+  <script src="./i18n/extras.js?v=20261128-map"></script>
   <script src="./i18n/runtime.js?v=20261128-directory"></script>
 
-  <link rel="stylesheet" href="./lab-directory.css?v=20261128" />
-  <script defer src="./lab-audio.js?v=20261128-park"></script>
+  <link rel="stylesheet" href="./lab-directory.css?v=20261128-map" />
+  <script defer src="./lab-audio.js?v=20261128-map"></script>
 </head>
 
 <body>
@@ -34,10 +34,15 @@
       </div>
     </div>
     <header class="hero">
-      <img class="hero-art" src="arcade-at-dusk.webp" alt="" width="1500" height="500" fetchpriority="high" />
       <div class="hero-copy">
         <h1>カメレオンJPの実験場</h1>
-        <p>スマホで遊べるミニゲーム集。</p>
+        <p>園内マップから、遊びたいゲームを探そう。</p>
+      </div>
+      <div class="park-map" role="group" aria-label="園内マップ">
+        <img class="hero-art" src="park-map.webp" width="1440" height="960" alt="" fetchpriority="high" />
+        <button class="map-pin action" data-area="action" data-lab-cue="action" aria-pressed="false" disabled><i aria-hidden="true">ϟ</i><span>アクション</span></button>
+        <button class="map-pin puzzle" data-area="puzzle" data-lab-cue="puzzle" aria-pressed="false" disabled><i aria-hidden="true">◇</i><span>パズル</span></button>
+        <button class="map-pin timing" data-area="timing" data-lab-cue="timing" aria-pressed="false" disabled><i aria-hidden="true">◎</i><span>タイミング</span></button>
       </div>
     </header>
 
@@ -52,8 +57,8 @@
     <section class="directory" aria-labelledby="directoryTitle">
       <div class="directory-head">
         <div class="directory-heading">
-          <h2 id="directoryTitle">公開中ゲーム</h2>
-          <span class="game-count" id="gameCount" hidden></span>
+          <h2 id="directoryTitle" tabindex="-1">公開中ゲーム</h2>
+          <output class="game-count" id="gameCount" for="gameSearch" aria-live="polite" hidden></output>
         </div>
         <div class="sort-row">
           <label class="sort-label" for="gameSortSelect">並び替え</label>
@@ -67,6 +72,11 @@
           </select>
         </div>
       </div>
+      <div class="finder">
+        <label class="search-field"><i aria-hidden="true"></i><input id="gameSearch" type="search" aria-label="ゲームを検索" placeholder="ゲーム名・遊び方で検索" autocomplete="off" /></label>
+        <button type="button" id="clearFilters" data-lab-cue="setting" hidden>すべて表示</button>
+      </div>
+      <p class="empty-results" id="emptyResults" hidden>条件に合うゲームがありません。</p>
       <div class="sort-status" id="sortStatus" aria-live="polite">最近追加された順で表示しています。</div>
       <div id="gameList" class="game-list" aria-label="ゲーム一覧"></div>
     </section>
@@ -1346,6 +1356,7 @@
         const card = document.getElementById(`game-${game.slug}`);
         if (card) gameListEl.appendChild(card);
       });
+      applyDirectoryFilters();
     }
 
     function setSortStatus(message) {
@@ -1964,15 +1975,167 @@
       ["torani_yasashiku", "🐯"], ["suiteki_catch", "💧"], ["juden_ga", "🔋"], ["anatano_1byou", "⏱️"]
     ]);
 
+    // The print sheet contains 304 × 160 previews, six per row. A new or
+    // versioned share image uses its live URL until a new print is available.
+    const printedPosters = [
+      "anatano_1byou/assets/social-preview.png",
+      "bekutoru/assets/social-card.png",
+      "binkarabin/assets/social-preview.png",
+      "chameleol/social-card.jpg",
+      "emojihiroi/assets/social-preview.png",
+      "faitofuraito/social-card-eed6ea12da6e1c73.png",
+      "galaxy_shark/ogp.jpg",
+      "goriragouu/assets/goriragouu-og-v1.png",
+      "hanabin/src/assets/social-card.png",
+      "himatubushi/social-card.jpg",
+      "hito_wo_yurusuna/assets/social-preview.png",
+      "ikagetto/assets/ikagetto-share-v1.jpg",
+      "inubo/social-card.jpg",
+      "iroate/assets/social-preview.png",
+      "ironarabe/assets/social-preview.png",
+      "johba/assets/social-card.png",
+      "jouzunikakerukana/social-card-f7ede8d7.jpg",
+      "junglegym_onigokko/assets/junglegym-social-v1.jpg",
+      "juuden_ga/social-card-7233a01f.jpg",
+      "kakomare/og-image-v2.png",
+      "kanijan/assets/social-card.png",
+      "kodomodemo_toketyau/social-card-v1.jpg",
+      "koroshine/assets/social-preview.png",
+      "kuma_no_fpsagashi/social-card.jpg",
+      "maketara_omaenoseidakara/social-card-v1.jpg",
+      "maron_hikou/assets/social-preview.png",
+      "masumen/assets/masumen-og-v1.png",
+      "matigaimikke/social-card.jpg",
+      "medjedshin_ha_mamotteru/assets/social-card-v1.jpg",
+      "meoshi_wo_seisu/social-card-v1.jpg",
+      "paripari/assets/paripari-og-v1.png",
+      "sabasaba/assets/sabasaba-social-card.png",
+      "sainome/assets/sainome-ogp.jpg",
+      "saisupi/assets/saisupi-og-v3.png",
+      "sandoicchi/social-card.jpg",
+      "shiwakezaru/social-card.jpg",
+      "songen_wo_kakeyouka/assets/social-card.png?v=20261127-2",
+      "songen_wo_kakeyouka2/assets/social-card.png?v=20261127-2",
+      "songen_wo_kakeyouka3/assets/social-duel-20261127.jpg",
+      "suitekicatch/social-card-9b54ee76.jpg",
+      "takkeu/og-takkeu-v1.png",
+      "tomatooku/assets/social-card.png",
+      "toraniyasashiku/social-card-677e9d04.jpg",
+      "torebaiinoyo/social-card.jpg",
+      "toremeshi/assets/social-card.png",
+      "uchikaeru/assets/social-preview.png",
+      "yume_wo_mitandakedosa/social-card.jpg",
+    ];
+    const areas = {
+      action: { label: "アクション", symbol: "ϟ", games: "bekutoru faitofuraito galaxy_shark goriragouu himatubushi hito_wo_yurusuna ikagetto inubo johba junglegym_onigokko kakomare kanijan koroshine maron_hikou medjedshin_ha_mamotteru songen_wo_kakeyouka songen_wo_kakeyouka2 songen_wo_kakeyouka3 takkeu uchikaeru yume_wo_mitandakedosa".split(" ") },
+      puzzle: { label: "パズル", symbol: "◇", games: "binkarabin chameleol emojihiroi iroate ironarabe jouzunikakerukana kodomodemo_toketyau kuma_no_fpsagashi masumen matigaimikke sabasaba sainome sandoicchi shiwakezaru tomatooku toremeshi".split(" ") },
+      timing: { label: "タイミング", symbol: "◎", games: "anatano_1byou hanabin juuden_ga maketara_omaenoseidakara meoshi_wo_seisu paripari saisupi suitekicatch toraniyasashiku torebaiinoyo".split(" ") }
+    };
+    const areaByGame = new Map(Object.entries(areas).flatMap(([area, entry]) =>
+      entry.games.map(key => [key, area])));
+    const searchInput = document.getElementById("gameSearch");
+    const clearFilters = document.getElementById("clearFilters");
+    const directoryTitle = document.getElementById("directoryTitle");
+    let selectedArea = "";
+
+    function artworkFor(game) {
+      const path = thumbnailPathFor(game.url);
+      if (!path) {
+        const firstParty = [GAME_THUMBNAIL_BASE, CODEBERG_THUMBNAIL_BASE].find(base => game.url?.startsWith(base));
+        return { key: firstParty ? game.url.slice(firstParty.length).split("/")[0] : "", url: "", index: -1 };
+      }
+      const url = new URL(path, game.url).href;
+      const name = url.slice(GAME_THUMBNAIL_BASE.length);
+      return { key: name.split("/")[0], url, index: printedPosters.indexOf(name) };
+    }
+
+    function posterHtml(game, art) {
+      let picture = "";
+      if (art.index >= 0) {
+        const x = 100 * (art.index % 6) / 5;
+        const y = 100 * Math.floor(art.index / 6) / (Math.ceil(printedPosters.length / 6) - 1);
+        picture = `<span class="printed-cover" style="background-position:${x}% ${y}%"></span>`;
+      } else if (art.url) {
+        picture = `<img class="live-cover" loading="lazy" decoding="async" src="${escapeHtml(art.url)}" alt="" />`;
+      }
+      return `<span class="poster" aria-hidden="true"><span class="poster-symbol">${gameSymbols.get(game.slug) || "✦"}</span>${picture}</span>`;
+    }
+
+    function searchKey(text) {
+      return text.normalize("NFKC").toLowerCase().trim();
+    }
+
+    function applyDirectoryFilters() {
+      const query = searchKey(searchInput.value);
+      let visible = 0;
+      for (const card of gameListEl.children) {
+        const matches = (!selectedArea || card.dataset.area === selectedArea) &&
+          (!query || card.searchText.includes(query));
+        card.hidden = !matches;
+        if (!matches) {
+          if (card.classList.contains("open")) {
+            card.classList.remove("open");
+            card.querySelector("[data-accordion]").setAttribute("aria-expanded", "false");
+          }
+          continue;
+        }
+        for (const columns of [2, 3, 4]) card.style.setProperty(`--col-${columns}`, visible % columns);
+        visible++;
+      }
+      const count = document.getElementById("gameCount");
+      count.textContent = String(visible);
+      count.hidden = false;
+      directoryTitle.textContent = selectedArea ? areas[selectedArea].label : "公開中ゲーム";
+      clearFilters.hidden = !selectedArea && !searchInput.value;
+      document.getElementById("emptyResults").hidden = visible > 0;
+      document.querySelectorAll(".map-pin").forEach(pin => {
+        pin.setAttribute("aria-pressed", String(pin.dataset.area === selectedArea));
+      });
+    }
+
+    function indexSearchText() {
+      const translate = window.LabI18n?.t || (text => text);
+      for (const game of getSortedGames()) {
+        const card = document.getElementById(`game-${game.slug}`);
+        if (card) card.searchText = searchKey([game.title, game.description, translate(game.title),
+          translate(game.description || ""), game.slug].join(" "));
+      }
+      applyDirectoryFilters();
+    }
+
+    function setupParkMap() {
+      gameListEl.addEventListener("error", event => {
+        if (event.target.matches?.(".live-cover")) event.target.hidden = true;
+      }, true);
+      document.querySelectorAll(".map-pin").forEach(pin => {
+        pin.disabled = !gameListEl.querySelector(`[data-area="${pin.dataset.area}"]`);
+        pin.addEventListener("click", () => {
+          selectedArea = selectedArea === pin.dataset.area ? "" : pin.dataset.area;
+          searchInput.value = "";
+          applyDirectoryFilters();
+          directoryTitle.focus({ preventScroll: true });
+          directoryTitle.scrollIntoView({ block: "start" });
+        });
+      });
+      searchInput.addEventListener("input", applyDirectoryFilters);
+      clearFilters.addEventListener("click", () => {
+        selectedArea = "";
+        searchInput.value = "";
+        applyDirectoryFilters();
+        directoryTitle.focus({ preventScroll: true });
+      });
+      document.addEventListener("lab-language-change", indexSearchText);
+      indexSearchText();
+    }
+
     function renderCards() {
       const games = getSortedGames();
-      const count = document.getElementById("gameCount");
-      count.textContent = String(games.length);
-      count.hidden = false;
       gameListEl.innerHTML = games.map((game) => {
+        const art = artworkFor(game);
+        const area = areaByGame.get(art.key) || "";
         const date = /^\d{4}-\d{2}-\d{2}$/.test(game.releaseDate) ? game.releaseDate : "";
         return `
-          <article class="game-card" id="game-${escapeHtml(game.slug)}">
+          <article class="game-card" id="game-${escapeHtml(game.slug)}" data-area="${area}">
             <h2 class="game-title">
               <button
                 class="accordion-toggle"
@@ -1982,8 +2145,9 @@
                 aria-expanded="false"
                 aria-controls="content-${escapeHtml(game.slug)}"
               >
-                <span class="game-symbol" aria-hidden="true">${gameSymbols.get(game.slug) || "🕹️"}</span>
+                ${posterHtml(game, art)}
                 <span class="game-caption">
+                  <span class="ticket-meta">${area ? `<span class="area-label"><i aria-hidden="true">${areas[area].symbol}</i><span>${areas[area].label}</span></span>` : ""}</span>
                   <span class="accordion-title-text" id="title-${escapeHtml(game.slug)}">${escapeHtml(game.title)}</span>
                   ${date ? `<time class="release-date" datetime="${date}">${date.replaceAll("-", ".")}</time>` : ""}
                 </span>
@@ -2097,6 +2261,7 @@
       if (isKeyUnset) keyNoticeEl.style.display = "block";
       await loadGamesFromSupabase();
       renderCards();
+      setupParkMap();
       setupSortControls();
       applySortStatus();
       scheduleLazyBannerLoad();
