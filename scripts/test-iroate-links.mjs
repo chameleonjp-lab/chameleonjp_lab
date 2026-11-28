@@ -12,11 +12,12 @@ export const OLD_IROATE_URL = 'https://chameleonjp.codeberg.page/iroate/';
 // exact Iroate URL is normalized; every other URL and field stays covered.
 // The Chameleol, Inubo, Ikagetto, Jungle Gym Tag and Medjed additions were checked against every prior catalog row.
 // The Medjed URL casing change and the verified Songen 3 Online addition are included.
+// Galaxy Shark is the only addition to the preceding catalog and fallback entries.
 // Literal fingerprints keep this check usable in a shallow checkout.
 const baseline = {
-  'catalog/games.json': { hash: '80b35b26faab46fcd42187538dc4b4859218894f74f6c74d899096f1abb38d0b', occurrences: 2 },
-  'index.html': { hash: '10345d73f87c7dc7822b39cc7e9b89a9995d8b1de47aac3c87d4520e44e91747', occurrences: 2 },
-  'ranking.html': { hash: '3bc7adcd3c73587545cfcc6918b8b8482368863291e88d901898b97c6c4cc7db', occurrences: 4 }
+  'catalog/games.json': { hash: '552e6e82ec6376e70a96f8f847a4c0c3776daf778aafdc016698dfa0980f0c42', occurrences: 2 },
+  'index.html': { hash: '22027af5690f4fefe2da63183e2b6ab92ba70d3fa0c0ae11806bef4c9467e49c', occurrences: 2 },
+  'ranking.html': { hash: 'cb0121cf70ca69d0b200f6430806605010ffb584f6bc5160dc5a33f0353c3044', occurrences: 4 }
 };
 
 function inlineArray(source, marker) {
