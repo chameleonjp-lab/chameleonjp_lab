@@ -50,7 +50,7 @@ for (const engine of [chromium, webkit]) {
       }
       if (!url.href.startsWith(base)) return route.abort();
       const file = url.pathname.slice(new URL(base).pathname.length) || 'index.html';
-      const types = { html: 'text/html', js: 'text/javascript', css: 'text/css' };
+      const types = { html: 'text/html', js: 'text/javascript', css: 'text/css', webp: 'image/webp' };
       return route.fulfill({ body: await readFile(new URL(file, output)), contentType: types[file.split('.').at(-1)] ?? 'image/jpeg' });
     });
 
@@ -66,6 +66,20 @@ for (const engine of [chromium, webkit]) {
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await page.locator('#labLanguageSelect').selectOption('en');
     await page.setViewportSize({ width: 402, height: 700 });
+    const visibleCards = page.locator('#gameList > article:visible');
+    const search = page.getByRole('searchbox');
+    await page.getByRole('button', { name: 'Puzzles', exact: true }).click();
+    assert.deepEqual(await visibleCards.evaluateAll(cards => cards.map(card => card.id)), ['game-iroate']);
+    assert.equal(await page.locator('#gameCount').textContent(), '1');
+    await search.fill('Missing game');
+    await page.locator('#emptyResults').waitFor({ state: 'visible' });
+    await page.getByRole('button', { name: 'Show all' }).click();
+    await search.fill('ＩＮＵＢＯ');
+    assert.deepEqual(await visibleCards.evaluateAll(cards => cards.map(card => card.id)), ['game-inubo']);
+    await page.getByRole('button', { name: 'Show all' }).click();
+    assert.equal(await visibleCards.count(), 3);
+    assert.equal(await page.locator('.printed-cover').count(), 3);
+    assert.deepEqual(imageRequests, []);
     assert.equal(await sort.inputValue(), 'newest');
     assert.equal(await sort.locator('option:checked').textContent(), 'Recently added');
     assert.deepEqual(await cardOrder(), newestOrder);

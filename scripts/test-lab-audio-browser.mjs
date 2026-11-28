@@ -64,6 +64,14 @@ for (const engine of [chromium, webkit]) {
     const [track] = await page.evaluate(() => window.heard.loops);
     assert.ok(track.seconds > 36 && track.seconds < 38 && track.hasSound);
     assert.deepEqual(await notes(), [76, 79]);
+    for (const [area, expected] of [['action', [55, 62, 74]], ['puzzle', [83, 90, 95]], ['timing', [79, 67, 79]]]) {
+      await page.locator('.map-pin.' + area).tap();
+      assert.deepEqual(await notes(), expected);
+    }
+    await page.locator('#clearFilters').tap();
+    assert.deepEqual(await notes(), [76, 79]);
+    await card.tap();
+    assert.deepEqual(await notes(), [62, 69, 77]);
     await card.tap();
     assert.deepEqual(await notes(), [62, 50]);
     await card.tap();
