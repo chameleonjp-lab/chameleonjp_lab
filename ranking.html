@@ -16,7 +16,7 @@
 
   <link rel="stylesheet" href="./i18n/language.css?v=20261120-15lang" />
   <script src="./i18n/common.js?v=20261120-15lang"></script>
-  <script src="./i18n/ranking.js?v=20261126-junglegym-live"></script>
+  <script src="./i18n/ranking.js?v=20261128-ikagetto-hall"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
   <script src="./i18n/games-3.js?v=20261128-galaxy-shark"></script>
@@ -814,6 +814,36 @@
     .ikagetto-stats { margin-top: 0; }
     .ranking-switch.ikagetto-switch { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .ikagetto-switch .ranking-tab { overflow-wrap: anywhere; }
+    #ikagetto-tab-hall {
+      grid-column: 1 / -1;
+      color: #ffe7b1;
+      border-color: #ba9553;
+      background: #1b2730;
+    }
+    #ikagetto-tab-hall.active {
+      color: #18222a;
+      background: linear-gradient(120deg, #caa360, #ffe4a3 48%, #dabb7b);
+    }
+    #ikagetto-panel[data-mode="hall"] {
+      color: #f8f0de;
+      border: 1px solid #a98b55;
+      background: radial-gradient(ellipse at top, #1b4351, #0b1828 70%);
+    }
+    #ikagetto-panel[data-mode="hall"] .ranking-title {
+      color: #ffdc90;
+      font-size: clamp(24px, 6vw, 38px);
+    }
+    .ikagetto-hall-intro { margin: 0 0 20px; color: #d6e2e8; line-height: 1.6; }
+    #ikagetto-panel[data-mode="hall"] .detail-row {
+      padding: 12px;
+      border: 1px solid #a98b55;
+      border-inline-start: 3px solid #e6bd71;
+      border-radius: 10px;
+      background: linear-gradient(110deg, #263945, #132639 75%);
+    }
+    #ikagetto-panel[data-mode="hall"] .rank-no,
+    #ikagetto-panel[data-mode="hall"] .ikagetto-score { color: #ffdc90; }
+    #ikagetto-panel[data-mode="hall"] .ikagetto-catch { color: #d6e2e8; }
     .ikagetto-entry {
       grid-template-columns: auto minmax(0, 1fr) auto;
     }
@@ -3600,7 +3630,7 @@
         pageLeadEl.textContent = page.description;
         document.documentElement.dataset.labSourceTitle = title;
         document.title = window.LabI18n.t(title);
-        const { mountIkagettoRanking } = await import("./ikagetto-ranking.js?v=20261126-colossal");
+        const { mountIkagettoRanking } = await import("./ikagetto-ranking.js?v=20261128-hall");
         mountIkagettoRanking(contentAreaEl, {
           gameUrl: page.url,
           apiUrl: SUPABASE_URL,
