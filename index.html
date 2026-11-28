@@ -13,7 +13,7 @@
 
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <link rel="stylesheet" href="./i18n/language.css?v=20261120-15lang" />
+  <link rel="stylesheet" href="./i18n/language.css?v=20261128-sound" />
   <script src="./i18n/common.js?v=20261122-newest"></script>
   <script src="./i18n/ranking.js?v=20261126-junglegym-live"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
@@ -764,10 +764,12 @@
       }
     }
   </style>
+  <script defer src="./lab-audio.js?v=20261128-park"></script>
 </head>
 
 <body>
   <main class="page">
+    <button id="labSound" type="button" class="lab-sound-toggle" aria-pressed="true" hidden><span aria-hidden="true">🔊</span> <span class="sound-label">音</span></button>
     <header class="hero">
       <div class="hero-mark" aria-hidden="true">
         <img class="hero-icon" src="IMG_7589.JPG" alt="" width="64" height="64" decoding="async" />

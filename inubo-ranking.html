@@ -20,11 +20,16 @@
     li{display:grid;grid-template-columns:minmax(2.5rem,auto) minmax(2rem,1fr) minmax(3rem,auto);gap:.65rem;padding:.65rem;border-bottom:1px solid #ddcbb7;overflow-wrap:anywhere}
     li strong{text-align:end}
   </style>
+  <script defer src="./lab-audio.js?v=20261128-park"></script>
   <script type="module" src="./inubo-ranking.js?v=lab-card-1"></script>
 </head>
 <body>
 <main>
-  <nav><a id="game" href="https://chameleonjp-lab.github.io/inubo/">イヌボー</a><a id="lab" href="./" aria-label="ChameleonJP Lab">ChameleonJP Lab</a></nav>
+  <nav>
+    <a id="game" href="https://chameleonjp-lab.github.io/inubo/">イヌボー</a>
+    <a id="lab" href="./" aria-label="ChameleonJP Lab">ChameleonJP Lab</a>
+    <button id="labSound" type="button" class="lab-sound-toggle" aria-pressed="true" hidden><span aria-hidden="true">🔊</span> <span class="sound-label">音</span></button>
+  </nav>
   <h1 id="title">イヌボー</h1>
   <h2 id="heading">詳細ランキング</h2>
   <div class="tabs" role="group" aria-labelledby="heading">

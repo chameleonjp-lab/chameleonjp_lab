@@ -14,7 +14,7 @@
 
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <link rel="stylesheet" href="./i18n/language.css?v=20261120-15lang" />
+  <link rel="stylesheet" href="./i18n/language.css?v=20261128-sound" />
   <script src="./i18n/common.js?v=20261120-15lang"></script>
   <script src="./i18n/ranking.js?v=20261128-ikagetto-hall"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
@@ -874,10 +874,12 @@
       overflow-wrap: anywhere;
     }
   </style>
+  <script defer src="./lab-audio.js?v=20261128-park"></script>
 </head>
 
 <body>
   <main class="page">
+    <button id="labSound" type="button" class="lab-sound-toggle" aria-pressed="true" hidden><span aria-hidden="true">🔊</span> <span class="sound-label">音</span></button>
     <a class="top-link" href="/chameleonjp_lab/">← 実験場トップへ戻る</a>
 
     <header class="hero">
@@ -3471,7 +3473,7 @@
           { createHallOfFameView }
         ] = await Promise.all([
           import("./chameleol-ranking.js?v=20261121-ta-all"),
-          import("./chameleol-hof.js?v=20261120-hof-titles-300")
+          import("./chameleol-hof.js?v=20261128-park")
         ]);
         if (token !== currentLoadToken) return;
         const hall = document.getElementById("hallRanking");

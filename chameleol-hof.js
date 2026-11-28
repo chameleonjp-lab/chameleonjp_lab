@@ -174,6 +174,7 @@ export function createHallOfFameView({ panel, container }) {
   const actions = node('div', 'hof-dialog-actions');
   const copy = node('button', '', 'SNSシェア文をコピー');
   copy.type = 'button';
+  copy.dataset.labCue = 'share';
   const close = node('button', '', '閉じる');
   close.type = 'button';
   actions.append(copy, close);

@@ -47,3 +47,21 @@ html:not([lang="ja"]) .rank-name,
 html:not([lang="ja"]) .hof-title-tag {
   overflow-wrap: anywhere;
 }
+
+.lab-sound-toggle {
+  margin-inline-end: auto;
+  min-height: 44px;
+  padding: 4px 12px;
+  border: 1px solid var(--sub-button-border, #6fbf93);
+  border-radius: 10px;
+  background: var(--card-bg, #14382b);
+  color: var(--text-main, #f6fff9);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.lab-sound-toggle:focus-visible {
+  outline: 3px solid var(--button-bg, #e6ff9f);
+  outline-offset: 2px;
+}

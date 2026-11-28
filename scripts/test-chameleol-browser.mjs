@@ -102,7 +102,7 @@ for (const engine of [chromium, webkit]) {
       }
       if (url.pathname.startsWith('/chameleonjp_lab/')) {
         const file = url.pathname.split('/').pop() || 'index.html';
-        const types = {'index.html':'text/html','ranking.html':'text/html','chameleol-ranking.js':'text/javascript','chameleol-hof.js':'text/javascript','chameleol-hof.css':'text/css','banner':'image/jpeg','IMG_7589.JPG':'image/jpeg'};
+        const types = {'lab-audio.js':'text/javascript','midnight-carousel.mp3':'audio/mpeg','index.html':'text/html','ranking.html':'text/html','chameleol-ranking.js':'text/javascript','chameleol-hof.js':'text/javascript','chameleol-hof.css':'text/css','banner':'image/jpeg','IMG_7589.JPG':'image/jpeg'};
         if (Object.hasOwn(types,file)) {
           return fulfill({contentType:types[file],body:await readFile(new URL(file,output))});
         }
