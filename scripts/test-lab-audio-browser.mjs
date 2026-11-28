@@ -59,6 +59,8 @@ for (const engine of [chromium, webkit]) {
     await card.tap();
     assert.deepEqual(await notes(), []);
     assert.equal(trackRequests, 0);
+    const closeDialog = page.locator("dialog[open] .dialog-close");
+    await closeDialog.tap();
     await sound.tap();
     await page.waitForFunction(() => window.heard.context?.state === 'running' && window.heard.loops.length === 1);
     const [track] = await page.evaluate(() => window.heard.loops);
@@ -72,7 +74,7 @@ for (const engine of [chromium, webkit]) {
     assert.deepEqual(await notes(), [76, 79]);
     await card.tap();
     assert.deepEqual(await notes(), [62, 69, 77]);
-    await card.tap();
+    await closeDialog.tap();
     assert.deepEqual(await notes(), [62, 50]);
     await card.tap();
     assert.deepEqual(await notes(), [62, 69, 77]);
@@ -91,12 +93,15 @@ for (const engine of [chromium, webkit]) {
     await page.evaluate(() => window.dispatchEvent(new Event('pageshow')));
     await page.waitForFunction(() => window.heard.context.state === 'running');
     assert.equal(await page.evaluate(() => window.heard.loops.length), 1);
+    await closeDialog.tap();
+    assert.deepEqual(await notes(), [62, 50]);
     await page.locator('#labLanguageSelect').selectOption('fr');
     assert.match(await sound.textContent(), /Son/);
     assert.deepEqual(await notes(), []); // Programmatic language changes are silent.
 
     await sound.tap();
     await page.waitForFunction(() => window.heard.context.state === 'suspended');
+    await card.tap();
     await page.locator('#detail-iroate').tap();
     await page.waitForURL('**/ranking.html?**');
     assert.equal(await sound.getAttribute('aria-pressed'), 'false');

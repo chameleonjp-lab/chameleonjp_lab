@@ -98,7 +98,7 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await thumbnail.getAttribute('href'), game.game_url);
     assert.equal(await thumbnail.locator('img').getAttribute('alt'), 'Inubo');
     const mobileLayout = await card.evaluate(el => ({
-      titleBottom: el.querySelector('.game-title').getBoundingClientRect().bottom,
+      titleBottom: el.querySelector('.dialog-head').getBoundingClientRect().bottom,
       thumbnail: el.querySelector('.game-thumbnail').getBoundingClientRect().toJSON(),
       descriptionTop: el.querySelector('.game-description').getBoundingClientRect().top,
       pageWidth: document.documentElement.clientWidth
@@ -115,12 +115,16 @@ for (const engine of [chromium, webkit]) {
     const detail = card.locator('#detail-inubo');
     await page.waitForFunction(() => document.querySelector('#detail-inubo')?.getAttribute('href')?.endsWith('?lang=en'));
 
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('dialog[open]').count(), 0);
+    assert.equal(await page.locator('[data-accordion=inubo]').evaluate(el => el === document.activeElement), true);
     const failedImage = page.waitForResponse(iroateThumbnailUrl);
     await page.locator('[data-accordion=iroate]').click();
     assert.equal((await failedImage).status(), 404);
     await page.locator('#game-iroate .game-thumbnail').waitFor({ state: 'detached' });
     await page.locator('#game-iroate .game-description').waitFor({ state: 'visible' });
     await thumbnail.waitFor({ state: 'hidden' });
+    await page.locator('dialog[open] .dialog-close').click();
     const tigerImageLoaded = page.waitForResponse(tigerThumbnailUrl);
     await page.locator('[data-accordion=torani_yasashiku]').click();
     await page.locator('#game-torani_yasashiku .game-description').waitFor({ state: 'visible' });
@@ -133,6 +137,8 @@ for (const engine of [chromium, webkit]) {
     assert.equal(await tiger.locator('.actions > a.button').getAttribute('href'), tigerPlayUrl);
     const tigerDetail = new URL(await tiger.locator('#detail-torani_yasashiku').getAttribute('href'), base);
     assert.equal(tigerDetail.searchParams.get('game'), 'torani_yasashiku');
+    await page.mouse.click(1, 1);
+    await page.locator('dialog[open]').waitFor({ state: 'hidden' });
     await page.getByRole('button', { name: 'Inubo', exact: true }).click();
     await thumbnail.waitFor({ state: 'visible' });
     assert.deepEqual(imageRequests, [thumbnailUrl, tigerThumbnailUrl]);

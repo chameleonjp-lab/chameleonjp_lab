@@ -38,6 +38,7 @@ img { max-width: 100%; }
 .map-pin { --marker: #fc996d; position: absolute; transform: translate(-50%,-50%); min-height: 44px; padding: 4px; background: none; border: 0; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; font-size: clamp(11px,1.2vw,16px); font-weight: 800; line-height: 1.1; color: var(--cream); }
 .map-pin > * { background: #143430; border: 1.5px solid var(--marker); padding: 6px 9px 6px 15px; border-radius: 4px; box-shadow: 0 3px 0 #0c2726; }
 .map-pin i { position: relative; background: var(--marker); color: #12322b; border-radius: 50%; padding: 0; margin-right: -9px; font: 900 18px/25px Georgia,serif; width: 26px; height: 26px; }
+.map-pin.popular { --marker:#ffe29b; left: 3%; top: 89%; transform: translateY(-50%); }
 .map-pin.action { left: 23%; top: 52%; }
 .map-pin.puzzle { --marker:#89e1c6; left: 73%; top: 34%; }
 .map-pin.timing { --marker:#ffd77a; left: 72%; top: 78%; }
@@ -66,7 +67,7 @@ img { max-width: 100%; }
 .finder button { font-weight: 700; }
 .empty-results { padding-block: 20px; }
 #gameList { --cols: 4; --gap: 16px; display: grid; grid-template-columns: repeat(var(--cols), minmax(0,1fr)); column-gap: var(--gap); row-gap: 0; overflow-anchor: none; }
-.game-card { --col: var(--col-4,0); --accent: #a2d4bc; --chip: #284b42; min-width: 0; display: grid; grid-row: span 2; grid-template-rows: subgrid; grid-template-columns: minmax(0,1fr); padding-bottom: var(--gap); }
+.game-card { --accent: #a2d4bc; --chip: #284b42; min-width: 0; display: grid;  grid-template-columns: minmax(0,1fr); padding-bottom: var(--gap); }
 .game-card[data-area="action"] { --accent: #ffc195; --chip: #774125; }
 .game-card[data-area="puzzle"] { --accent: #a7e2c7; --chip: #23584b; }
 .game-card[data-area="timing"] { --accent: #f6d982; --chip: #705319; }
@@ -83,14 +84,22 @@ img { max-width: 100%; }
 .area-label i { display: inline-grid; place-items: center; border-radius: 50%; width: 16px; height: 16px; background: var(--accent); font: 800 12px/1 Georgia,serif; }
 .accordion-title-text { font-size: clamp(16px,1.8vw,21px); font-weight: 850; letter-spacing: -.035em; line-height: 1.35; }
 .release-date { color: var(--muted); font: 600 10px/1.3 ui-monospace,monospace; letter-spacing: .05em; }
-.accordion-icon { position: absolute; inset-inline-end: 8px; top: 8px; width: 23px; height: 23px; background: #132f2be8; border: 1px solid #efe8ce; border-radius: 50%; color: #fff5d9; }
-.accordion-icon::after,.accordion-icon::before { content:""; position:absolute; inset:0; margin:auto; width:9px; height:1.7px; background: currentColor; }
-.accordion-icon::after { transform: rotate(90deg); }
-.open .accordion-icon { background: var(--accent); color: var(--ink); }
-.open .accordion-icon::after { display: none; }
-.open .accordion-toggle { border-color: var(--forest); box-shadow: 0 0 0 2px var(--forest); }
-.accordion-content { display: none; }
-.open .accordion-content { display: grid; gap: 13px; position: relative; width: calc(var(--cols) * 100% + (var(--cols) - 1) * var(--gap)); margin-inline-start: calc(-1 * var(--col) * (100% + var(--gap))); margin-top: 12px; padding: clamp(14px, 2.4vw, 26px); border: 1px solid #85968a; border-radius: 12px; background: #fffaf0; box-shadow: 0 3px 0 #d3ccb4; }
+#popularInfo p { margin: 0 0 12px; color: var(--muted); }
+#popularInfo p:empty { display: none; }
+.monthly-count { display: flex; align-items: center; gap: 7px; border-top: 1px dashed var(--line); padding: 6px 10px; width: 100%; margin-top: auto; font-size: 13px; font-weight: 700; }
+.monthly-count b { background: #174c40; color: #fff3cf; padding: 2px 6px; border-radius: 4px; }
+html:has(.game-dialog[open]) { overflow: hidden; }
+.game-dialog {
+  width: min(550px, calc(100% - 24px)); max-width: none;
+  max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  padding: 0; border: 1px solid #9aa58c; border-radius: 15px; color: var(--ink); background: var(--card);
+  box-shadow: 0 12px 60px #08251e66; overflow-y: auto; overscroll-behavior: contain;
+}
+.game-dialog::backdrop { background: #0a211ed9; }
+.dialog-head { position: sticky; z-index: 1; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 9px 12px 9px 17px; background: var(--forest); color: var(--cream); }
+.dialog-head h2 { font-size: clamp(18px,4.4vw,25px); margin: 0; }
+.dialog-close { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #d2c49d; color: var(--cream); background: transparent; font-size: 26px; }
+.game-dialog .accordion-content { display: grid; gap: 14px; padding: 16px; }
 .game-thumbnail { display: block; max-width: 480px; width: 100%; margin: 0 auto; }
 .game-thumbnail img { width: 100%; display: block; height: auto; border-radius: 6px; }
 .game-description { margin: 0; font-size: 15px; line-height: 1.7; }
@@ -121,13 +130,9 @@ img { max-width: 100%; }
 .toast.show { opacity: 1; }
 @media (min-width: 720px) {
   .hero-copy { margin-inline: 17px; border-block: 1px dashed #d2b77b70; }
-  .open .accordion-content:has(.game-thumbnail:not([hidden])) { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); align-items: center; }
-  .game-thumbnail { grid-column: 1; grid-row: 1 / span 3; }
-  .accordion-content:has(.game-thumbnail:not([hidden])) > :not(.game-thumbnail) { grid-column: 2; }
 }
 @media (min-width: 611px) and (max-width: 940px) {
   #gameList { --cols: 3; --gap: 12px; }
-  .game-card { --col: var(--col-3,0); }
 }
 @media (max-width: 610px) {
   .page { padding-inline: max(12px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-right)); }
@@ -149,7 +154,6 @@ img { max-width: 100%; }
   .sort-select { max-width: 44vw; }
   .finder { margin: 7px 0 12px; }
   #gameList { --cols: 2; --gap: 10px; }
-  .game-card { --col: var(--col-2,0); }
   .game-caption { padding: 8px 9px 10px; gap: 4px; }
   .actions .button { flex-grow: 1; padding-inline: 11px; }
   .detail-link-wrap { flex-grow: 2; }
@@ -166,6 +170,6 @@ img { max-width: 100%; }
 @media (prefers-reduced-motion:no-preference) {
   .map-pin { transition: scale .16s ease-out; }
   .map-pin:active { scale: .96; }
-  .open .accordion-content { animation: ticket-in .17s ease-out; }
+  .game-dialog[open] { animation: ticket-in .17s ease-out; }
   @keyframes ticket-in { from { opacity: .5; } to { opacity: 1; } }
 }

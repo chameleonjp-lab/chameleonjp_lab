@@ -114,14 +114,18 @@ for (const engine of [chromium, webkit]) {
     const share = card.locator('[data-share=ikagetto]');
     await share.click();
     assert.equal(await page.evaluate(() => window.sharedText), `Catch a big squid and show it off\n#イカゲット\n${game.game_url}`);
+    await card.locator('.dialog-close').click();
     await page.locator('#labLanguageSelect').selectOption('ja');
+    await card.locator('[data-accordion]').click();
     await share.click();
     assert.equal(await page.evaluate(() => window.sharedText), `大きいイカを釣って自慢しよう\n#イカゲット\n${game.game_url}`);
+    await card.locator('.dialog-close').click();
     await page.locator('#labLanguageSelect').selectOption('en');
+    await toggle.click();
     await card.locator('#plays-ikagetto').filter({ hasText: 'Could not load' }).waitFor();
 
     outcome = 'scores';
-    await toggle.click();
+    await card.locator('.dialog-close').click();
     await toggle.click();
     await card.locator('#plays-ikagetto').filter({ hasText: '7' }).waitFor();
     assert.ok(calls.every(({ rpc }) => rpc === 'ikagetto_stats_v1'));
@@ -211,7 +215,7 @@ for (const engine of [chromium, webkit]) {
     await card.locator('#plays-ikagetto').filter({ hasText: /^0/ }).waitFor();
     assert.match(await card.locator('#plays-ikagetto').textContent(), /^0\D/);
     assert.match(await card.locator('#players-ikagetto').textContent(), /^0\D/);
-    assert.equal(calls.filter(({ rpc }) => rpc === 'ikagetto_stats_v1').length, 6);
+    assert.equal(calls.filter(({ rpc }) => rpc === 'ikagetto_stats_v1').length, 8);
     assert.equal(calls.filter(({ rpc }) => rpc === 'ikagetto_fishing_board_v2').length, 0);
     assert.ok(calls.some(({ rpc, args }) => rpc === 'ikagetto_board_page_v3' && args.p_mode === 'fishing' && args.p_offset === 1000));
 
