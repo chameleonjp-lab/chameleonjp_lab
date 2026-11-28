@@ -19,7 +19,7 @@
   <script src="./i18n/ranking.js?v=20261128-ikagetto-hall"></script>
   <script src="./i18n/games-1.js?v=20261120-15lang"></script>
   <script src="./i18n/games-2.js?v=20261120-15lang"></script>
-  <script src="./i18n/games-3.js?v=20261128-galaxy-shark"></script>
+  <script src="./i18n/games-3.js?v=20261128-sabasaba"></script>
   <script src="./i18n/extras.js?v=20261120-15lang"></script>
   <script src="./i18n/hall.js?v=20261120-15lang"></script>
   <script src="./i18n/runtime.js?v=20261127-ranking-pages"></script>
@@ -1981,6 +1981,56 @@
         ]
       },
       {
+        "pageSlug": "sabasaba",
+        "title": "サバサバ",
+        "url": "https://chameleonjp-lab.github.io/sabasaba/",
+        "description": "敵を倒して強化し、ノーマルではボス撃破、エンドレスでは生き残りを目指すゲームです。",
+        "shareText": "サバサバ https://chameleonjp-lab.github.io/sabasaba/",
+        "defaultDifficultyKey": "normal",
+        "difficulties": [
+          {
+            "displayOrder": 36,
+            "slug": "sabasaba_normal",
+            "title": "サバサバ（ノーマル）",
+            "url": "https://chameleonjp-lab.github.io/sabasaba/",
+            "description": "10分以内に3体のボスを撃破する通常任務。",
+            "shareText": "サバサバ（ノーマル）\n敵を倒して強化し、最終ボスを撃破しよう。\nhttps://chameleonjp-lab.github.io/sabasaba/",
+            "releaseDate": "2026-08-20",
+            "topRanking": "best",
+            "scoreOrder": "desc",
+            "scoreUnit": "点",
+            "scoreScale": 1,
+            "scoreDecimals": 0,
+            "scoreLabel": "スコア",
+            "firstScoreLabel": null,
+            "bestScoreLabel": "最高スコア",
+            "isActive": true,
+            "key": "normal",
+            "difficultyLabel": "ノーマル"
+          },
+          {
+            "displayOrder": 37,
+            "slug": "sabasaba_endless",
+            "title": "サバサバ（エンドレス）",
+            "url": "https://chameleonjp-lab.github.io/sabasaba/",
+            "description": "限界まで敵の波を生き残り、スコアを伸ばす無限任務。",
+            "shareText": "サバサバ（エンドレス）\n敵の波を限界まで生き残り、スコアを伸ばそう。\nhttps://chameleonjp-lab.github.io/sabasaba/",
+            "releaseDate": "2026-08-20",
+            "topRanking": "best",
+            "scoreOrder": "desc",
+            "scoreUnit": "点",
+            "scoreScale": 1,
+            "scoreDecimals": 0,
+            "scoreLabel": "スコア",
+            "firstScoreLabel": null,
+            "bestScoreLabel": "最高スコア",
+            "isActive": true,
+            "key": "endless",
+            "difficultyLabel": "エンドレス"
+          }
+        ]
+      },
+      {
             "pageSlug": "paripari",
             "title": "パリパリ",
             "url": "https://chameleonjp-lab.github.io/paripari/",
@@ -2487,6 +2537,16 @@
     }
 
     async function resolveGroupedGameFromSupabase(requestedSlug, requestedDifficulty) {
+      const fallbackPage = findPageBySlug(requestedSlug);
+      if (fallbackPage?.pageSlug === "sabasaba") {
+        const modes = fallbackPage.difficulties.map(({ slug, key, difficultyLabel }) => ({ slug, key, label: difficultyLabel }));
+        const rows = await Promise.all(modes.map(({ slug }) => fetchGameRow(slug)));
+        const page = buildGroupedPage(fallbackPage.pageSlug, fallbackPage.title, rows, modes, fallbackPage.defaultDifficultyKey);
+        if (!page) return null;
+        page.shareText = fallbackPage.shareText;
+        return { page, difficulty: getDifficultyFromPage(page, requestedDifficulty, requestedSlug) };
+      }
+
       if (requestedSlug === "faitofuraito" || requestedSlug === "faitofuraito_normal" || requestedSlug === "faitofuraito_easy") {
         const rows = await Promise.all([
           fetchGameRow("faitofuraito_normal"),
@@ -2815,8 +2875,9 @@
     function difficultyTabsHtml(page, selectedGame) {
       if (!page || !Array.isArray(page.difficulties) || page.difficulties.length <= 1) return "";
 
+      const label = page.pageSlug === "sabasaba" ? "モード切り替え" : "難易度切り替え";
       return `
-        <div class="ranking-switch" role="tablist" aria-label="難易度切り替え">
+        <div class="ranking-switch" role="tablist" aria-label="${label}">
           ${page.difficulties.map((difficulty) => {
             const active = difficulty.slug === selectedGame.slug;
             return `
