@@ -482,25 +482,32 @@
               }
             },
             "else": {
-              "properties": {
-                "player_name": {
-                  "properties": {
-                    "required_before_start": {
-                      "const": true
+              "if": {
+                "properties": {
+                  "play_count": { "properties": { "rpc": { "const": "lab_record_play_start_v1" } } }
+                }
+              },
+              "then": {
+                "properties": {
+                  "submission_mode": { "const": "shared" },
+                  "player_name": {
+                    "required": ["required_for_ranking"],
+                    "properties": {
+                      "required_before_start": { "const": false },
+                      "required_for_ranking": { "const": true }
                     }
                   },
-                  "not": {
-                    "required": [
-                      "required_for_ranking"
-                    ]
-                  }
-                },
-                "play_count": {
-                  "not": {
-                    "required": [
-                      "unregistered_rpc"
-                    ]
-                  }
+                  "play_count": { "not": { "required": ["unregistered_rpc"] } },
+                  "submission": { "properties": { "rpc": { "const": "submit_score_idempotent_v1" } } }
+                }
+              },
+              "else": {
+                "properties": {
+                  "player_name": {
+                    "properties": { "required_before_start": { "const": true } },
+                    "not": { "required": ["required_for_ranking"] }
+                  },
+                  "play_count": { "not": { "required": ["unregistered_rpc"] } }
                 }
               }
             }
